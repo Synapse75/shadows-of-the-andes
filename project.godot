@@ -11,8 +11,14 @@ config_version=5
 [application]
 
 config/name="Shadows_of_the_Andes"
+run/main_scene="uid://c1ig1vxpi1to"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1200
 
 [physics]
 
@@ -21,3 +27,8 @@ config/icon="res://icon.svg"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+
+[window]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080

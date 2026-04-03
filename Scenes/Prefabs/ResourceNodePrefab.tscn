@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://d37i0wp3ude5o"]
+
+[ext_resource type="Script" uid="uid://28aou7hxjoiq" path="res://Scripts/Nodes/ResourceNode.gd" id="1_resource"]
+
+[node name="ResourceNodePrefab" type="Node2D" unique_id=1877353155]
+script = ExtResource("1_resource")
+resource_type = "potato"
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=796930886]
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 30.0
+offset_bottom = 30.0
+color = Color(0.5, 0.5, 0.5, 1)
