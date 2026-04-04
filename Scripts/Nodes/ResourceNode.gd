@@ -19,7 +19,8 @@ func _process(_delta: float) -> void:
 
 func produce_resource() -> void:
 	"""Generate this resource"""
-	add_resource("food", production_rate)
+	if production_rate > 0:
+		add_resource("food", production_rate)
 
 func _on_control_changed(_is_player: bool) -> void:
 	"""Update color when control changes"""
@@ -29,16 +30,6 @@ func update_visual() -> void:
 	"""Update node color to represent different states"""
 	if not is_node_ready():
 		return
-		
-	var color: Color
-	match altitude:
-		"high":
-			color = Color.LIGHT_SKY_BLUE if control_by_player else Color.DARK_GRAY
-		"medium":
-			color = Color.YELLOW if control_by_player else Color.DIM_GRAY
-		"low":
-			color = Color.GREEN if control_by_player else Color.DARK_SLATE_GRAY
-		_:
-			color = Color.WHITE
 	
+	var color: Color = Color.BLUE if control_by_player else Color.RED
 	circle.color = color

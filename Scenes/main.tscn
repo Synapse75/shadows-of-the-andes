@@ -14,9 +14,8 @@ script = ExtResource("1_o6r6m")
 
 [node name="Map" type="Node2D" parent="." unique_id=660211623]
 
-[node name="Tinta" parent="Map" unique_id=1850533524 instance=ExtResource("5_resource_prefab")]
+[node name="Tinta" parent="Map" unique_id=1850533524 instance=ExtResource("6_village_prefab")]
 position = Vector2(400, 300)
-production_rate = 3
 node_id = "tinta"
 location_name = "Tinta"
 location_description = "Birthplace of the rebellion"
@@ -81,21 +80,57 @@ location_description = "Gateway to the jungle"
 node_type = "resource"
 altitude = "low"
 
-[node name="Canas" parent="Map" unique_id=668027460 instance=ExtResource("6_village_prefab")]
-position = Vector2(250, 350)
-node_id = "canas"
-location_name = "Canas"
-location_description = "Population center"
-node_type = "village"
+[node name="Andahuaylillas" parent="Map" unique_id=2000000001 instance=ExtResource("5_resource_prefab")]
+position = Vector2(250, 200)
+resource_type = "corn"
+node_id = "andahuaylillas"
+location_name = "Andahuaylillas"
+location_description = "Ancient community"
+node_type = "resource"
+altitude = "medium"
+
+[node name="Marcapata" parent="Map" unique_id=2000000002 instance=ExtResource("5_resource_prefab")]
+position = Vector2(700, 250)
+resource_type = "coca"
+node_id = "marcapata"
+location_name = "Marcapata"
+location_description = "Lowland transition area"
+node_type = "resource"
+altitude = "low"
+
+[node name="Pilcopata" parent="Map" unique_id=2000000004 instance=ExtResource("5_resource_prefab")]
+position = Vector2(550, 550)
+resource_type = "coca"
+node_id = "pilcopata"
+location_name = "Pilcopata"
+location_description = "Amazon frontier settlement"
+node_type = "resource"
+altitude = "low"
+
+[node name="Cusco" parent="Map" unique_id=2000000005 instance=ExtResource("5_resource_prefab")]
+position = Vector2(400, 400)
+node_id = "cusco"
+location_name = "Cusco"
+location_description = "Inca capital & ultimate objective"
+node_type = "capital"
+altitude = "medium"
+
+[node name="Ocongate" parent="Map" unique_id=2000000006 instance=ExtResource("5_resource_prefab")]
+position = Vector2(600, 150)
+node_id = "ocongate"
+location_name = "Ocongate"
+location_description = "Highland town"
+node_type = "resource"
 altitude = "high"
 
-[node name="Canchis" parent="Map" unique_id=497214271 instance=ExtResource("6_village_prefab")]
-position = Vector2(250, 250)
-node_id = "canchis"
-location_name = "Canchis"
-location_description = "Regional settlement"
-node_type = "village"
-altitude = "high"
+[node name="Challabamba" parent="Map" unique_id=2000000007 instance=ExtResource("5_resource_prefab")]
+position = Vector2(350, 550)
+resource_type = "coca"
+node_id = "challabamba"
+location_name = "Challabamba"
+location_description = "Lowland settlement"
+node_type = "resource"
+altitude = "low"
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
