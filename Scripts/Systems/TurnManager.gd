@@ -4,19 +4,27 @@ class_name TurnManager
 var current_turn: int = 0
 var game_map: GameMap
 var resource_manager: ResourceManager
+var turn_label: Label
+var next_turn_button: Button
 
 signal turn_started(turn_number: int)
 signal turn_ended(turn_number: int)
 
-@onready var turn_label = $"../../UILayer/TurnInfo/TurnLabel"
-@onready var next_turn_button = $"../../UILayer/NextTurnButton"
-
 func _ready() -> void:
-	game_map = get_parent().get_parent()
+	# 获取GameMap引用（现在在Map节点上）
+	game_map = get_tree().root.get_node("Main/Map")
 	resource_manager = get_parent().get_node("ResourceManager")
 	
+	# 使用get_node获取UI元素（更稳健）
+	var main_node = get_tree().root.get_node("Main")
+	turn_label = main_node.get_node("UILayer/TurnInfo/TurnLabel")
+	next_turn_button = main_node.get_node("UILayer/NextTurnButton")
+	
 	# Connect button signal
-	next_turn_button.pressed.connect(_on_next_turn_pressed)
+	if next_turn_button:
+		next_turn_button.pressed.connect(_on_next_turn_pressed)
+	else:
+		push_error("NextTurnButton not found!")
 	
 	update_ui()
 

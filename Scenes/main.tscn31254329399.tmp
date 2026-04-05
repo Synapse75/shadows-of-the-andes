@@ -8,12 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://c8jt1ktsnvj8a" path="res://Scenes/Prefabs/VillageNodePrefab.tscn" id="6_village_prefab"]
 [ext_resource type="Script" uid="uid://hfq4dtksx8pb" path="res://Scripts/Systems/UnitManager.gd" id="7_unit_manager"]
 [ext_resource type="Script" uid="uid://bkv3380swpyew" path="res://Scripts/Units/Unit.gd" id="8_unit"]
-[ext_resource type="Shader" uid="uid://diqd3tufib4ue" path="res://Shaders/lighten_map.gdshader" id="9_hptm8"]
-[ext_resource type="Texture2D" uid="uid://case3gkjd7uoh" path="res://Sprites/map.png" id="9_ynf5e"]
 [ext_resource type="Script" uid="uid://chd8k24fv1j14" path="res://Scripts/Systems/MapSystem.gd" id="11_map_system"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_d1ilt"]
-shader = ExtResource("9_hptm8")
 
 [node name="Main" type="Node2D" unique_id=1470391578]
 script = ExtResource("1_game_controller")
@@ -21,13 +16,10 @@ script = ExtResource("1_game_controller")
 [node name="Map" type="Node2D" parent="." unique_id=660211623]
 script = ExtResource("2_game_map")
 
-[node name="Background" type="Sprite2D" parent="Map" unique_id=221669529]
-material = SubResource("ShaderMaterial_d1ilt")
-position = Vector2(727, 567)
-texture = ExtResource("9_ynf5e")
-
 [node name="Tinta" parent="Map" unique_id=1294763920 instance=ExtResource("6_village_prefab")]
-position = Vector2(732, 960)
+position = Vector2(400, 300)
+controlled_sprite = null
+uncontrolled_sprite = null
 node_id = "tinta"
 location_name = "Tinta"
 location_description = "Birthplace of the rebellion"
@@ -42,7 +34,7 @@ unit_name = "Rebel Soldier"
 unit_type = "rebel"
 
 [node name="Tungasuca" parent="Map" unique_id=1009032690 instance=ExtResource("6_village_prefab")]
-position = Vector2(683, 982)
+position = Vector2(300, 150)
 node_id = "tungasuca"
 location_name = "Tungasuca"
 location_description = "Highland stronghold"
@@ -141,7 +133,6 @@ altitude = "low"
 layer = 10
 
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
-visible = false
 custom_minimum_size = Vector2(350, 280)
 offset_left = 10.0
 offset_top = 10.0
