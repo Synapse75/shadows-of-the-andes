@@ -1,13 +1,6 @@
 [gd_scene format=3 uid="uid://c8jt1ktsnvj8a"]
 
 [ext_resource type="Script" uid="uid://kncnv053rxdv" path="res://Scripts/Nodes/VillageNode.gd" id="1_village"]
-[ext_resource type="Texture2D" uid="uid://dqw6dq0loo0m1" path="res://Sprites/village_controlled.png" id="2_village_ctrl"]
-[ext_resource type="Texture2D" uid="uid://dxo6vgpao0dq8" path="res://Sprites/village_uncontrolled.png" id="3_village_unctl"]
 
 [node name="VillageNodePrefab" type="Node2D" unique_id=1943635923]
 script = ExtResource("1_village")
-controlled_sprite = ExtResource("2_village_ctrl")
-uncontrolled_sprite = ExtResource("3_village_unctl")
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1601548857]
-texture = ExtResource("3_village_unctl")

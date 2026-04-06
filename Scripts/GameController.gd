@@ -18,9 +18,6 @@ func _ready() -> void:
 	# 等待GameMap初始化完成
 	await game_map.tree_entered
 	
-	# 初始化所有村庄的sprite（确保显示是最新的）
-	_initialize_village_sprites()
-	
 	# 初始化地图系统（注册所有地图视野）
 	_setup_map_system()
 	
@@ -29,26 +26,6 @@ func _ready() -> void:
 	
 	emit_signal("game_started")
 	print("游戏初始化完成")
-
-func _initialize_village_sprites() -> void:
-	"""确保所有VillageNode都有正确的sprite"""
-	# 加载sprite资源
-	var controlled_sprite = load("res://Sprites/village_controlled.png")
-	var uncontrolled_sprite = load("res://Sprites/village_uncontrolled.png")
-	
-	# 遍历所有节点，初始化sprite
-	for node in game_map.all_nodes:
-		if node is VillageNode:
-			var village = node as VillageNode
-			# 如果sprite为空，则分配
-			if village.controlled_sprite == null:
-				village.controlled_sprite = controlled_sprite
-			if village.uncontrolled_sprite == null:
-				village.uncontrolled_sprite = uncontrolled_sprite
-			# 重新更新视觉（确保显示正确）
-			village.update_visual()
-	
-	print("所有村庄sprite初始化完成")
 
 func _setup_map_system() -> void:
 	"""初始化MapSystem - 注册所有地图视野"""
