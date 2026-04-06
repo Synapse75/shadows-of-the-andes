@@ -1,98 +1,74 @@
 extends Camera2D
 class_name CameraManager
 
-# 摄像机参数
-@export var min_zoom: float = 0.5
-@export var max_zoom: float = 8.0
-@export var zoom_speed: float = 0.1
-@export var drag_enabled: bool = true
+# 固定镜头配置
+var cameras: Dictionary = {
+	"tinta": Vector2(732, 960),           # Tinta 为中心
+	"andahuaylillas": Vector2(250, 200),  # Andahuaylillas 为中心
+	"marcapata": Vector2(700, 250),       # Marcapata 为中心
+	"jungle": Vector2(475, 500)           # Paucartambo 和 Pilcopata 的中点
+}
 
-# 内部状态
-var is_dragging: bool = false
-var camera_start_pos: Vector2 = Vector2.ZERO
+# 镜头连接关系 - 每个镜头可以连接到哪些镜头
+var connected_cameras: Dictionary = {
+	"tinta": ["andahuaylillas"],
+	"andahuaylillas": ["tinta", "marcapata", "jungle"],
+	"marcapata": ["andahuaylillas"],
+	"jungle": ["andahuaylillas"]
+}
+
+var current_camera: String = "tinta"
+
+# 相机平滑过渡
+var is_transitioning: bool = false
+var transition_speed: float = 300.0  # 像素/秒
 
 func _ready() -> void:
 	# 初始化相机
 	make_current()
 	zoom = Vector2.ONE * 4.0
 	
+	# 设置初始镜头位置
+	set_camera_view("tinta")
+	
 	# 启用输入
 	set_process_input(true)
 
-func _input(event: InputEvent) -> void:
-	"""处理鼠标输入：滚轮缩放和左键拖动"""
-	
-	# 滚轮缩放
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom_in()
-			get_tree().root.set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom_out()
-			get_tree().root.set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_LEFT:
-			# 检查是否点击了UI按钮 - 如果是则不处理拖动
-			var screen_pos = event.position
-			
-			# NextTurnButton: 10, 360 - 200, 40
-			var next_turn_rect = Rect2(Vector2(10, 360), Vector2(190, 40))
-			if next_turn_rect.has_point(screen_pos):
-				return  # Let button handle it
-			
-			# PauseButton: 1840, 10 - 70, 40
-			var pause_btn_rect = Rect2(Vector2(1840, 10), Vector2(70, 40))
-			if pause_btn_rect.has_point(screen_pos):
-				return  # Let button handle it
-			
-			if event.pressed:
-				_start_drag()
-			else:
-				_end_drag()
-			get_tree().root.set_input_as_handled()
-	
-	# 左键拖动 - 使用 event.relative 获取屏幕坐标的相对移动
-	elif event is InputEventMouseMotion and is_dragging:
-		_update_drag(event)
-		get_tree().root.set_input_as_handled()
+func _input(_event: InputEvent) -> void:
+	"""处理鼠标输入: 拖动已禁用，仅通过箭头切换镜头"""
+	# 拖动功能已禁用 - 镜头只能通过箭头按钮切换
+	return
 
-func zoom_in() -> void:
-	"""放大摄像机"""
-	zoom = zoom + Vector2.ONE * zoom_speed
-	zoom = zoom.clamp(Vector2.ONE * min_zoom, Vector2.ONE * max_zoom)
-	print("缩放: %.1fx" % zoom.x)
+func set_camera_view(view_name: String) -> void:
+	"""切换到指定镜头"""
+	if view_name in cameras:
+		current_camera = view_name
+		global_position = cameras[view_name]
+		print("切换镜头: %s 位置 %s" % [view_name, cameras[view_name]])
+	else:
+		print("镜头不存在: %s" % view_name)
 
-func zoom_out() -> void:
-	"""缩小摄像机"""
-	zoom = zoom - Vector2.ONE * zoom_speed
-	zoom = zoom.clamp(Vector2.ONE * min_zoom, Vector2.ONE * max_zoom)
-	print("缩放: %.1fx" % zoom.x)
+func cycle_camera_next() -> void:
+	"""循环切换到下一个镜头"""
+	var view_names = cameras.keys()
+	var current_index = view_names.find(current_camera)
+	var next_index = (current_index + 1) % view_names.size()
+	set_camera_view(view_names[next_index])
 
-func _start_drag() -> void:
-	"""开始拖动"""
-	is_dragging = true
-	camera_start_pos = global_position
-	print("开始拖动")
+func cycle_camera_prev() -> void:
+	"""循环切换到上一个镜头"""
+	var view_names = cameras.keys()
+	var current_index = view_names.find(current_camera)
+	var prev_index = (current_index - 1 + view_names.size()) % view_names.size()
+	set_camera_view(view_names[prev_index])
 
-func _end_drag() -> void:
-	"""结束拖动"""
-	is_dragging = false
-	print("结束拖动")
+func get_connected_cameras() -> Array:
+	"""获取当前镜头连接到的镜头列表"""
+	if current_camera in connected_cameras:
+		return connected_cameras[current_camera]
+	return []
 
-func _update_drag(motion_event: InputEventMouseMotion) -> void:
-	"""更新拖动位置
-	
-	鼠标在屏幕上移动时将该移动转换为世界坐标的摄像机移动
-	同时更新UI层以跟随摄像机
-	"""
-	# 获取屏幕坐标的移动距离
-	var screen_delta = motion_event.relative
-	
-	# 将屏幕坐标转换为世界坐标
-	# 屏幕移动需要除以缩放倍数来得到世界空间的移动
-	var world_delta = -screen_delta / zoom.x
-	
-	# 更新摄像机位置
-	global_position = camera_start_pos + world_delta
-	
-	# 更新起始位置以支持连续拖动
-	camera_start_pos = global_position
+func can_view_camera(view_name: String) -> bool:
+	"""检查是否可以从当前镜头切换到指定镜头"""
+	var connected = get_connected_cameras()
+	return view_name in connected

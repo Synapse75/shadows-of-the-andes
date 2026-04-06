@@ -63,23 +63,14 @@ func update_position_to_node(node: BaseNode) -> void:
 	if not node:
 		return
 	
-	var camera = get_tree().root.get_node("Main/Camera2D")
-	if not camera:
-		return
-	
-	# Convert node world position to screen position
+	# Get node world position as base
 	var node_world_pos = node.global_position
-	var camera_pos = camera.global_position
-	var zoom = camera.zoom
-	var relative_pos = node_world_pos - camera_pos
 	var viewport_size = get_viewport().get_visible_rect().size
-	var viewport_center = viewport_size / 2
-	var node_screen_pos = viewport_center + relative_pos * zoom
 	
-	# Position panel above the node with offset
+	# Position panel above the node (offset from node center)
 	var panel_size = info_panel.size
-	var new_x = node_screen_pos.x - panel_size.x / 2
-	var new_y = node_screen_pos.y - panel_size.y - 20
+	var new_x = node_world_pos.x - panel_size.x / 2
+	var new_y = node_world_pos.y - 60  # Position above the node label
 	
 	# Prevent panel from going off-screen
 	if new_x < 0:
@@ -87,7 +78,7 @@ func update_position_to_node(node: BaseNode) -> void:
 	if new_x + panel_size.x > viewport_size.x:
 		new_x = viewport_size.x - panel_size.x
 	if new_y < 0:
-		new_y = node_screen_pos.y + 20
+		new_y = node_world_pos.y + 20  # If above doesn't fit, place below
 	if new_y + panel_size.y > viewport_size.y:
 		new_y = viewport_size.y - panel_size.y
 	

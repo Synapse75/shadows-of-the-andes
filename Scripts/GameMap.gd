@@ -12,7 +12,6 @@ var current_turn: int = 0
 # UI management
 var ui_manager: UIManager
 var unit_manager: UnitManager
-var village_ui_manager: VillageUIManager
 var hovered_node: BaseNode = null
 
 signal node_selected(node: BaseNode)
@@ -23,7 +22,6 @@ func _ready() -> void:
 	_setup_connections()
 	ui_manager = get_parent().get_node("Systems/UIManager")
 	unit_manager = get_parent().get_node("Systems/UnitManager")
-	village_ui_manager = get_parent().get_node("UILayer/VillageUIManager")
 	
 	# 等待 UnitManager 收集单位后，将单位分配到节点
 	await unit_manager.tree_entered
@@ -54,14 +52,14 @@ func _assign_units_to_nodes() -> void:
 		print("All units assigned to Tinta")
 
 func _process(_delta: float) -> void:
-	"""Handle mouse hover effect - based on UI sprite screen coordinates"""
+	"""Handle mouse hover effect - based on village sprite collision"""
 	# Only respond to hover when not locked
 	if ui_manager.is_panel_locked:
 		return
 	
-	# Get screen mouse position
-	var screen_mouse_pos = get_viewport().get_mouse_position()
-	var node_at_pos = _get_node_at_screen_position(screen_mouse_pos)
+	# Get global mouse position
+	var global_mouse_pos = get_global_mouse_position()
+	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
 	if node_at_pos != hovered_node:
 		if node_at_pos != null:
@@ -108,8 +106,9 @@ func _input(event: InputEvent) -> void:
 				ui_manager.unlock_node_info()
 				get_tree().root.set_input_as_handled()
 		else:
-			# Unlocked state: check clicked node based on screen position
-			var clicked_node = _get_node_at_screen_position(screen_mouse_pos)
+			# Unlocked state: check clicked node based on world position
+			var global_mouse_pos = get_global_mouse_position()
+			var clicked_node = _get_node_at_position(global_mouse_pos)
 			if clicked_node:
 				# Clicked on node
 				# Check if units are at this node
@@ -124,30 +123,17 @@ func _input(event: InputEvent) -> void:
 				print("已锁定节点: %s" % clicked_node.node_id)
 				get_tree().root.set_input_as_handled()
 
-func _get_node_at_position(pos: Vector2) -> BaseNode:
-	"""检测鼠标点击的节点 - pos 是相对于 Map 节点的本地坐标"""
-	var global_mouse_pos = global_position + pos
+func _get_node_at_position(global_pos: Vector2) -> BaseNode:
+	"""检测全局位置处的节点 - 通过与AnimatedSprite2D碰撞检测"""
 	for node in all_nodes:
-		# 检查距离（30 像素范围内）
-		if node.global_position.distance_to(global_mouse_pos) < 30:
-			return node
-	return null
-
-func _get_node_at_screen_position(screen_pos: Vector2) -> BaseNode:
-	"""Based on UI sprite screen position, detect which node is being hovered"""
-	if not village_ui_manager:
-		return null
-	
-	# Check each village UI sprite in screen coordinates
-	for village_id in village_ui_manager.village_ui_nodes:
-		var sprite = village_ui_manager.village_ui_nodes[village_id]
-		var sprite_size = sprite.get_rect().size * sprite.scale
-		var sprite_rect = Rect2(sprite.position - sprite_size / 2, sprite_size)
-		
-		if sprite_rect.has_point(screen_pos):
-			# Found hovering over this village UI
-			return _get_node_by_id(village_id)
-	
+		if node is VillageNode and node.village_sprite:
+			var sprite = node.village_sprite
+			# AnimatedSprite2D的原始帧大小是 8x8，检查碰撞范围
+			var sprite_half_size = Vector2(4, 4)  # 8x8 的一半
+			var sprite_rect = Rect2(sprite.global_position - sprite_half_size, sprite_half_size * 2)
+			
+			if sprite_rect.has_point(global_pos):
+				return node
 	return null
 
 func _get_node_by_id(node_id: String) -> BaseNode:

@@ -4,16 +4,18 @@
 [ext_resource type="Script" uid="uid://sdw70qywjdad" path="res://Scripts/Systems/ResourceManager.gd" id="2_a5kpm"]
 [ext_resource type="Script" uid="uid://pvp748id1koi" path="res://Scripts/GameMap.gd" id="2_game_map"]
 [ext_resource type="Script" uid="uid://cxjp1q8i07vkl" path="res://Scripts/Systems/UIManager.gd" id="3_ui_manager"]
+[ext_resource type="Texture2D" uid="uid://bwvcu8dp0lwus" path="res://Sprites/mappixel.png" id="4_jkdf5"]
 [ext_resource type="Script" uid="uid://doe00w6ngoic1" path="res://Scripts/Systems/TurnManager.gd" id="4_turn"]
 [ext_resource type="PackedScene" uid="uid://c8jt1ktsnvj8a" path="res://Scenes/Prefabs/VillageNodePrefab.tscn" id="6_village_prefab"]
 [ext_resource type="Script" uid="uid://hfq4dtksx8pb" path="res://Scripts/Systems/UnitManager.gd" id="7_unit_manager"]
 [ext_resource type="Script" uid="uid://bkv3380swpyew" path="res://Scripts/Units/Unit.gd" id="8_unit"]
 [ext_resource type="Shader" uid="uid://diqd3tufib4ue" path="res://Shaders/lighten_map.gdshader" id="9_hptm8"]
-[ext_resource type="Texture2D" uid="uid://cusckgognt7ag" path="res://Sprites/map.png" id="9_ynf5e"]
 [ext_resource type="Script" uid="uid://chd8k24fv1j14" path="res://Scripts/Systems/MapSystem.gd" id="11_map_system"]
 [ext_resource type="Script" uid="uid://0xvyip32wbma" path="res://Scripts/Systems/VillageUIManager.gd" id="12_village_ui"]
 [ext_resource type="Script" uid="uid://c1gr3kuusyp3a" path="res://Scripts/Systems/CameraManager.gd" id="13_camera_manager"]
 [ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
+[ext_resource type="PackedScene" uid="uid://vihy38f0kmxo" path="res://Scenes/arrow.tscn" id="15_arrow"]
+[ext_resource type="Script" uid="uid://c741yxjalgwl2" path="res://Scripts/UI/CameraArrowManager.gd" id="16_arrow_manager"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jkdf5"]
 shader = ExtResource("9_hptm8")
@@ -27,7 +29,7 @@ script = ExtResource("2_game_map")
 [node name="Background" type="Sprite2D" parent="Map" unique_id=221669529]
 material = SubResource("ShaderMaterial_jkdf5")
 position = Vector2(727, 567)
-texture = ExtResource("9_ynf5e")
+texture = ExtResource("4_jkdf5")
 
 [node name="Tinta" parent="Map" unique_id=1294763920 instance=ExtResource("6_village_prefab")]
 position = Vector2(732, 960)
@@ -144,6 +146,9 @@ altitude = "low"
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1111111112]
 script = ExtResource("13_camera_manager")
 
+[node name="CameraArrowManager" type="Node" parent="." unique_id=2000000010]
+script = ExtResource("16_arrow_manager")
+
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
 
@@ -178,22 +183,6 @@ offset_bottom = 40.0
 text = "Turn: 0"
 horizontal_alignment = 1
 
-[node name="NextTurnButton" type="Button" parent="UILayer" unique_id=1370219917]
-custom_minimum_size = Vector2(180, 40)
-offset_left = 10.0
-offset_top = 360.0
-offset_right = 200.0
-offset_bottom = 400.0
-text = "Next Turn"
-
-[node name="PauseButton" type="Button" parent="UILayer" unique_id=1370219918]
-custom_minimum_size = Vector2(80, 40)
-offset_left = 1840.0
-offset_top = 10.0
-offset_right = 1910.0
-offset_bottom = 50.0
-text = "⏸ 暂停"
-
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
 anchors_preset = 15
@@ -212,8 +201,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="PausePanel" type="Panel" parent="UILayer/PauseMenu" unique_id=1234567894]
-layout_mode = 1
+[node name="PausePanel" type="Panel" parent="UILayer" unique_id=1234567894]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -226,7 +214,7 @@ offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PauseMenu/PausePanel" unique_id=1234567895]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PausePanel" unique_id=1234567895]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -238,27 +226,71 @@ offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Title" type="Label" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567896]
+[node name="Title" type="Label" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567896]
 layout_mode = 2
 text = "游戏已暂停"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567897]
+[node name="ResumeButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567897]
 layout_mode = 2
 text = "继续游戏 (ESC)"
 
-[node name="SettingsButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567898]
+[node name="SettingsButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567898]
 layout_mode = 2
 text = "游戏设置"
 
-[node name="MenuButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567899]
+[node name="MenuButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567899]
 layout_mode = 2
 text = "返回菜单"
 
-[node name="QuitButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567900]
+[node name="QuitButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567900]
 layout_mode = 2
 text = "退出游戏"
+
+[node name="NextTurnButton" type="Button" parent="UILayer" unique_id=1370219917]
+custom_minimum_size = Vector2(180, 40)
+offset_left = 10.0
+offset_top = 360.0
+offset_right = 200.0
+offset_bottom = 400.0
+text = "Next Turn"
+
+[node name="PauseButton" type="Button" parent="UILayer" unique_id=1370219918]
+custom_minimum_size = Vector2(80, 40)
+offset_left = 1840.0
+offset_top = 10.0
+offset_right = 1920.0
+offset_bottom = 50.0
+text = "⏸ 暂停"
+
+[node name="ArrowUp" parent="UILayer" unique_id=440474098 instance=ExtResource("15_arrow")]
+offset_left = 944.0
+offset_top = 10.0
+offset_right = 976.0
+offset_bottom = 42.0
+direction = "up"
+
+[node name="ArrowDown" parent="UILayer" unique_id=974137308 instance=ExtResource("15_arrow")]
+offset_left = 944.0
+offset_top = 1048.0
+offset_right = 976.0
+offset_bottom = 1080.0
+direction = "down"
+
+[node name="ArrowRight" parent="UILayer" unique_id=843007157 instance=ExtResource("15_arrow")]
+offset_left = 1888.0
+offset_top = 524.0
+offset_right = 1920.0
+offset_bottom = 556.0
+direction = "right"
+
+[node name="ArrowLeft" parent="UILayer" unique_id=1392056652 instance=ExtResource("15_arrow")]
+offset_left = 0.0
+offset_top = 524.0
+offset_right = 32.0
+offset_bottom = 556.0
+direction = "left"
 
 [node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]
 script = ExtResource("12_village_ui")

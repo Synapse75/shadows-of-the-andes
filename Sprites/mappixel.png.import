@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cwv27sludd8cn"
-path="res://.godot/imported/village_controlled.png-f25a94c7fb7922e11ca3d6378bb0887a.ctex"
+uid="uid://bwvcu8dp0lwus"
+path="res://.godot/imported/mappixel.png-c5aea032c2692944fd2fce67ca0b229f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/village_controlled.png"
-dest_files=["res://.godot/imported/village_controlled.png-f25a94c7fb7922e11ca3d6378bb0887a.ctex"]
+source_file="res://Sprites/mappixel.png"
+dest_files=["res://.godot/imported/mappixel.png-c5aea032c2692944fd2fce67ca0b229f.ctex"]
 
 [params]
 

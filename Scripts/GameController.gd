@@ -5,6 +5,7 @@ class_name GameController
 var game_map: GameMap
 var turn_manager: TurnManager
 var pause_menu: PauseMenuController
+var camera_manager: CameraManager
 
 signal game_started
 signal game_over(winner: String)
@@ -14,6 +15,7 @@ func _ready() -> void:
 	game_map = get_node("Map")
 	turn_manager = get_node("Systems/TurnManager")
 	pause_menu = get_node("UILayer/PauseMenu")
+	camera_manager = get_node("Camera2D")
 	
 	# 连接暂停按钮
 	var pause_button = get_node("UILayer/PauseButton")
@@ -38,3 +40,28 @@ func check_victory_condition() -> bool:
 		emit_signal("game_over", "player")
 		return true
 	return false
+
+# 镜头切换方法 - 供UI按钮调用
+func camera_next() -> void:
+	"""切换到下一个镜头"""
+	camera_manager.cycle_camera_next()
+
+func camera_prev() -> void:
+	"""切换到上一个镜头"""
+	camera_manager.cycle_camera_prev()
+
+func camera_to_north() -> void:
+	"""切换到 Tinta 镜头"""
+	camera_manager.set_camera_view("tinta")
+
+func camera_to_south() -> void:
+	"""切换到 Jungle 镜头"""
+	camera_manager.set_camera_view("jungle")
+
+func camera_to_east() -> void:
+	"""切换到 Marcapata 镜头"""
+	camera_manager.set_camera_view("marcapata")
+
+func camera_to_west() -> void:
+	"""切换到 Andahuaylillas 镜头"""
+	camera_manager.set_camera_view("andahuaylillas")
