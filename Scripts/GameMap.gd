@@ -12,9 +12,9 @@ var current_turn: int = 0
 # UI management
 var ui_manager: UIManager
 var unit_manager: UnitManager
+var village_ui_manager: VillageUIManager
 var hovered_node: BaseNode = null
 
-signal turn_changed(new_turn: int)
 signal node_selected(node: BaseNode)
 
 func _ready() -> void:
@@ -23,6 +23,7 @@ func _ready() -> void:
 	_setup_connections()
 	ui_manager = get_parent().get_node("Systems/UIManager")
 	unit_manager = get_parent().get_node("Systems/UnitManager")
+	village_ui_manager = get_parent().get_node("UILayer/VillageUIManager")
 	
 	# 等待 UnitManager 收集单位后，将单位分配到节点
 	await unit_manager.tree_entered
@@ -53,13 +54,14 @@ func _assign_units_to_nodes() -> void:
 		print("All units assigned to Tinta")
 
 func _process(_delta: float) -> void:
-	"""Handle mouse hover effect"""
+	"""Handle mouse hover effect - based on UI sprite screen coordinates"""
 	# Only respond to hover when not locked
 	if ui_manager.is_panel_locked:
 		return
 	
-	var mouse_pos = get_local_mouse_position()
-	var node_at_pos = _get_node_at_position(mouse_pos)
+	# Get screen mouse position
+	var screen_mouse_pos = get_viewport().get_mouse_position()
+	var node_at_pos = _get_node_at_screen_position(screen_mouse_pos)
 	
 	if node_at_pos != hovered_node:
 		if node_at_pos != null:
@@ -69,29 +71,45 @@ func _process(_delta: float) -> void:
 			hovered_node = null
 			ui_manager.hide_node_info()
 	
-	# Update panel position to global mouse coordinates
+	# Update panel position relative to node
 	if hovered_node != null:
-		var global_mouse = get_global_mouse_position()
-		ui_manager.update_position_to_mouse(global_mouse)
+		ui_manager.update_position_to_node(hovered_node)
 
 func _input(event: InputEvent) -> void:
-	"""Handle mouse click"""
+	"""Handle mouse click - only consume if clicking on game nodes"""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Check if click is on UI panel
-		var mouse_pos = get_global_mouse_position()
+		# Get screen coordinates for UI button checks
+		var screen_mouse_pos = event.position
+		
+		# Check if click is on UI buttons - don't consume those events
+		# NextTurnButton: 10, 360 - 200, 40
+		var next_turn_rect = Rect2(Vector2(10, 360), Vector2(190, 40))
+		if next_turn_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
+		# PauseButton: 1840, 10 - 70, 40
+		var pause_btn_rect = Rect2(Vector2(1840, 10), Vector2(70, 40))
+		if pause_btn_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
 		var info_panel = ui_manager.info_panel
+		
+		# Don't consume input if clicking on UI panel
+		if info_panel.visible:
+			var panel_rect = Rect2(info_panel.position, info_panel.size)
+			if panel_rect.has_point(screen_mouse_pos):
+				return  # Let UI handle it
 		
 		if ui_manager.is_panel_locked:
 			# Locked state: check if clicked outside panel
-			var panel_rect = Rect2(info_panel.global_position, info_panel.size)
-			if not panel_rect.has_point(mouse_pos):
+			var panel_rect = Rect2(info_panel.position, info_panel.size)
+			if not panel_rect.has_point(screen_mouse_pos):
 				# Clicked outside panel, unlock
 				ui_manager.unlock_node_info()
 				get_tree().root.set_input_as_handled()
 		else:
-			# Unlocked state: check clicked node
-			var local_mouse_pos = get_local_mouse_position()
-			var clicked_node = _get_node_at_position(local_mouse_pos)
+			# Unlocked state: check clicked node based on screen position
+			var clicked_node = _get_node_at_screen_position(screen_mouse_pos)
 			if clicked_node:
 				# Clicked on node
 				# Check if units are at this node
@@ -107,10 +125,29 @@ func _input(event: InputEvent) -> void:
 				get_tree().root.set_input_as_handled()
 
 func _get_node_at_position(pos: Vector2) -> BaseNode:
-	"""检测鼠标点击的节点"""
+	"""检测鼠标点击的节点 - pos 是相对于 Map 节点的本地坐标"""
+	var global_mouse_pos = global_position + pos
 	for node in all_nodes:
-		if node.global_position.distance_to(global_position + pos) < 30:
+		# 检查距离（30 像素范围内）
+		if node.global_position.distance_to(global_mouse_pos) < 30:
 			return node
+	return null
+
+func _get_node_at_screen_position(screen_pos: Vector2) -> BaseNode:
+	"""Based on UI sprite screen position, detect which node is being hovered"""
+	if not village_ui_manager:
+		return null
+	
+	# Check each village UI sprite in screen coordinates
+	for village_id in village_ui_manager.village_ui_nodes:
+		var sprite = village_ui_manager.village_ui_nodes[village_id]
+		var sprite_size = sprite.get_rect().size * sprite.scale
+		var sprite_rect = Rect2(sprite.position - sprite_size / 2, sprite_size)
+		
+		if sprite_rect.has_point(screen_pos):
+			# Found hovering over this village UI
+			return _get_node_by_id(village_id)
+	
 	return null
 
 func _get_node_by_id(node_id: String) -> BaseNode:
@@ -119,18 +156,6 @@ func _get_node_by_id(node_id: String) -> BaseNode:
 		if node.node_id == node_id:
 			return node
 	return null
-
-func next_turn() -> void:
-	"""推进回合"""
-	current_turn += 1
-	
-	# 所有资源点生产资源
-	for node in all_nodes:
-		if node is ResourceNode:
-			node.produce_resource()
-	
-	turn_changed.emit(current_turn)
-	print("回合 %d 结束" % current_turn)
 
 func get_player_controlled_nodes() -> Array[BaseNode]:
 	"""获取玩家控制的所有节点"""

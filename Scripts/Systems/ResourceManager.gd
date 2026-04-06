@@ -8,7 +8,6 @@ var total_resources: Dictionary = {
 	"units": 0
 }
 
-var resource_nodes: Array[ResourceNode] = []
 var village_nodes: Array[VillageNode] = []
 
 signal resources_updated(new_total: Dictionary)
@@ -19,11 +18,9 @@ func _ready() -> void:
 	_collect_nodes()
 
 func _collect_nodes() -> void:
-	"""Collect all resource nodes and villages"""
+	"""Collect all village nodes"""
 	for node in get_tree().get_nodes_in_group("nodes"):
-		if node is ResourceNode:
-			resource_nodes.append(node)
-		elif node is VillageNode:
+		if node is VillageNode:
 			village_nodes.append(node)
 
 func calculate_total_resources() -> Dictionary:
@@ -34,7 +31,7 @@ func calculate_total_resources() -> Dictionary:
 		"units": 0
 	}
 	
-	for node in resource_nodes + village_nodes:
+	for node in village_nodes:
 		for resource_type in total:
 			total[resource_type] += node.resources.get(resource_type, 0)
 	
@@ -63,7 +60,7 @@ func apply_resource_consumption(consumption: Dictionary) -> bool:
 	# 实现消耗逻辑（从各节点扣除）
 	for resource_type in consumption:
 		var remaining = consumption[resource_type]
-		for node in (resource_nodes + village_nodes):
+		for node in village_nodes:
 			if remaining <= 0:
 				break
 			if node.resources[resource_type] > 0:

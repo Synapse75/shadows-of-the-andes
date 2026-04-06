@@ -9,11 +9,13 @@
 [ext_resource type="Script" uid="uid://hfq4dtksx8pb" path="res://Scripts/Systems/UnitManager.gd" id="7_unit_manager"]
 [ext_resource type="Script" uid="uid://bkv3380swpyew" path="res://Scripts/Units/Unit.gd" id="8_unit"]
 [ext_resource type="Shader" uid="uid://diqd3tufib4ue" path="res://Shaders/lighten_map.gdshader" id="9_hptm8"]
-[ext_resource type="Texture2D" uid="uid://case3gkjd7uoh" path="res://Sprites/map.png" id="9_ynf5e"]
+[ext_resource type="Texture2D" uid="uid://cusckgognt7ag" path="res://Sprites/map.png" id="9_ynf5e"]
 [ext_resource type="Script" uid="uid://chd8k24fv1j14" path="res://Scripts/Systems/MapSystem.gd" id="11_map_system"]
 [ext_resource type="Script" uid="uid://0xvyip32wbma" path="res://Scripts/Systems/VillageUIManager.gd" id="12_village_ui"]
+[ext_resource type="Script" uid="uid://c1gr3kuusyp3a" path="res://Scripts/Systems/CameraManager.gd" id="13_camera_manager"]
+[ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_d1ilt"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jkdf5"]
 shader = ExtResource("9_hptm8")
 
 [node name="Main" type="Node2D" unique_id=1470391578]
@@ -23,7 +25,7 @@ script = ExtResource("1_game_controller")
 script = ExtResource("2_game_map")
 
 [node name="Background" type="Sprite2D" parent="Map" unique_id=221669529]
-material = SubResource("ShaderMaterial_d1ilt")
+material = SubResource("ShaderMaterial_jkdf5")
 position = Vector2(727, 567)
 texture = ExtResource("9_ynf5e")
 
@@ -43,7 +45,7 @@ unit_name = "Rebel Soldier"
 unit_type = "rebel"
 
 [node name="Tungasuca" parent="Map" unique_id=1009032690 instance=ExtResource("6_village_prefab")]
-position = Vector2(683, 982)
+position = Vector2(682, 977)
 node_id = "tungasuca"
 location_name = "Tungasuca"
 location_description = "Highland stronghold"
@@ -51,7 +53,7 @@ node_type = "resource"
 altitude = "high"
 
 [node name="Pampamarca" parent="Map" unique_id=875643600 instance=ExtResource("6_village_prefab")]
-position = Vector2(400, 80)
+position = Vector2(692, 963)
 node_id = "pampamarca"
 location_name = "Pampamarca"
 location_description = "High altitude fortress"
@@ -59,7 +61,7 @@ node_type = "resource"
 altitude = "high"
 
 [node name="Sicuani" parent="Map" unique_id=1769919553 instance=ExtResource("6_village_prefab")]
-position = Vector2(500, 150)
+position = Vector2(851, 1051)
 node_id = "sicuani"
 location_name = "Sicuani"
 location_description = "Eastern highland pass"
@@ -67,7 +69,7 @@ node_type = "resource"
 altitude = "high"
 
 [node name="Urcos" parent="Map" unique_id=998254688 instance=ExtResource("6_village_prefab")]
-position = Vector2(550, 250)
+position = Vector2(585, 638)
 node_id = "urcos"
 location_name = "Urcos"
 location_description = "Corn farming lands"
@@ -75,7 +77,7 @@ node_type = "resource"
 altitude = "medium"
 
 [node name="Quiquijana" parent="Map" unique_id=344981993 instance=ExtResource("6_village_prefab")]
-position = Vector2(600, 350)
+position = Vector2(640, 740)
 node_id = "quiquijana"
 location_name = "Quiquijana"
 location_description = "Agricultural zone"
@@ -83,7 +85,7 @@ node_type = "resource"
 altitude = "medium"
 
 [node name="Paucartambo" parent="Map" unique_id=1590070800 instance=ExtResource("6_village_prefab")]
-position = Vector2(400, 450)
+position = Vector2(603, 372)
 node_id = "paucartambo"
 location_name = "Paucartambo"
 location_description = "Gateway to the jungle"
@@ -91,7 +93,7 @@ node_type = "resource"
 altitude = "low"
 
 [node name="Andahuaylillas" parent="Map" unique_id=2000000001 instance=ExtResource("6_village_prefab")]
-position = Vector2(250, 200)
+position = Vector2(547, 633)
 node_id = "andahuaylillas"
 location_name = "Andahuaylillas"
 location_description = "Ancient community"
@@ -99,7 +101,7 @@ node_type = "resource"
 altitude = "medium"
 
 [node name="Marcapata" parent="Map" unique_id=2000000002 instance=ExtResource("6_village_prefab")]
-position = Vector2(700, 250)
+position = Vector2(1027, 574)
 node_id = "marcapata"
 location_name = "Marcapata"
 location_description = "Lowland transition area"
@@ -107,7 +109,7 @@ node_type = "resource"
 altitude = "low"
 
 [node name="Pilcopata" parent="Map" unique_id=2000000004 instance=ExtResource("6_village_prefab")]
-position = Vector2(550, 550)
+position = Vector2(737, 107)
 node_id = "pilcopata"
 location_name = "Pilcopata"
 location_description = "Amazon frontier settlement"
@@ -115,7 +117,7 @@ node_type = "resource"
 altitude = "low"
 
 [node name="Cusco" parent="Map" unique_id=2000000005 instance=ExtResource("6_village_prefab")]
-position = Vector2(400, 400)
+position = Vector2(354, 532)
 node_id = "cusco"
 location_name = "Cusco"
 location_description = "Inca capital & ultimate objective"
@@ -123,7 +125,7 @@ node_type = "capital"
 altitude = "medium"
 
 [node name="Ocongate" parent="Map" unique_id=2000000006 instance=ExtResource("6_village_prefab")]
-position = Vector2(600, 150)
+position = Vector2(744, 598)
 node_id = "ocongate"
 location_name = "Ocongate"
 location_description = "Highland town"
@@ -131,18 +133,21 @@ node_type = "resource"
 altitude = "high"
 
 [node name="Challabamba" parent="Map" unique_id=2000000007 instance=ExtResource("6_village_prefab")]
-position = Vector2(350, 550)
+visible = false
+position = Vector2(566, 310)
 node_id = "challabamba"
 location_name = "Challabamba"
 location_description = "Lowland settlement"
 node_type = "resource"
 altitude = "low"
 
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1111111112]
+script = ExtResource("13_camera_manager")
+
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
 
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
-visible = false
 custom_minimum_size = Vector2(350, 280)
 offset_left = 10.0
 offset_top = 10.0
@@ -180,6 +185,80 @@ offset_top = 360.0
 offset_right = 200.0
 offset_bottom = 400.0
 text = "Next Turn"
+
+[node name="PauseButton" type="Button" parent="UILayer" unique_id=1370219918]
+custom_minimum_size = Vector2(80, 40)
+offset_left = 1840.0
+offset_top = 10.0
+offset_right = 1910.0
+offset_bottom = 50.0
+text = "⏸ 暂停"
+
+[node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("14_pause_menu")
+
+[node name="DarkOverlay" type="ColorRect" parent="UILayer/PauseMenu" unique_id=1234567893]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="PausePanel" type="Panel" parent="UILayer/PauseMenu" unique_id=1234567894]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PauseMenu/PausePanel" unique_id=1234567895]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567896]
+layout_mode = 2
+text = "游戏已暂停"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567897]
+layout_mode = 2
+text = "继续游戏 (ESC)"
+
+[node name="SettingsButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567898]
+layout_mode = 2
+text = "游戏设置"
+
+[node name="MenuButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567899]
+layout_mode = 2
+text = "返回菜单"
+
+[node name="QuitButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567900]
+layout_mode = 2
+text = "退出游戏"
 
 [node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]
 script = ExtResource("12_village_ui")

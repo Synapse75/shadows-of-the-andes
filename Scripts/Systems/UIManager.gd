@@ -41,10 +41,6 @@ func show_node_info(node: BaseNode) -> void:
 				unit_str += " ⭐"
 			text += "\n" + unit_str
 	
-	# If resource node, show resource type
-	if node is ResourceNode:
-		text += "\nResource Output: %s" % node.resource_type
-	
 	# If village, show max population
 	if node is VillageNode:
 		text += "\nMax Population: %d" % node.max_population
@@ -59,22 +55,41 @@ func hide_node_info() -> void:
 	if not is_panel_locked:
 		info_panel.visible = false
 
-func update_position_to_mouse(mouse_pos: Vector2) -> void:
-	"""Update panel position near mouse"""
+func update_position_to_node(node: BaseNode) -> void:
+	"""Update panel position relative to node"""
 	if is_panel_locked:
-		return  # Don't move when locked
+		return
 	
-	var panel_size = info_panel.size
+	if not node:
+		return
+	
+	var camera = get_tree().root.get_node("Main/Camera2D")
+	if not camera:
+		return
+	
+	# Convert node world position to screen position
+	var node_world_pos = node.global_position
+	var camera_pos = camera.global_position
+	var zoom = camera.zoom
+	var relative_pos = node_world_pos - camera_pos
 	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_center = viewport_size / 2
+	var node_screen_pos = viewport_center + relative_pos * zoom
 	
-	var new_x = mouse_pos.x + 20
-	var new_y = mouse_pos.y + 20
+	# Position panel above the node with offset
+	var panel_size = info_panel.size
+	var new_x = node_screen_pos.x - panel_size.x / 2
+	var new_y = node_screen_pos.y - panel_size.y - 20
 	
 	# Prevent panel from going off-screen
+	if new_x < 0:
+		new_x = 0
 	if new_x + panel_size.x > viewport_size.x:
-		new_x = mouse_pos.x - panel_size.x - 20
+		new_x = viewport_size.x - panel_size.x
+	if new_y < 0:
+		new_y = node_screen_pos.y + 20
 	if new_y + panel_size.y > viewport_size.y:
-		new_y = mouse_pos.y - panel_size.y - 20
+		new_y = viewport_size.y - panel_size.y
 	
 	info_panel.position = Vector2(new_x, new_y)
 

@@ -1,108 +1,98 @@
 extends Camera2D
+class_name CameraManager
 
-# 参考
-var map_system: Node = null
+# 摄像机参数
+@export var min_zoom: float = 0.5
+@export var max_zoom: float = 8.0
+@export var zoom_speed: float = 0.1
+@export var drag_enabled: bool = true
 
-# 切换设置
-@export var transition_duration: float = 1.0  # 1秒切换
-@export var use_fade_effect: bool = true
+# 内部状态
+var is_dragging: bool = false
+var camera_start_pos: Vector2 = Vector2.ZERO
 
-# 动画状态
-var is_transitioning: bool = false
-var target_position: Vector2 = Vector2.ZERO
-var transition_progress: float = 0.0
-var fade_tween: Tween = null
-
-# 黑屏overlay
-var fade_overlay: CanvasLayer = null
-var fade_rect: ColorRect = null
-
-func _ready():
-	# 获取MapSystem引用
-	map_system = get_tree().root.get_node("Main/Systems/MapSystem")
-	
+func _ready() -> void:
 	# 初始化相机
 	make_current()
 	zoom = Vector2.ONE * 4.0
 	
-	# 创建淡出/淡入效果层
-	if use_fade_effect:
-		_setup_fade_layer()
-	
-	# 连接地图切换信号
-	if map_system:
-		map_system.map_changed.connect(_on_map_changed)
+	# 启用输入
+	set_process_input(true)
 
-func _setup_fade_layer():
-	fade_overlay = CanvasLayer.new()
-	fade_overlay.layer = 100  # 最顶层
-	add_child(fade_overlay)
+func _input(event: InputEvent) -> void:
+	"""处理鼠标输入：滚轮缩放和左键拖动"""
 	
-	fade_rect = ColorRect.new()
-	fade_rect.color = Color.BLACK
-	fade_rect.anchor_left = 0
-	fade_rect.anchor_top = 0
-	fade_rect.anchor_right = 1
-	fade_rect.anchor_bottom = 1
-	fade_rect.modulate.a = 0.0  # 初始透明
-	fade_overlay.add_child(fade_rect)
+	# 滚轮缩放
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_in()
+			get_tree().root.set_input_as_handled()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_out()
+			get_tree().root.set_input_as_handled()
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			# 检查是否点击了UI按钮 - 如果是则不处理拖动
+			var screen_pos = event.position
+			
+			# NextTurnButton: 10, 360 - 200, 40
+			var next_turn_rect = Rect2(Vector2(10, 360), Vector2(190, 40))
+			if next_turn_rect.has_point(screen_pos):
+				return  # Let button handle it
+			
+			# PauseButton: 1840, 10 - 70, 40
+			var pause_btn_rect = Rect2(Vector2(1840, 10), Vector2(70, 40))
+			if pause_btn_rect.has_point(screen_pos):
+				return  # Let button handle it
+			
+			if event.pressed:
+				_start_drag()
+			else:
+				_end_drag()
+			get_tree().root.set_input_as_handled()
+	
+	# 左键拖动 - 使用 event.relative 获取屏幕坐标的相对移动
+	elif event is InputEventMouseMotion and is_dragging:
+		_update_drag(event)
+		get_tree().root.set_input_as_handled()
 
-func _on_map_changed(map_id: String):
-	if not map_system:
-		return
-	
-	var target_map = map_system.get_map_view(map_id)
-	if target_map:
-		target_position = target_map.camera_position
-		_start_transition()
+func zoom_in() -> void:
+	"""放大摄像机"""
+	zoom = zoom + Vector2.ONE * zoom_speed
+	zoom = zoom.clamp(Vector2.ONE * min_zoom, Vector2.ONE * max_zoom)
+	print("缩放: %.1fx" % zoom.x)
 
-func _start_transition():
-	if is_transitioning:
-		return
-	
-	is_transitioning = true
-	transition_progress = 0.0
-	
-	if use_fade_effect and fade_rect:
-		# 淡出 -> 移动相机 -> 淡入
-		_transition_with_fade()
-	else:
-		# 直接平滑移动
-		_transition_smooth()
+func zoom_out() -> void:
+	"""缩小摄像机"""
+	zoom = zoom - Vector2.ONE * zoom_speed
+	zoom = zoom.clamp(Vector2.ONE * min_zoom, Vector2.ONE * max_zoom)
+	print("缩放: %.1fx" % zoom.x)
 
-func _transition_with_fade():
-	# 保存起始位置
-	var start_position = global_position
-	
-	# 淡出（0.3秒）
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(fade_rect, "modulate:a", 1.0, transition_duration * 0.3)
-	
-	# 在黑屏中移动相机（0.4秒）
-	await tween.finished
-	global_position = target_position
-	
-	# 淡入（0.3秒）
-	tween = create_tween()
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(fade_rect, "modulate:a", 0.0, transition_duration * 0.3)
-	
-	await tween.finished
-	is_transitioning = false
+func _start_drag() -> void:
+	"""开始拖动"""
+	is_dragging = true
+	camera_start_pos = global_position
+	print("开始拖动")
 
-func _transition_smooth():
-	# 使用Tween平滑移动相机（没有黑屏）
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(self, "global_position", target_position, transition_duration)
-	
-	await tween.finished
-	is_transitioning = false
+func _end_drag() -> void:
+	"""结束拖动"""
+	is_dragging = false
+	print("结束拖动")
 
-# 禁用输入处理（因为使用UI按钮）
-unc _input(event: InputEvent):
-	pass
+func _update_drag(motion_event: InputEventMouseMotion) -> void:
+	"""更新拖动位置
+	
+	鼠标在屏幕上移动时将该移动转换为世界坐标的摄像机移动
+	同时更新UI层以跟随摄像机
+	"""
+	# 获取屏幕坐标的移动距离
+	var screen_delta = motion_event.relative
+	
+	# 将屏幕坐标转换为世界坐标
+	# 屏幕移动需要除以缩放倍数来得到世界空间的移动
+	var world_delta = -screen_delta / zoom.x
+	
+	# 更新摄像机位置
+	global_position = camera_start_pos + world_delta
+	
+	# 更新起始位置以支持连续拖动
+	camera_start_pos = global_position

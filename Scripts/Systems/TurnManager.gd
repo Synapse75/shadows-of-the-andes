@@ -37,10 +37,11 @@ func next_turn() -> void:
 	turn_ended.emit(current_turn)
 	current_turn += 1
 	
-	# All resource nodes produce resources
+	# All village nodes produce resources
 	for node in game_map.all_nodes:
-		if node is ResourceNode:
-			(node as ResourceNode).produce_resource()
+		if node is VillageNode:
+			# TODO: Call resource production method when implemented
+			pass
 	
 	# Update total resources
 	resource_manager.calculate_total_resources()

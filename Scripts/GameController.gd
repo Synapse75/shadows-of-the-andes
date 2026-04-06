@@ -4,7 +4,7 @@ class_name GameController
 # 游戏流程控制器
 var game_map: GameMap
 var turn_manager: TurnManager
-var map_system: MapSystem
+var pause_menu: PauseMenuController
 
 signal game_started
 signal game_over(winner: String)
@@ -13,44 +13,17 @@ func _ready() -> void:
 	# 获取各个系统的引用
 	game_map = get_node("Map")
 	turn_manager = get_node("Systems/TurnManager")
-	map_system = get_node("Systems/MapSystem")
+	pause_menu = get_node("UILayer/PauseMenu")
+	
+	# 连接暂停按钮
+	var pause_button = get_node("UILayer/PauseButton")
+	pause_button.pressed.connect(pause_menu.pause_game)
 	
 	# 等待GameMap初始化完成
 	await game_map.tree_entered
 	
-	# 初始化地图系统（注册所有地图视野）
-	_setup_map_system()
-	
-	# 设置起始地图
-	map_system.set_starting_map("tinta")
-	
 	emit_signal("game_started")
-	print("游戏初始化完成")
-
-func _setup_map_system() -> void:
-	"""初始化MapSystem - 注册所有地图视野"""
-	# 这里可以从game_map的所有节点自动生成地图视野
-	# 或者手动注册所有的地图位置
-	
-	# 获取所有节点并注册为地图视野
-	for node in game_map.all_nodes:
-		var map_id = node.node_id
-		var map_name = node.location_name
-		var camera_pos = node.global_position
-		
-		# 获取这个地点可以到达的其他地点（需要从game_map的连接中获取）
-		var connected_maps = _get_connected_maps(node)
-		
-		map_system.register_map_view(map_id, map_name, camera_pos, connected_maps)
-	
-	# 设置初始已探索地点（只有Tinta）
-	map_system.set_starting_map("tinta")
-	print("MapSystem初始化完成，共注册 %d 个地图视野" % game_map.all_nodes.size())
-
-func _get_connected_maps(node: BaseNode) -> Array[String]:
-	"""获取该节点连接的其他地点 - 暂时返回空数组，后续可以扩展"""
-	# TODO: 从节点的连接关系中获取相邻地点
-	return []
+	print("游戏初始化完成 - 摄像机已完全可控")
 
 func on_turn_ended(turn_number: int) -> void:
 	"""处理一回合结束后的逻辑"""

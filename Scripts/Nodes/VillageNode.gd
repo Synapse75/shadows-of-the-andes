@@ -7,7 +7,7 @@ class_name VillageNode
 func _ready() -> void:
 	super()
 	node_type = "village"
-	resources["population"] = max_population / 2
+	resources["population"] = int(max_population / 2.0)
 
 func recruit_units(count: int) -> bool:
 	if resources["population"] >= count:

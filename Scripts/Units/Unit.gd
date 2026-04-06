@@ -12,7 +12,6 @@ class_name Unit
 # Belonging node
 var current_node: BaseNode = null
 
-signal unit_selected(unit: Unit)
 signal unit_moved(from_node: BaseNode, to_node: BaseNode)
 
 func _ready() -> void:
