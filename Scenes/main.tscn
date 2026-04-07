@@ -44,7 +44,6 @@ control_by_player = true
 script = ExtResource("8_unit")
 unit_id = "rebel_1"
 unit_name = "Rebel Soldier"
-unit_type = "rebel"
 
 [node name="Tungasuca" parent="Map" unique_id=1009032690 instance=ExtResource("6_village_prefab")]
 position = Vector2(682, 977)

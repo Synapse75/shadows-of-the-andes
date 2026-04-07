@@ -39,6 +39,9 @@ func _ready() -> void:
 	# 检查按钮
 	if not resume_button or not settings_button or not menu_button or not quit_button:
 		push_error("PauseMenuController: 无法找到暂停菜单的所有按钮")
+		print("Found buttons: Resume=%s, Settings=%s, Menu=%s, Quit=%s" % [
+			resume_button != null, settings_button != null, menu_button != null, quit_button != null
+		])
 		return
 	
 	# 初始状态：隐藏暂停菜单
@@ -50,6 +53,11 @@ func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
 	menu_button.pressed.connect(_on_menu_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
+	
+	print("PauseMenuController: 所有按钮已成功连接")
+	
+	# 设置 process_mode 为 ALWAYS，确保暂停时 UI 仍然可以响应
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	# 监听 ESC 键
 	set_process_unhandled_input(true)
@@ -92,25 +100,30 @@ func resume_game() -> void:
 func _on_resume_pressed() -> void:
 	"""恢复按钮"""
 	if resume_button:
+		print("[PauseMenu] Resume button pressed")
 		resume_game()
 
 func _on_settings_pressed() -> void:
 	"""设置按钮 - TODO: 实现设置菜单"""
 	if settings_button:
+		print("[PauseMenu] Settings button pressed")
 		print("设置菜单 (暂未实现)")
 	# await show_settings_menu()
 
 func _on_menu_pressed() -> void:
 	"""返回菜单按钮"""
 	if menu_button:
+		print("[PauseMenu] Menu button pressed")
 		get_tree().paused = false  # 恢复游戏时间流，才能切换场景
 		if ResourceLoader.exists("res://Scenes/MainMenu.tscn"):
+			print("[PauseMenu] Switching to MainMenu")
 			get_tree().change_scene_to_file("res://Scenes/MainMenu.tscn")
 		else:
-			print("错误: MainMenu.tscn 不存在")
+			print("[PauseMenu] 错误: MainMenu.tscn 不存在")
 
 func _on_quit_pressed() -> void:
 	"""退出游戏"""
 	if quit_button:
+		print("[PauseMenu] Quit button pressed")
 		get_tree().paused = false
 		get_tree().quit()
