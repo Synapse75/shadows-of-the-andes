@@ -5,6 +5,7 @@ class_name CameraArrowManager
 var camera_manager: CameraManager
 var arrow_buttons: Dictionary = {}
 var current_active_arrows: Array[String] = []
+var last_camera: String = ""
 
 func _ready() -> void:
 	# 获取摄像机管理器
@@ -17,6 +18,9 @@ func _ready() -> void:
 	if not camera_manager:
 		push_error("CameraArrowManager: 无法获取 CameraManager")
 		return
+	
+	# 记录初始镜头
+	last_camera = camera_manager.current_camera
 	
 	# 收集所有箭头按钮
 	_collect_arrows()
@@ -69,7 +73,13 @@ func _process(_delta: float) -> void:
 	"""每帧更新箭头显示"""
 	if not camera_manager:
 		return
-	update_arrows_display()
+	
+	# 仅在镜头改变时更新
+	var current = camera_manager.current_camera
+	if current != last_camera:
+		print("CameraArrowManager: 镜头改变 %s -> %s" % [last_camera, current])
+		last_camera = current
+		update_arrows_display()
 
 func update_arrows_display() -> void:
 	"""根据当前镜头更新箭头的显示"""
@@ -77,6 +87,7 @@ func update_arrows_display() -> void:
 		return
 	
 	var current_camera = camera_manager.current_camera
+	print("CameraArrowManager.update_arrows_display: 更新箭头显示，当前镜头 %s" % current_camera)
 	
 	# 隐藏所有箭头
 	for arrow in arrow_buttons.values():
@@ -89,7 +100,7 @@ func update_arrows_display() -> void:
 			# Tinta: 只显示向上箭头（连接到 Andahuaylillas）
 			if "up" in arrow_buttons and arrow_buttons["up"]:
 				arrow_buttons["up"].visible = true
-				print("CameraArrowManager: 在 Tinta，显示 up 箭头")
+				print("  → 显示 up 箭头")
 		
 		"andahuaylillas":
 			# Andahuaylillas (中心): 显示上、右、下三个箭头
@@ -100,16 +111,16 @@ func update_arrows_display() -> void:
 				arrow_buttons["right"].visible = true
 			if "down" in arrow_buttons and arrow_buttons["down"]:
 				arrow_buttons["down"].visible = true
-			print("CameraArrowManager: 在 Andahuaylillas，显示 up/right/down 箭头")
+			print("  → 显示 up/right/down 箭头")
 		
 		"marcapata":
 			# Marcapata: 显示返回箭头（向左）返回到 Andahuaylillas
 			if "left" in arrow_buttons and arrow_buttons["left"]:
 				arrow_buttons["left"].visible = true
-				print("CameraArrowManager: 在 Marcapata，显示 left 箭头")
+				print("  → 显示 left 箭头")
 		
 		"jungle":
-			# Jungle (Paucartambo/Pilcopata中点): 显示返回箭头（向上）返回到 Andahuaylillas
-			if "up" in arrow_buttons and arrow_buttons["up"]:
-				arrow_buttons["up"].visible = true
-				print("CameraArrowManager: 在 Jungle，显示 up 箭头")
+			# Jungle (Paucartambo/Pilcopata中点): 显示返回箭头（向下）返回到 Andahuaylillas
+			if "down" in arrow_buttons and arrow_buttons["down"]:
+				arrow_buttons["down"].visible = true
+				print("  → 显示 down 箭头")

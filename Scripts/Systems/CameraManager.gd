@@ -4,9 +4,9 @@ class_name CameraManager
 # 固定镜头配置
 var cameras: Dictionary = {
 	"tinta": Vector2(732, 960),           # Tinta 为中心
-	"andahuaylillas": Vector2(250, 200),  # Andahuaylillas 为中心
-	"marcapata": Vector2(700, 250),       # Marcapata 为中心
-	"jungle": Vector2(475, 500)           # Paucartambo 和 Pilcopata 的中点
+	"andahuaylillas": Vector2(547, 633),  # Andahuaylillas 为中心
+	"marcapata": Vector2(1027, 574),       # Marcapata 为中心
+	"jungle": Vector2(670, 230)           # Paucartambo 和 Pilcopata 的中点
 }
 
 # 镜头连接关系 - 每个镜头可以连接到哪些镜头
@@ -41,12 +41,20 @@ func _input(_event: InputEvent) -> void:
 
 func set_camera_view(view_name: String) -> void:
 	"""切换到指定镜头"""
+	print("\n[CameraManager] set_camera_view 被调用: %s" % view_name)
+	
 	if view_name in cameras:
+		print("  → 镜头存在: %s" % view_name)
 		current_camera = view_name
-		global_position = cameras[view_name]
-		print("切换镜头: %s 位置 %s" % [view_name, cameras[view_name]])
+		var new_pos = cameras[view_name]
+		print("  → 旧位置: %s" % global_position)
+		global_position = new_pos
+		print("  → 新位置: %s" % global_position)
+		print("  → current_camera: %s" % current_camera)
+		print("切换镜头: %s 位置 %s" % [view_name, new_pos])
 	else:
-		print("镜头不存在: %s" % view_name)
+		push_error("镜头不存在: %s" % view_name)
+		print("  → ERROR: 镜头不存在")
 
 func cycle_camera_next() -> void:
 	"""循环切换到下一个镜头"""

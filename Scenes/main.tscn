@@ -265,31 +265,28 @@ offset_bottom = 50.0
 text = "⏸ 暂停"
 
 [node name="ArrowUp" parent="UILayer" unique_id=440474098 instance=ExtResource("15_arrow")]
-offset_left = 944.0
-offset_top = 10.0
-offset_right = 976.0
-offset_bottom = 42.0
-direction = "up"
+offset_left = 940.0
+offset_right = 980.0
+offset_bottom = 40.0
 
 [node name="ArrowDown" parent="UILayer" unique_id=974137308 instance=ExtResource("15_arrow")]
-offset_left = 944.0
-offset_top = 1048.0
-offset_right = 976.0
-offset_bottom = 1080.0
+offset_left = 940.0
+offset_top = 1160.0
+offset_right = 980.0
+offset_bottom = 1200.0
 direction = "down"
 
 [node name="ArrowRight" parent="UILayer" unique_id=843007157 instance=ExtResource("15_arrow")]
-offset_left = 1888.0
-offset_top = 524.0
+offset_left = 1880.0
+offset_top = 580.0
 offset_right = 1920.0
-offset_bottom = 556.0
+offset_bottom = 620.0
 direction = "right"
 
 [node name="ArrowLeft" parent="UILayer" unique_id=1392056652 instance=ExtResource("15_arrow")]
-offset_left = 0.0
-offset_top = 524.0
-offset_right = 32.0
-offset_bottom = 556.0
+offset_top = 580.0
+offset_right = 40.0
+offset_bottom = 620.0
 direction = "left"
 
 [node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]

@@ -5,10 +5,9 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_h5x2m"]
 atlas = ExtResource("1_2u0bd")
-region = Rect2(0, 0, 8, 8)
+region = Rect2(0, 0, 32, 32)
 
 [node name="Arrow" type="Button" unique_id=173884477]
-custom_minimum_size = Vector2(32, 32)
 icon = SubResource("AtlasTexture_h5x2m")
 flat = true
 icon_alignment = 1

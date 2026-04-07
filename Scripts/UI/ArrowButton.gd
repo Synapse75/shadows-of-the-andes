@@ -25,9 +25,20 @@ func _ready() -> void:
 	# 初始化动画帧
 	_setup_animation_frames()
 	
+	# 根据方向设置箭头旋转
+	_rotate_arrow()
+	
 	# 连接信号
+	print("ArrowButton[%s]: 正在连接 pressed 信号" % direction)
 	pressed.connect(_on_pressed)
-	print("ArrowButton[%s]: 按钮已创建，方向: %s" % [direction, direction])
+	print("ArrowButton[%s]: pressed 信号已连接" % direction)
+	print("ArrowButton[%s]: 按钮详细信息:" % direction)
+	print("  - 可见性: %s" % visible)
+	print("  - 禁用: %s" % disabled)
+	print("  - 位置: %s" % position)
+	print("  - 全局位置: %s" % get_global_rect())
+	print("  - 大小: %s" % size)
+	print("  - 自定义大小: %s" % custom_minimum_size)
 	
 	# 样式设置
 	modulate = Color.WHITE
@@ -40,11 +51,11 @@ func _setup_animation_frames() -> void:
 		push_error("ArrowButton: 无法加载 arrow.png")
 		return
 	
-	# 创建4个 AtlasTexture 帧 (8x8 像素，一行4个)
+	# 创建4个 AtlasTexture 帧 (32x32 像素，一行4个)
 	for i in range(4):
 		var atlas = AtlasTexture.new()
 		atlas.atlas = arrow_texture
-		atlas.region = Rect2(i * 8, 0, 8, 8)
+		atlas.region = Rect2(i * 32, 0, 32, 32)
 		animation_frames.append(atlas)
 	
 	# 设置初始图标
@@ -65,47 +76,92 @@ func _process(delta: float) -> void:
 		current_frame = (current_frame + 1) % animation_frames.size()
 		icon = animation_frames[current_frame]
 
+func _input(event: InputEvent) -> void:
+	"""捕获所有输入事件用于调试"""
+	if not event is InputEventMouseButton:
+		return
+	
+	# 检查鼠标位置是否在按钮范围内
+	var mouse_pos = event.position
+	var button_rect = get_global_rect()
+	
+	if button_rect.has_point(mouse_pos):
+		print("ArrowButton[%s]: 捕获到鼠标事件 - 位置:%s, 按下:%s, 按钮区域:%s" % [direction, mouse_pos, event.pressed, button_rect])
+
 func _on_pressed() -> void:
 	"""按钮被点击时切换相机"""
+	print("\n========== ArrowButton[%s] 被点击 ==========" % direction)
+	
 	if not camera_manager:
 		push_error("ArrowButton[%s]: camera_manager 为 null，无法切换镜头" % direction)
 		return
 	
-	print("ArrowButton[%s]: 被点击了！当前镜头: %s" % [direction, camera_manager.current_camera])
+	var current = camera_manager.current_camera
+	print("当前镜头: %s" % current)
+	print("目标方向: %s" % direction)
 	
 	match direction:
 		"up":
-			# 向上箭头：
-			# 在 Tinta → 移到 Andahuaylillas
-			# 在 Andahuaylillas → 移到 Jungle (Paucartambo/Pilcopata中点)
-			# 在 Jungle → 返回 Andahuaylillas
-			if camera_manager.current_camera == "tinta":
-				print("ArrowButton[up]: Tinta -> Andahuaylillas")
+			print("  → up 箭头逻辑")
+			if current == "tinta":
+				print("    → Tinta -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
-			elif camera_manager.current_camera == "andahuaylillas":
-				print("ArrowButton[up]: Andahuaylillas -> Jungle")
+				print("    → set_camera_view 已调用")
+			elif current == "andahuaylillas":
+				print("    → Andahuaylillas -> Jungle")
 				camera_manager.set_camera_view("jungle")
-			elif camera_manager.current_camera == "jungle":
-				print("ArrowButton[up]: Jungle -> Andahuaylillas")
+				print("    → set_camera_view 已调用")
+			elif current == "jungle":
+				print("    → Jungle -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
+				print("    → set_camera_view 已调用")
+			else:
+				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"down":
-			# 向下箭头：
-			# 在 Andahuaylillas → 移到 Tinta
-			if camera_manager.current_camera == "andahuaylillas":
-				print("ArrowButton[down]: Andahuaylillas -> Tinta")
+			print("  → down 箭头逻辑")
+			if current == "andahuaylillas":
+				print("    → Andahuaylillas -> Tinta")
 				camera_manager.set_camera_view("tinta")
+				print("    → set_camera_view 已调用")
+			elif current == "jungle":
+				print("    → Jungle -> Andahuaylillas")
+				camera_manager.set_camera_view("andahuaylillas")
+				print("    → set_camera_view 已调用")
+			else:
+				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"left":
-			# 向左箭头：
-			# 在 Marcapata → 返回 Andahuaylillas
-			if camera_manager.current_camera == "marcapata":
-				print("ArrowButton[left]: Marcapata -> Andahuaylillas")
+			print("  → left 箭头逻辑")
+			if current == "marcapata":
+				print("    → Marcapata -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
+				print("    → set_camera_view 已调用")
+			else:
+				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"right":
-			# 向右箭头（仅在 Andahuaylillas 显示）：
-			# 在 Andahuaylillas → 移到 Marcapata
-			if camera_manager.current_camera == "andahuaylillas":
-				print("ArrowButton[right]: Andahuaylillas -> Marcapata")
+			print("  → right 箭头逻辑")
+			if current == "andahuaylillas":
+				print("    → Andahuaylillas -> Marcapata")
 				camera_manager.set_camera_view("marcapata")
+				print("    → set_camera_view 已调用")
+			else:
+				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
+	
+	print("新的镜头位置: %s" % camera_manager.global_position)
+	print("========================================\n")
+
+func _rotate_arrow() -> void:
+	"""根据箭头方向旋转图标"""
+	match direction:
+		"up":
+			rotation = 0.0
+		"down":
+			rotation = PI  # 180度
+		"left":
+			rotation = -PI / 2.0  # -90度
+		"right":
+			rotation = PI / 2.0  # 90度
+		_:
+			push_warning("ArrowButton: 未知的方向 %s" % direction)

@@ -90,6 +90,27 @@ func _input(event: InputEvent) -> void:
 		if pause_btn_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
+		# Arrow buttons - allow clicks on arrow UI
+		# ArrowUp: 944, 10 - 40x40
+		var arrow_up_rect = Rect2(Vector2(944, 10), Vector2(40, 40))
+		if arrow_up_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
+		# ArrowDown: 944, 1160 - 40x40
+		var arrow_down_rect = Rect2(Vector2(944, 1160), Vector2(40, 40))
+		if arrow_down_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
+		# ArrowLeft: 0, 524 - 40x40
+		var arrow_left_rect = Rect2(Vector2(0, 524), Vector2(40, 40))
+		if arrow_left_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
+		# ArrowRight: 1888, 524 - 40x40
+		var arrow_right_rect = Rect2(Vector2(1888, 524), Vector2(40, 40))
+		if arrow_right_rect.has_point(screen_mouse_pos):
+			return  # Let button handle it
+		
 		var info_panel = ui_manager.info_panel
 		
 		# Don't consume input if clicking on UI panel
