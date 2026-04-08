@@ -27,6 +27,10 @@ var neighbors: Array[BaseNode] = []
 var stationed_units: Array[Unit] = []  # Units stationed at this node
 var enemy_units: Array[EnemyUnit] = []  # Enemy units at this node
 
+# 资源图标显示
+var resource_icons_container: VBoxContainer
+var resource_icon_scenes: Dictionary = {}  # resource_type -> HBoxContainer
+
 signal control_changed(is_player_controlled: bool)
 signal resources_changed(new_resources: Dictionary)
 signal units_changed(new_units: Array)
@@ -34,6 +38,85 @@ signal enemy_units_changed(new_units: Array)
 
 func _ready() -> void:
 	add_to_group("nodes")
+	print("[BaseNode._ready] %s - Creating resource icons container" % node_id)
+	_create_resource_icons_container()
+	resources_changed.connect(_on_resources_changed)
+	# 初始显示已有的资源
+	print("[BaseNode._ready] %s - Resources: %s" % [node_id, resources])
+	_update_resource_display()
+
+func _create_resource_icons_container() -> void:
+	"""Create container for displaying resource icons below the node"""
+	resource_icons_container = VBoxContainer.new()
+	resource_icons_container.name = "ResourceIcons"
+	resource_icons_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	resource_icons_container.offset_top = 50  # 放在节点下方
+	resource_icons_container.offset_left = -40  # 左对齐调整
+	resource_icons_container.custom_minimum_size = Vector2(80, 0)  # 宽度固定
+	resource_icons_container.visible = false
+	add_child(resource_icons_container)
+	print("[BaseNode] %s - Resource icons container created" % node_id)
+
+func _on_resources_changed(_resources: Dictionary) -> void:
+	"""Update resource icons when resources change"""
+	print("[BaseNode._on_resources_changed] %s - Resources changed: %s" % [node_id, _resources])
+	_update_resource_display()
+
+func _update_resource_display() -> void:
+	"""Update visual display of resources (icons and amounts)"""
+	print("[BaseNode._update_resource_display] %s - Starting update" % node_id)
+	# Clear old displays
+	for child in resource_icons_container.get_children():
+		child.queue_free()
+	resource_icon_scenes.clear()
+	
+	# Add new resource displays
+	for resource_type in resources:
+		if resource_type in ["food", "population", "units"]:
+			continue  # Skip meta resources
+		
+		var amount = resources[resource_type]
+		print("[BaseNode._update_resource_display] %s - %s: %d" % [node_id, resource_type, amount])
+		if amount <= 0:
+			continue  # Don't show empty resources
+		
+		# Create icon + amount display (horizontal box)
+		var hbox = HBoxContainer.new()
+		hbox.name = "Resource_%s" % resource_type
+		hbox.add_theme_constant_override("separation", 4)
+		
+		# Icon image
+		var icon_path = "res://Sprites/%s.png" % resource_type
+		if ResourceLoader.exists(icon_path):
+			var texture_rect = TextureRect.new()
+			texture_rect.texture = load(icon_path)
+			texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			texture_rect.custom_minimum_size = Vector2(20, 20)
+			hbox.add_child(texture_rect)
+			print("[BaseNode] %s - Icon loaded: %s" % [node_id, icon_path])
+		else:
+			print("[BaseNode] %s - Icon NOT found: %s" % [node_id, icon_path])
+		
+		# Amount label
+		var label = Label.new()
+		label.text = "x%d" % amount
+		label.add_theme_font_size_override("font_size", 10)
+		hbox.add_child(label)
+		
+		resource_icons_container.add_child(hbox)
+		resource_icon_scenes[resource_type] = hbox
+	
+	print("[BaseNode._update_resource_display] %s - Finished, total items: %d" % [node_id, resource_icon_scenes.size()])
+
+func show_resource_icons() -> void:
+	"""Show resource icons"""
+	print("[BaseNode.show_resource_icons] %s - Showing icons" % node_id)
+	resource_icons_container.visible = true
+
+func hide_resource_icons() -> void:
+	"""Hide resource icons"""
+	print("[BaseNode.hide_resource_icons] %s - Hiding icons" % node_id)
+	resource_icons_container.visible = false
 
 func add_neighbor(node: BaseNode) -> void:
 	"""Add adjacent node"""

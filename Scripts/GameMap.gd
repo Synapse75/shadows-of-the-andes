@@ -64,14 +64,12 @@ func _process(_delta: float) -> void:
 	if node_at_pos != hovered_node:
 		if node_at_pos != null:
 			hovered_node = node_at_pos
+			print("[GameMap._process] Hovering over: %s" % node_at_pos.node_id)
 			ui_manager.show_node_info(node_at_pos)
 		else:
 			hovered_node = null
+			print("[GameMap._process] Not hovering over any node")
 			ui_manager.hide_node_info()
-	
-	# Update panel position relative to node
-	if hovered_node != null:
-		ui_manager.update_position_to_node(hovered_node)
 
 func _input(event: InputEvent) -> void:
 	"""Handle mouse click - only consume if clicking on game nodes"""
@@ -111,38 +109,17 @@ func _input(event: InputEvent) -> void:
 		if arrow_right_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
-		var info_panel = ui_manager.info_panel
-		
-		# Don't consume input if clicking on UI panel
-		if info_panel.visible:
-			var panel_rect = Rect2(info_panel.position, info_panel.size)
-			if panel_rect.has_point(screen_mouse_pos):
-				return  # Let UI handle it
-		
-		if ui_manager.is_panel_locked:
-			# Locked state: check if clicked outside panel
-			var panel_rect = Rect2(info_panel.position, info_panel.size)
-			if not panel_rect.has_point(screen_mouse_pos):
-				# Clicked outside panel, unlock
-				ui_manager.unlock_node_info()
-				get_tree().root.set_input_as_handled()
-		else:
-			# Unlocked state: check clicked node based on world position
-			var global_mouse_pos = get_global_mouse_position()
-			var clicked_node = _get_node_at_position(global_mouse_pos)
-			if clicked_node:
-				# Clicked on node
-				# Check if units are at this node
-				var units_here = clicked_node.stationed_units
-				if units_here.size() > 0:
-					# Units present, select the first one
-					unit_manager.select_unit(units_here[0])
-				
-				# 锁定信息面板
-				ui_manager.lock_node_info(clicked_node)
-				node_selected.emit(clicked_node)
-				print("已锁定节点: %s" % clicked_node.node_id)
-				get_tree().root.set_input_as_handled()
+		# Check for node click
+		var global_mouse_pos = get_global_mouse_position()
+		var clicked_node = _get_node_at_position(global_mouse_pos)
+		if clicked_node:
+			# Clicked on node - select units if present
+			var units_here = clicked_node.stationed_units
+			if units_here.size() > 0:
+				unit_manager.select_unit(units_here[0])
+			
+			node_selected.emit(clicked_node)
+			get_tree().root.set_input_as_handled()
 
 func _get_node_at_position(global_pos: Vector2) -> BaseNode:
 	"""检测全局位置处的节点 - 通过与AnimatedSprite2D碰撞检测"""
