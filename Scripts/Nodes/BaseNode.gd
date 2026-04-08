@@ -18,10 +18,12 @@ var resources: Dictionary = {
 
 var neighbors: Array[BaseNode] = []
 var stationed_units: Array[Unit] = []  # Units stationed at this node
+var enemy_units: Array[EnemyUnit] = []  # Enemy units at this node
 
 signal control_changed(is_player_controlled: bool)
 signal resources_changed(new_resources: Dictionary)
 signal units_changed(new_units: Array)
+signal enemy_units_changed(new_units: Array)
 
 func _ready() -> void:
 	add_to_group("nodes")
@@ -42,6 +44,18 @@ func remove_unit(unit: Unit) -> void:
 	if unit in stationed_units:
 		stationed_units.erase(unit)
 		units_changed.emit(stationed_units)
+
+func add_enemy_unit(unit: EnemyUnit) -> void:
+	"""Add enemy unit to this node"""
+	if unit not in enemy_units:
+		enemy_units.append(unit)
+		enemy_units_changed.emit(enemy_units)
+
+func remove_enemy_unit(unit: EnemyUnit) -> void:
+	"""Remove enemy unit from this node"""
+	if unit in enemy_units:
+		enemy_units.erase(unit)
+		enemy_units_changed.emit(enemy_units)
 
 func set_control(is_player: bool) -> void:
 	"""Change node control"""

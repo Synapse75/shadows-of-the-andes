@@ -18,6 +18,12 @@ signal unit_moved(from_node: BaseNode, to_node: BaseNode)
 signal unit_damaged(damage: int, remaining_health: int)
 signal unit_died
 
+func _init() -> void:
+	unit_type = "enemy"
+	max_health = 80
+	current_health = 80
+	attack_power = 25
+
 func _ready() -> void:
 	add_to_group("enemy_units")
 	current_health = max_health

@@ -36,8 +36,10 @@ signal unit_died
 
 func _ready() -> void:
 	add_to_group("units")
-	current_health = max_health
-	current_satiety = max_satiety
+	if current_health == 0:  # Only initialize if not already set
+		current_health = max_health
+	if current_satiety == 0:  # Only initialize if not already set
+		current_satiety = max_satiety
 	# Auto-assign to parent BaseNode
 	var parent = get_parent()
 	if parent is BaseNode:
