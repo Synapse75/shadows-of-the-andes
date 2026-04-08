@@ -134,7 +134,6 @@ node_type = "resource"
 altitude = "high"
 
 [node name="Challabamba" parent="Map" unique_id=2000000007 instance=ExtResource("6_village_prefab")]
-visible = false
 position = Vector2(566, 310)
 node_id = "challabamba"
 location_name = "Challabamba"

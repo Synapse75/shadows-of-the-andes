@@ -41,20 +41,12 @@ func _input(_event: InputEvent) -> void:
 
 func set_camera_view(view_name: String) -> void:
 	"""切换到指定镜头"""
-	print("\n[CameraManager] set_camera_view 被调用: %s" % view_name)
-	
 	if view_name in cameras:
-		print("  → 镜头存在: %s" % view_name)
 		current_camera = view_name
 		var new_pos = cameras[view_name]
-		print("  → 旧位置: %s" % global_position)
 		global_position = new_pos
-		print("  → 新位置: %s" % global_position)
-		print("  → current_camera: %s" % current_camera)
-		print("切换镜头: %s 位置 %s" % [view_name, new_pos])
 	else:
 		push_error("镜头不存在: %s" % view_name)
-		print("  → ERROR: 镜头不存在")
 
 func cycle_camera_next() -> void:
 	"""循环切换到下一个镜头"""

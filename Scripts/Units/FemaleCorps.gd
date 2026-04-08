@@ -2,8 +2,6 @@ extends Unit
 class_name FemaleCorps
 
 # Female Corps specific properties - initialized at class level
-var _initialized: bool = false
-
 func _init() -> void:
 	unit_type = "female_corps"
 	max_satiety = 100
@@ -13,19 +11,9 @@ func _init() -> void:
 	attack_power = 20
 	base_satiety_consumption = 10
 	moving_satiety_consumption = 15
-	_initialized = true
+	is_special = false
 
 func _ready() -> void:
-	if not _initialized:
-		unit_type = "female_corps"
-		max_satiety = 100
-		current_satiety = 100
-		max_health = 80
-		current_health = 80
-		attack_power = 20
-		base_satiety_consumption = 10
-		moving_satiety_consumption = 15
-	
 	super._ready()
 
 func get_current_attack_power() -> int:

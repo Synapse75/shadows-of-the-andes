@@ -6,6 +6,7 @@ var game_map: GameMap
 var turn_manager: TurnManager
 var pause_menu: PauseMenuController
 var camera_manager: CameraManager
+var settings: SettingsAndData
 
 signal game_started
 signal game_over(winner: String)
@@ -16,20 +17,61 @@ func _ready() -> void:
 	turn_manager = get_node("Systems/TurnManager")
 	pause_menu = get_node("UILayer/PauseMenu")
 	camera_manager = get_node("Camera2D")
+	settings = SettingsAndData.new()
 	
 	# 连接暂停按钮
 	var pause_button = get_node("UILayer/PauseButton")
 	pause_button.pressed.connect(pause_menu.pause_game)
 	
-	# 等待GameMap初始化完成
-	await game_map.tree_entered
+	# Wait one frame for GameMap to complete its initialization
+	await get_tree().process_frame
+	
+	# 初始化所有村庄
+	initialize_villages()
 	
 	emit_signal("game_started")
-	print("游戏初始化完成 - 摄像机已完全可控")
+
+func initialize_villages() -> void:
+	"""Initialize all villages with resources and enemy garrisons"""
+	var all_populations = settings.get_all_populations()
+	
+	for village_id in all_populations:
+		var village = game_map._get_node_by_id(village_id)
+		if not village:
+			continue
+		
+		# Initialize village population
+		var population = settings.get_village_population(village_id)
+		village.resources["population"] = population
+		
+		# Initialize resource production
+		var resource_types = settings.get_initial_resources(village_id)
+		var production_rate = settings.get_production_rate(village_id)
+		village.initialize_resource_production(resource_types, production_rate)
+		
+		# Initialize resource amounts (start at 0, will be produced during game)
+		for resource_type in resource_types:
+			village.resources[resource_type] = 0
+		
+		# Spawn enemy units
+		spawn_enemy_garrison(village, village_id)
+
+func spawn_enemy_garrison(village: BaseNode, village_id: String) -> void:
+	"""Spawn enemy units to garrison a village"""
+	# Tinta is player's starting village, no enemy garrison
+	if village_id == "tinta":
+		return
+	
+	var enemy_count = settings.get_enemy_garrison_count(village_id)
+	
+	for i in range(enemy_count):
+		var enemy = EnemyUnit.new()
+		enemy.unit_id = "enemy_%s_%d" % [village_id, i]
+		enemy.unit_name = "Spanish Guard %d" % (i + 1)
+		enemy.assign_to_node(village)
 
 func on_turn_ended(turn_number: int) -> void:
 	"""处理一回合结束后的逻辑"""
-	print("第 %d 回合结束" % turn_number)
 	# TODO: 处理敌人AI、资源生产等
 
 func check_victory_condition() -> bool:

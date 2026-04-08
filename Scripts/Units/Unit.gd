@@ -26,6 +26,11 @@ var moving_satiety_consumption: int = 15  # Per turn when moving
 var unit_state: UnitState = UnitState.STATIONED
 var current_node: BaseNode = null
 var is_alive: bool = true
+var is_special: bool = false  # Special unit flag (leader, hero, etc.)
+
+# Unit inventory/backpack system
+var inventory: Dictionary = {}  # {"resource_type": amount}
+const INVENTORY_CAPACITY = 5  # Max total resources in backpack
 
 # Signals
 signal unit_moved(from_node: BaseNode, to_node: BaseNode)
@@ -33,6 +38,7 @@ signal unit_state_changed(new_state: UnitState)
 signal unit_damaged(damage: int, remaining_health: int)
 signal unit_hungry(remaining_satiety: int)
 signal unit_died
+signal inventory_changed(new_inventory: Dictionary)
 
 func _ready() -> void:
 	add_to_group("units")
@@ -58,7 +64,10 @@ func get_unit_info() -> Dictionary:
 		"max_satiety": max_satiety,
 		"attack_power": get_current_attack_power(),
 		"is_alive": is_alive,
-		"current_node": current_node.location_name if current_node else "None"
+		"current_node": current_node.location_name if current_node else "None",
+		"inventory": inventory.duplicate(),
+		"inventory_count": get_inventory_count(),
+		"inventory_capacity": INVENTORY_CAPACITY
 	}
 
 func get_current_attack_power() -> int:
@@ -168,3 +177,51 @@ func die() -> void:
 		current_node.remove_unit(self)
 	unit_died.emit()
 	print("%s has died" % unit_name)
+
+# Inventory Management
+func get_inventory_count() -> int:
+	"""Get total number of items in inventory"""
+	var total = 0
+	for resource_type in inventory:
+		total += inventory[resource_type]
+	return total
+
+func can_add_to_inventory(amount: int) -> bool:
+	"""Check if inventory has space for more items"""
+	return get_inventory_count() + amount <= INVENTORY_CAPACITY
+
+func add_to_inventory(resource_type: String, amount: int) -> int:
+	"""Add resource to inventory. Returns amount actually added (capped at capacity).
+	Example: if capacity allows 2 more items, returns 2 even if requested 5."""
+	var current_count = get_inventory_count()
+	var space_left = INVENTORY_CAPACITY - current_count
+	var added = min(amount, space_left)
+	
+	if added > 0:
+		if resource_type not in inventory:
+			inventory[resource_type] = 0
+		inventory[resource_type] += added
+		inventory_changed.emit(inventory)
+	
+	return added
+
+func remove_from_inventory(resource_type: String, amount: int) -> bool:
+	"""Remove resource from inventory. Returns true if successful."""
+	if resource_type not in inventory or inventory[resource_type] < amount:
+		return false
+	
+	inventory[resource_type] -= amount
+	if inventory[resource_type] == 0:
+		inventory.erase(resource_type)
+	
+	inventory_changed.emit(inventory)
+	return true
+
+func get_inventory_info() -> Dictionary:
+	"""Get formatted inventory information"""
+	return {
+		"inventory": inventory.duplicate(),
+		"count": get_inventory_count(),
+		"capacity": INVENTORY_CAPACITY,
+		"space_left": INVENTORY_CAPACITY - get_inventory_count()
+	}

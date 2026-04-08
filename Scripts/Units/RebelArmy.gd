@@ -1,9 +1,7 @@
 extends Unit
 class_name RebelArmy
 
-# Rebel Army specific properties - initialized at class level
-var _initialized: bool = false
-
+# Rebel Army specific properties
 func _init() -> void:
 	unit_type = "rebel_army"
 	max_satiety = 100
@@ -13,19 +11,9 @@ func _init() -> void:
 	attack_power = 30
 	base_satiety_consumption = 10
 	moving_satiety_consumption = 15
-	_initialized = true
+	is_special = false
 
 func _ready() -> void:
-	if not _initialized:
-		unit_type = "rebel_army"
-		max_satiety = 100
-		current_satiety = 100
-		max_health = 100
-		current_health = 100
-		attack_power = 30
-		base_satiety_consumption = 10
-		moving_satiety_consumption = 15
-	
 	super._ready()
 
 func get_current_attack_power() -> int:

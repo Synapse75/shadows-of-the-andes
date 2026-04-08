@@ -15,15 +15,6 @@ func _ready() -> void:
 	update_visual()
 	control_changed.connect(_on_control_changed)
 
-func _process(_delta: float) -> void:
-	# Generate resources every turn - called by GameManager later
-	pass
-
-func produce_resource() -> void:
-	"""Generate this resource"""
-	if production_rate > 0:
-		add_resource("food", production_rate)
-
 func _on_control_changed(_is_player: bool) -> void:
 	"""Update sprite when control changes"""
 	update_visual()

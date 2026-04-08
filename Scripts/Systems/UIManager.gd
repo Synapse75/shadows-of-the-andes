@@ -22,28 +22,27 @@ func show_node_info(node: BaseNode) -> void:
 	text += "📍 %s\n" % info["location_name"]
 	text += "%s\n\n" % info["location_description"]
 	
-	# Basic info
-	text += "Type: %s\n" % info["type"]
+	# Altitude and control status
 	text += "Altitude: %s\n" % info["altitude"]
-	text += "Status: %s\n" % ("✅ Player" if info["player_controlled"] else "❌ Enemy")
+	text += "Status: %s\n" % ("✅ Player Controlled" if info["player_controlled"] else "❌ Enemy Controlled")
+	
+	# Population
+	text += "\nPopulation: %d\n" % info["resources"].get("population", 0)
+	
+	# Resources - display all resource types
 	text += "\nResources:\n"
-	text += "  Food: %d\n" % info["resources"]["food"]
-	text += "  Population: %d\n" % info["resources"]["population"]
-	text += "  Units: %d\n" % info["resources"]["units"]
+	var has_resources = false
+	for resource_type in info["resources"]:
+		# Skip meta resources (population, food, units)
+		if resource_type not in ["food", "population", "units"]:
+			var amount = info["resources"][resource_type]
+			text += "  • %s: %d/10\n" % [resource_type.capitalize(), amount]
+			has_resources = true
+	
+	if not has_resources:
+		text += "  (None)\n"
+	
 	text += "\nAdjacent Nodes: %d" % info["neighbors_count"]
-	
-	# Display stationed units
-	if node.stationed_units.size() > 0:
-		text += "\n\nStationed Units:"
-		for unit in node.stationed_units:
-			var unit_str = "  • %s" % unit.unit_name
-			if unit.is_special:
-				unit_str += " ⭐"
-			text += "\n" + unit_str
-	
-	# If village, show max population
-	if node is VillageNode:
-		text += "\nMax Population: %d" % node.max_population
 	
 	info_label.text = text
 	info_panel.visible = true
