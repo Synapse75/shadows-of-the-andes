@@ -20,6 +20,7 @@ var connected_cameras: Dictionary = {
 var current_camera: String = "tinta"
 
 # 相机平滑过渡
+var camera_tween: Tween  # 用于平滑过渡的 Tween
 var is_transitioning: bool = false
 var transition_speed: float = 300.0  # 像素/秒
 
@@ -40,11 +41,20 @@ func _input(_event: InputEvent) -> void:
 	return
 
 func set_camera_view(view_name: String) -> void:
-	"""切换到指定镜头"""
+	"""切换到指定镜头，快速平滑过渡（0.5秒）"""
 	if view_name in cameras:
 		current_camera = view_name
 		var new_pos = cameras[view_name]
-		global_position = new_pos
+		
+		# 如果有之前的 Tween，先释放它
+		if camera_tween:
+			camera_tween.kill()
+		
+		# 创建新的 Tween 进行快速平滑过渡
+		camera_tween = create_tween()
+		camera_tween.set_trans(Tween.TRANS_QUART)  # 四次立方缓动，更陡峭
+		camera_tween.set_ease(Tween.EASE_OUT)      # 缓出
+		camera_tween.tween_property(self, "global_position", new_pos, 0.5)
 	else:
 		push_error("镜头不存在: %s" % view_name)
 

@@ -23,11 +23,20 @@ func _ready() -> void:
 	var pause_button = get_node("UILayer/PauseButton")
 	pause_button.pressed.connect(pause_menu.pause_game)
 	
+	# 连接回合管理器信号
+	turn_manager.turn_started.connect(_on_turn_started)
+	turn_manager.turn_ended.connect(_on_turn_ended)
+	turn_manager.auto_phase_started.connect(_on_auto_phase_started)
+	turn_manager.auto_phase_ended.connect(_on_auto_phase_ended)
+	
 	# Wait one frame for GameMap to complete its initialization
 	await get_tree().process_frame
 	
 	# 初始化所有村庄
 	initialize_villages()
+	
+	# 启动回合系统
+	turn_manager.start_turn()
 	
 	emit_signal("game_started")
 
@@ -70,9 +79,22 @@ func spawn_enemy_garrison(village: BaseNode, village_id: String) -> void:
 		enemy.unit_name = "Spanish Guard %d" % (i + 1)
 		enemy.assign_to_node(village)
 
-func on_turn_ended(turn_number: int) -> void:
-	"""处理一回合结束后的逻辑"""
-	# TODO: 处理敌人AI、资源生产等
+func _on_turn_started(turn_number: int) -> void:
+	"""回合开始时的处理"""
+	pass
+
+func _on_turn_ended(turn_number: int) -> void:
+	"""回合结束时的处理"""
+	pass
+
+func _on_auto_phase_started() -> void:
+	"""自动流程开始时的处理"""
+	pass
+
+func _on_auto_phase_ended() -> void:
+	"""自动流程结束时的处理"""
+	# 检查胜利条件
+	check_victory_condition()
 
 func check_victory_condition() -> bool:
 	"""检查胜利条件"""
