@@ -7,6 +7,13 @@ var current_hovered_node: BaseNode = null
 var locked_node: BaseNode = null
 var is_panel_locked: bool = false
 
+# 海拔图标映射
+var altitude_icons: Dictionary = {
+	"high": "res://Sprites/high.png",
+	"middle": "res://Sprites/middle.png",
+	"low": "res://Sprites/low.png"
+}
+
 func _ready() -> void:
 	info_panel = get_node("../../UILayer/InfoPanel")
 	var old_label = get_node("../../UILayer/InfoPanel/Label")
@@ -56,8 +63,15 @@ func show_node_info(node: BaseNode) -> void:
 	text += "[b]📍 %s[/b]\n" % info["location_name"]
 	text += "%s\n\n" % info["location_description"]
 	
-	# Altitude and control status
-	text += "Altitude: %s\n" % info["altitude"]
+	# Altitude with icon
+	var altitude = info["altitude"]
+	var altitude_icon_path = altitude_icons.get(altitude, "")
+	if altitude_icon_path and ResourceLoader.exists(altitude_icon_path):
+		text += "[b]Altitude:[/b] [img=20x20]%s[/img] %s\n" % [altitude_icon_path, altitude.capitalize()]
+	else:
+		text += "[b]Altitude:[/b] %s\n" % altitude.capitalize()
+	
+	# Control status
 	text += "Status: %s\n" % ("✅ Player Controlled" if info["player_controlled"] else "❌ Enemy Controlled")
 	
 	# Population
