@@ -51,11 +51,11 @@ func _setup_animation_frames() -> void:
 		push_error("ArrowButton: 无法加载 arrow.png")
 		return
 	
-	# 创建4个 AtlasTexture 帧 (32x32 像素，一行4个)
+	# 创建4个 AtlasTexture 帧 (8x8 像素，一行4个)
 	for i in range(4):
 		var atlas = AtlasTexture.new()
 		atlas.atlas = arrow_texture
-		atlas.region = Rect2(i * 32, 0, 32, 32)
+		atlas.region = Rect2(i * 8, 0, 8, 8)
 		animation_frames.append(atlas)
 	
 	# 设置初始图标

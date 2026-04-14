@@ -78,34 +78,34 @@ func _input(event: InputEvent) -> void:
 		var screen_mouse_pos = event.position
 		
 		# Check if click is on UI buttons - don't consume those events
-		# NextTurnButton: 10, 360 - 200, 40
-		var next_turn_rect = Rect2(Vector2(10, 360), Vector2(190, 40))
+		# NextTurnButton: 3, 90 - 48, 10
+		var next_turn_rect = Rect2(Vector2(3, 90), Vector2(48, 10))
 		if next_turn_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
-		# PauseButton: 1840, 10 - 70, 40
-		var pause_btn_rect = Rect2(Vector2(1840, 10), Vector2(70, 40))
+		# PauseButton: 460, 3 - 18, 10
+		var pause_btn_rect = Rect2(Vector2(460, 3), Vector2(18, 10))
 		if pause_btn_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
 		# Arrow buttons - allow clicks on arrow UI
-		# ArrowUp: 944, 10 - 40x40
-		var arrow_up_rect = Rect2(Vector2(944, 10), Vector2(40, 40))
+		# ArrowUp: 236, 3 - 10x10
+		var arrow_up_rect = Rect2(Vector2(236, 3), Vector2(10, 10))
 		if arrow_up_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
-		# ArrowDown: 944, 1160 - 40x40
-		var arrow_down_rect = Rect2(Vector2(944, 1160), Vector2(40, 40))
+		# ArrowDown: 236, 290 - 10x10
+		var arrow_down_rect = Rect2(Vector2(236, 290), Vector2(10, 10))
 		if arrow_down_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
-		# ArrowLeft: 0, 524 - 40x40
-		var arrow_left_rect = Rect2(Vector2(0, 524), Vector2(40, 40))
+		# ArrowLeft: 0, 145 - 10x10
+		var arrow_left_rect = Rect2(Vector2(0, 145), Vector2(10, 10))
 		if arrow_left_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		
-		# ArrowRight: 1888, 524 - 40x40
-		var arrow_right_rect = Rect2(Vector2(1888, 524), Vector2(40, 40))
+		# ArrowRight: 470, 145 - 10x10
+		var arrow_right_rect = Rect2(Vector2(470, 145), Vector2(10, 10))
 		if arrow_right_rect.has_point(screen_mouse_pos):
 			return  # Let button handle it
 		

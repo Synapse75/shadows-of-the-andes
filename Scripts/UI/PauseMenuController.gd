@@ -7,7 +7,6 @@ var resume_button: Button
 var settings_button: Button
 var menu_button: Button
 var quit_button: Button
-var dark_overlay: ColorRect
 
 signal game_paused
 signal game_resumed
@@ -15,20 +14,14 @@ signal game_resumed
 func _ready() -> void:
 	# 获取对节点的引用 (使用相对路径，从脚本附加的节点开始)
 	pause_panel = get_node_or_null("PausePanel")
-	dark_overlay = get_node_or_null("DarkOverlay")
 	
 	# 如果找不到，尝试从父节点查找
 	if not pause_panel:
 		pause_panel = get_parent().get_node_or_null("PausePanel")
-	if not dark_overlay:
-		dark_overlay = get_parent().get_node_or_null("DarkOverlay")
 	
 	# 检查是否成功获取关键节点
 	if not pause_panel:
 		push_error("PauseMenuController: 无法找到 PausePanel 节点")
-		return
-	if not dark_overlay:
-		push_error("PauseMenuController: 无法找到 DarkOverlay 节点")
 		return
 	
 	resume_button = pause_panel.get_node_or_null("VBoxContainer/ResumeButton")
@@ -46,7 +39,6 @@ func _ready() -> void:
 	
 	# 初始状态：隐藏暂停菜单
 	pause_panel.visible = false
-	dark_overlay.visible = false
 	
 	# 连接按钮信号
 	resume_button.pressed.connect(_on_resume_pressed)
@@ -73,27 +65,25 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func pause_game() -> void:
 	"""暂停游戏"""
-	if not pause_panel or not dark_overlay:
+	if not pause_panel:
 		push_error("PauseMenuController: 暂停菜单未正确初始化")
 		return
 	
 	is_paused = true
 	get_tree().paused = true
 	pause_panel.visible = true
-	dark_overlay.visible = true
 	game_paused.emit()
 	print("游戏已暂停 (按 ESC 继续)")
 
 func resume_game() -> void:
 	"""恢复游戏"""
-	if not pause_panel or not dark_overlay:
+	if not pause_panel:
 		push_error("PauseMenuController: 暂停菜单未正确初始化")
 		return
 	
 	is_paused = false
 	get_tree().paused = false
 	pause_panel.visible = false
-	dark_overlay.visible = false
 	game_resumed.emit()
 	print("游戏已恢复")
 

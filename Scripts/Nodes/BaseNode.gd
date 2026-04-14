@@ -91,7 +91,7 @@ func _update_resource_display() -> void:
 			var texture_rect = TextureRect.new()
 			texture_rect.texture = load(icon_path)
 			texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			texture_rect.custom_minimum_size = Vector2(20, 20)
+			texture_rect.custom_minimum_size = Vector2(16, 16)
 			hbox.add_child(texture_rect)
 			print("[BaseNode] %s - Icon loaded: %s" % [node_id, icon_path])
 		else:
@@ -100,7 +100,7 @@ func _update_resource_display() -> void:
 		# Amount label
 		var label = Label.new()
 		label.text = "x%d" % amount
-		label.add_theme_font_size_override("font_size", 10)
+		label.add_theme_font_size_override("font_size", 16)
 		hbox.add_child(label)
 		
 		resource_icons_container.add_child(hbox)

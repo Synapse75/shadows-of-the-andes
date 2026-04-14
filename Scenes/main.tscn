@@ -16,9 +16,14 @@
 [ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
 [ext_resource type="PackedScene" uid="uid://vihy38f0kmxo" path="res://Scenes/arrow.tscn" id="15_arrow"]
 [ext_resource type="Script" uid="uid://c741yxjalgwl2" path="res://Scripts/UI/CameraArrowManager.gd" id="16_arrow_manager"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jkdf5"]
 shader = ExtResource("9_hptm8")
+
+[sub_resource type="Theme" id="Theme_ui_font"]
+default_font = ExtResource("font_clear")
+default_font_size = 16
 
 [node name="Main" type="Node2D" unique_id=1470391578]
 script = ExtResource("1_game_controller")
@@ -151,140 +156,138 @@ script = ExtResource("16_arrow_manager")
 layer = 10
 
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
-custom_minimum_size = Vector2(350, 280)
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 360.0
-offset_bottom = 290.0
+custom_minimum_size = Vector2(120, 100)
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 90.0
+offset_bottom = 73.0
 
 [node name="Label" type="Label" parent="UILayer/InfoPanel" unique_id=827306435]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 340.0
-offset_bottom = 270.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 85.0
+offset_bottom = 68.0
+theme = SubResource("Theme_ui_font")
 text = "Hover over a node to view information"
 
 [node name="TurnInfo" type="Panel" parent="UILayer" unique_id=1959215300]
-custom_minimum_size = Vector2(180, 50)
-offset_left = 10.0
-offset_top = 300.0
-offset_right = 200.0
-offset_bottom = 360.0
+custom_minimum_size = Vector2(65, 18)
+offset_left = 3.0
+offset_top = 280.0
+offset_right = 48.0
+offset_bottom = 292.0
 
 [node name="TurnLabel" type="Label" parent="UILayer/TurnInfo" unique_id=817640371]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 170.0
-offset_bottom = 40.0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 43.0
+offset_bottom = 11.0
+theme = SubResource("Theme_ui_font")
 text = "Turn: 0"
 horizontal_alignment = 1
 
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_right = 480.0
+offset_bottom = 300.0
 script = ExtResource("14_pause_menu")
 
-[node name="DarkOverlay" type="ColorRect" parent="UILayer/PauseMenu" unique_id=1234567893]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
-
-[node name="PausePanel" type="Panel" parent="UILayer" unique_id=1234567894]
-anchors_preset = 8
+[node name="PausePanel" type="Panel" parent="UILayer/PauseMenu" unique_id=1234567894]
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -200.0
-offset_right = 200.0
-offset_bottom = 200.0
+offset_left = -60.0
+offset_top = -60.0
+offset_right = 60.0
+offset_bottom = 60.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PausePanel" unique_id=1234567895]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PauseMenu/PausePanel" unique_id=1234567895]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Title" type="Label" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567896]
+[node name="Title" type="Label" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567896]
 layout_mode = 2
-text = "游戏已暂停"
+theme = SubResource("Theme_ui_font")
+text = "PAUSED"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567897]
+[node name="ResumeButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567897]
 layout_mode = 2
-text = "继续游戏 (ESC)"
+theme = SubResource("Theme_ui_font")
+text = "Resume (ESC)"
 
-[node name="SettingsButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567898]
+[node name="SettingsButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567898]
 layout_mode = 2
-text = "游戏设置"
+theme = SubResource("Theme_ui_font")
+text = "Settings"
 
-[node name="MenuButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567899]
+[node name="MenuButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567899]
 layout_mode = 2
-text = "返回菜单"
+theme = SubResource("Theme_ui_font")
+text = "Main Menu"
 
-[node name="QuitButton" type="Button" parent="UILayer/PausePanel/VBoxContainer" unique_id=1234567900]
+[node name="QuitButton" type="Button" parent="UILayer/PauseMenu/PausePanel/VBoxContainer" unique_id=1234567900]
 layout_mode = 2
-text = "退出游戏"
+theme = SubResource("Theme_ui_font")
+text = "Quit Game"
 
 [node name="NextTurnButton" type="Button" parent="UILayer" unique_id=1370219917]
-custom_minimum_size = Vector2(180, 40)
-offset_left = 10.0
-offset_top = 360.0
-offset_right = 200.0
-offset_bottom = 400.0
+custom_minimum_size = Vector2(65, 16)
+offset_left = 409.0
+offset_top = 275.0
+offset_right = 474.0
+offset_bottom = 296.0
+theme = SubResource("Theme_ui_font")
 text = "Next Turn"
 
 [node name="PauseButton" type="Button" parent="UILayer" unique_id=1370219918]
-custom_minimum_size = Vector2(80, 40)
-offset_left = 1840.0
-offset_top = 10.0
-offset_right = 1920.0
-offset_bottom = 50.0
-text = "⏸ 暂停"
+custom_minimum_size = Vector2(32, 16)
+offset_left = 431.0
+offset_top = 5.0
+offset_right = 469.0
+offset_bottom = 25.0
+theme = SubResource("Theme_ui_font")
+text = "Pause"
 
 [node name="ArrowUp" parent="UILayer" unique_id=440474098 instance=ExtResource("15_arrow")]
-offset_left = 940.0
-offset_right = 980.0
-offset_bottom = 40.0
+offset_left = 235.0
+offset_right = 245.0
+offset_bottom = 10.0
 
 [node name="ArrowDown" parent="UILayer" unique_id=974137308 instance=ExtResource("15_arrow")]
-offset_left = 940.0
-offset_top = 1160.0
-offset_right = 980.0
-offset_bottom = 1200.0
+offset_left = 235.0
+offset_top = 290.0
+offset_right = 245.0
+offset_bottom = 300.0
 direction = "down"
 
 [node name="ArrowRight" parent="UILayer" unique_id=843007157 instance=ExtResource("15_arrow")]
-offset_left = 1880.0
-offset_top = 580.0
-offset_right = 1920.0
-offset_bottom = 620.0
+offset_left = 470.0
+offset_top = 145.0
+offset_right = 480.0
+offset_bottom = 155.0
 direction = "right"
 
 [node name="ArrowLeft" parent="UILayer" unique_id=1392056652 instance=ExtResource("15_arrow")]
-offset_top = 580.0
-offset_right = 40.0
-offset_bottom = 620.0
+offset_top = 145.0
+offset_right = 10.0
+offset_bottom = 155.0
 direction = "left"
 
 [node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]

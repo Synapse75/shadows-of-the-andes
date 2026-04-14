@@ -27,7 +27,7 @@ var transition_speed: float = 300.0  # 像素/秒
 func _ready() -> void:
 	# 初始化相机
 	make_current()
-	zoom = Vector2.ONE * 4.0
+	zoom = Vector2.ONE
 	
 	# 设置初始镜头位置
 	set_camera_view("tinta")

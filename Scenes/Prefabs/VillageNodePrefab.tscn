@@ -3,6 +3,11 @@
 [ext_resource type="Script" uid="uid://kncnv053rxdv" path="res://Scripts/Nodes/VillageNode.gd" id="1_village"]
 [ext_resource type="Texture2D" uid="uid://cwv27sludd8cn" path="res://Sprites/village_controlled.png" id="2_controlled"]
 [ext_resource type="Texture2D" uid="uid://dxo6vgpao0dq8" path="res://Sprites/village_uncontrolled.png" id="3_uncontrolled"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
+
+[sub_resource type="Theme" id="Theme_label_font"]
+default_font = ExtResource("font_clear")
+default_font_size = 16
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hc8pk"]
 atlas = ExtResource("2_controlled")
@@ -73,20 +78,18 @@ animations = [{
 "speed": 2.0
 }]
 
-[sub_resource type="Theme" id="Theme_label_font"]
-default_font_sizes/font_size = 12
-
 [node name="VillageNodePrefab" type="Node2D" unique_id=1943635923]
 script = ExtResource("1_village")
 
 [node name="VillageLabel" type="Label" parent="." unique_id=2000000101]
 offset_left = -50.0
-offset_top = -30.0
+offset_top = -19.0
 offset_right = 50.0
-offset_bottom = -7.0
+offset_bottom = -5.0
+theme = SubResource("Theme_label_font")
+theme_override_font_sizes/font_size = 16
 text = "Village"
 horizontal_alignment = 1
-theme = SubResource("Theme_label_font")
 
 [node name="VillageSprite" type="AnimatedSprite2D" parent="." unique_id=1851242199]
 sprite_frames = SubResource("SpriteFrames_cvss3")

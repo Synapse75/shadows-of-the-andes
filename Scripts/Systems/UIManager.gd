@@ -25,10 +25,10 @@ func _ready() -> void:
 	# 创建 RichTextLabel 替代原有的 Label
 	info_label = RichTextLabel.new()
 	info_label.name = "Label"
-	info_label.offset_left = 10.0
-	info_label.offset_top = 10.0
-	info_label.offset_right = 340.0
-	info_label.offset_bottom = 270.0
+	info_label.offset_left = 2.0
+	info_label.offset_top = 2.0
+	info_label.offset_right = 2.0
+	info_label.offset_bottom = 2.0
 	info_label.bbcode_enabled = true
 	info_label.scroll_active = true
 	
@@ -49,8 +49,8 @@ func _ready() -> void:
 	info_panel.add_child(info_label)
 	
 	info_panel.visible = false
-	# 增加面板高度（保持宽度不变）
-	info_panel.custom_minimum_size = Vector2(info_panel.custom_minimum_size.x, 400)
+	# 调整面板大小以适配 480x300 分辨率
+	info_panel.custom_minimum_size = Vector2(87, 70)
 
 func show_node_info(node: BaseNode) -> void:
 	"""Display node information in bottom-left (without resources)"""
