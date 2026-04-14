@@ -119,7 +119,8 @@ func update_arrows_display() -> void:
 				arrow_buttons["left"].visible = true
 				print("  → 显示 left 箭头")
 		
-		"jungle":
+		"jung
+le":
 			# Jungle (Paucartambo/Pilcopata中点): 显示返回箭头（向下）返回到 Andahuaylillas
 			if "down" in arrow_buttons and arrow_buttons["down"]:
 				arrow_buttons["down"].visible = true

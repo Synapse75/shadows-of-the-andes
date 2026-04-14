@@ -72,7 +72,7 @@ func execute_auto_phase() -> void:
 	
 	# 所有村庄生产资源
 	for node in game_map.all_nodes:
-		if node is BaseNode:
+		if node is VillageNode:
 			node.produce_resources()
 	
 	auto_phase_ended.emit()

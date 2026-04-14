@@ -10,11 +10,11 @@ var unit_type: String = "enemy"
 var max_health: int = 80
 var current_health: int = 80
 var attack_power: int = 25
-var current_node: BaseNode = null
+var current_node: VillageNode = null
 var is_alive: bool = true
 
 # Signals
-signal unit_moved(from_node: BaseNode, to_node: BaseNode)
+signal unit_moved(from_node: VillageNode, to_node: VillageNode)
 signal unit_damaged(damage: int, remaining_health: int)
 signal unit_died
 
@@ -27,9 +27,9 @@ func _init() -> void:
 func _ready() -> void:
 	add_to_group("enemy_units")
 	current_health = max_health
-	# Auto-assign to parent BaseNode
+	# Auto-assign to parent VillageNode
 	var parent = get_parent()
-	if parent is BaseNode:
+	if parent is VillageNode:
 		assign_to_node(parent)
 
 func get_unit_info() -> Dictionary:
@@ -45,7 +45,7 @@ func get_unit_info() -> Dictionary:
 		"current_node": current_node.location_name if current_node else "None"
 	}
 
-func assign_to_node(node: BaseNode) -> void:
+func assign_to_node(node: VillageNode) -> void:
 	"""Assign unit to node"""
 	if current_node:
 		current_node.remove_enemy_unit(self)
@@ -53,7 +53,7 @@ func assign_to_node(node: BaseNode) -> void:
 	if node:
 		node.add_enemy_unit(self)
 
-func move_to_node(target_node: BaseNode) -> bool:
+func move_to_node(target_node: VillageNode) -> bool:
 	"""Unit moves to another node"""
 	if not current_node or not is_alive:
 		return false

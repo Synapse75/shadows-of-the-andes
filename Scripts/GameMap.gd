@@ -2,9 +2,9 @@ extends Node2D
 class_name GameMap
 
 # Node management
-var all_nodes: Array[BaseNode] = []
-var player_nodes: Array[BaseNode] = []
-var enemy_nodes: Array[BaseNode] = []
+var all_nodes: Array[VillageNode] = []
+var player_nodes: Array[VillageNode] = []
+var enemy_nodes: Array[VillageNode] = []
 
 # Current turn
 var current_turn: int = 0
@@ -12,9 +12,9 @@ var current_turn: int = 0
 # UI management
 var ui_manager: UIManager
 var unit_manager: UnitManager
-var hovered_node: BaseNode = null
+var hovered_node: VillageNode = null
 
-signal node_selected(node: BaseNode)
+signal node_selected(node: VillageNode)
 
 func _ready() -> void:
 	# 自动查找所有节点
@@ -28,9 +28,9 @@ func _ready() -> void:
 	_assign_units_to_nodes()
 
 func _collect_all_nodes() -> void:
-	"""Recursively find all BaseNodes in the scene"""
+	"""Recursively find all VillageNodes in the scene"""
 	for node in get_children():
-		if node is BaseNode:
+		if node is VillageNode:
 			all_nodes.append(node)
 			if node.control_by_player:
 				player_nodes.append(node)
@@ -62,8 +62,13 @@ func _process(_delta: float) -> void:
 	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
 	if node_at_pos != hovered_node:
+		if hovered_node != null and hovered_node.has_method("set_hover_state"):
+			hovered_node.set_hover_state(false)
+			
 		if node_at_pos != null:
 			hovered_node = node_at_pos
+			if hovered_node.has_method("set_hover_state"):
+				hovered_node.set_hover_state(true)
 			print("[GameMap._process] Hovering over: %s" % node_at_pos.node_id)
 			ui_manager.show_node_info(node_at_pos)
 		else:
@@ -121,31 +126,31 @@ func _input(event: InputEvent) -> void:
 			node_selected.emit(clicked_node)
 			get_tree().root.set_input_as_handled()
 
-func _get_node_at_position(global_pos: Vector2) -> BaseNode:
+func _get_node_at_position(global_pos: Vector2) -> VillageNode:
 	"""检测全局位置处的节点 - 通过与AnimatedSprite2D碰撞检测"""
 	for node in all_nodes:
 		if node is VillageNode and node.village_sprite:
 			var sprite = node.village_sprite
-			# AnimatedSprite2D的原始帧大小是 8x8，检查碰撞范围
-			var sprite_half_size = Vector2(4, 4)  # 8x8 的一半
+			# 稍微扩大碰撞判定范围，使其更容易点击 (16x16)
+			var sprite_half_size = Vector2(8, 8)
 			var sprite_rect = Rect2(sprite.global_position - sprite_half_size, sprite_half_size * 2)
 			
 			if sprite_rect.has_point(global_pos):
 				return node
 	return null
 
-func _get_node_by_id(node_id: String) -> BaseNode:
+func _get_node_by_id(node_id: String) -> VillageNode:
 	"""通过 ID 获取节点"""
 	for node in all_nodes:
 		if node.node_id == node_id:
 			return node
 	return null
 
-func get_player_controlled_nodes() -> Array[BaseNode]:
+func get_player_controlled_nodes() -> Array[VillageNode]:
 	"""获取玩家控制的所有节点"""
 	return player_nodes
 
-func occupy_node(node: BaseNode, by_player: bool = true) -> void:
+func occupy_node(node: VillageNode, by_player: bool = true) -> void:
 	"""占领节点"""
 	node.set_control(by_player)
 	

@@ -3,8 +3,8 @@ class_name UIManager
 
 var info_panel: Panel
 var info_label: RichTextLabel
-var current_hovered_node: BaseNode = null
-var locked_node: BaseNode = null
+var current_hovered_node: VillageNode = null
+var locked_node: VillageNode = null
 var is_panel_locked: bool = false
 
 # 海拔图标映射
@@ -52,7 +52,7 @@ func _ready() -> void:
 	# 调整面板大小以适配 480x300 分辨率
 	info_panel.custom_minimum_size = Vector2(87, 70)
 
-func show_node_info(node: BaseNode) -> void:
+func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left (without resources)"""
 	print("[UIManager.show_node_info] Showing info for: %s" % node.node_id)
 	current_hovered_node = node
@@ -107,12 +107,12 @@ func _set_panel_bottom_left() -> void:
 	# Bottom-left: 10 pixels from left and bottom edges
 	info_panel.position = Vector2(10, viewport_size.y - panel_size.y - 10)
 
-func update_position_to_node(node: BaseNode) -> void:
+func update_position_to_node(node: VillageNode) -> void:
 	"""Update panel position - now fixed at bottom-left"""
 	if is_panel_locked:
 		return
 
-func lock_node_info(node: BaseNode) -> void:
+func lock_node_info(node: VillageNode) -> void:
 	"""Lock node information panel at bottom-left"""
 	is_panel_locked = true
 	locked_node = node

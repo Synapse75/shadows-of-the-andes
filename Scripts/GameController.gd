@@ -72,7 +72,7 @@ func initialize_villages() -> void:
 		# Spawn enemy units
 		spawn_enemy_garrison(village, village_id)
 
-func spawn_enemy_garrison(village: BaseNode, village_id: String) -> void:
+func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 	"""Spawn enemy units to garrison a village"""
 	# Tinta is player's starting village, no enemy garrison
 	if village_id == "tinta":

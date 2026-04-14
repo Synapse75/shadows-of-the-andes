@@ -34,7 +34,7 @@ func deselect_unit() -> void:
 	unit_deselected.emit()
 	print("Deselected unit")
 
-func get_units_at_node(node: BaseNode) -> Array[Unit]:
+func get_units_at_node(node: VillageNode) -> Array[Unit]:
 	"""Get all units at specified node"""
 	var units_at_node: Array[Unit] = []
 	for unit in all_units:

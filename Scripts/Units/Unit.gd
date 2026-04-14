@@ -24,7 +24,7 @@ var moving_satiety_consumption: int = 15  # Per turn when moving
 
 # Current state
 var unit_state: UnitState = UnitState.STATIONED
-var current_node: BaseNode = null
+var current_node: VillageNode = null
 var is_alive: bool = true
 var is_special: bool = false  # Special unit flag (leader, hero, etc.)
 
@@ -33,7 +33,7 @@ var inventory: Dictionary = {}  # {"resource_type": amount}
 const INVENTORY_CAPACITY = 5  # Max total resources in backpack
 
 # Signals
-signal unit_moved(from_node: BaseNode, to_node: BaseNode)
+signal unit_moved(from_node: VillageNode, to_node: VillageNode)
 signal unit_state_changed(new_state: UnitState)
 signal unit_damaged(damage: int, remaining_health: int)
 signal unit_hungry(remaining_satiety: int)
@@ -46,9 +46,9 @@ func _ready() -> void:
 		current_health = max_health
 	if current_satiety == 0:  # Only initialize if not already set
 		current_satiety = max_satiety
-	# Auto-assign to parent BaseNode
+	# Auto-assign to parent VillageNode
 	var parent = get_parent()
-	if parent is BaseNode:
+	if parent is VillageNode:
 		assign_to_node(parent)
 
 func get_unit_info() -> Dictionary:
@@ -74,7 +74,7 @@ func get_current_attack_power() -> int:
 	"""Get current attack power (Female Corps doubles when stationed)"""
 	return attack_power
 
-func assign_to_node(node: BaseNode) -> void:
+func assign_to_node(node: VillageNode) -> void:
 	"""Assign unit to node"""
 	if current_node:
 		current_node.remove_unit(self)
@@ -83,7 +83,7 @@ func assign_to_node(node: BaseNode) -> void:
 		node.add_unit(self)
 	update_state()
 
-func move_to_node(target_node: BaseNode) -> bool:
+func move_to_node(target_node: VillageNode) -> bool:
 	"""Unit moves to another node"""
 	if not current_node or not is_alive:
 		return false

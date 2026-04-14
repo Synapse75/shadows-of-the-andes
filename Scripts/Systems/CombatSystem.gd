@@ -7,10 +7,10 @@ class_name CombatSystem
 class Combat:
 	var player_units: Array[Unit] = []
 	var enemy_units: Array[EnemyUnit] = []
-	var combat_node: BaseNode
+	var combat_node: VillageNode
 	var turn: int = 0
 	
-	func _init(node: BaseNode, p_units: Array, e_units: Array) -> void:
+	func _init(node: VillageNode, p_units: Array, e_units: Array) -> void:
 		combat_node = node
 		player_units = p_units
 		enemy_units = e_units
@@ -25,7 +25,7 @@ signal combat_resolved_turn(combat: Combat, turn: int)
 func _ready() -> void:
 	add_to_group("combat_system")
 
-func start_combat(node: BaseNode, player_units: Array, enemy_units: Array) -> Combat:
+func start_combat(node: VillageNode, player_units: Array, enemy_units: Array) -> Combat:
 	"""Start a new combat on a node"""
 	if player_units.is_empty() or enemy_units.is_empty():
 		return null
@@ -119,14 +119,14 @@ func end_combat(combat: Combat) -> void:
 	active_combats.erase(combat)
 	combat_ended.emit(combat)
 
-func get_combat_at_node(node: BaseNode) -> Combat:
+func get_combat_at_node(node: VillageNode) -> Combat:
 	"""Get active combat at a specific node"""
 	for combat in active_combats:
 		if combat.combat_node == node:
 			return combat
 	return null
 
-func is_node_in_combat(node: BaseNode) -> bool:
+func is_node_in_combat(node: VillageNode) -> bool:
 	"""Check if node is currently in combat"""
 	return get_combat_at_node(node) != null
 
