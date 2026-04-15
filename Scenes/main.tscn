@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://prra728qif53" path="res://Scripts/GameController.gd" id="1_game_controller"]
 [ext_resource type="Script" uid="uid://pvp748id1koi" path="res://Scripts/GameMap.gd" id="2_game_map"]
+[ext_resource type="Texture2D" uid="uid://06xhrc16e2dw" path="res://Sprites/uipanel.png" id="3_k12tt"]
 [ext_resource type="Script" uid="uid://cxjp1q8i07vkl" path="res://Scripts/Systems/UIManager.gd" id="3_ui_manager"]
 [ext_resource type="Texture2D" uid="uid://bwvcu8dp0lwus" path="res://Sprites/mappixel.png" id="4_jkdf5"]
 [ext_resource type="Script" uid="uid://doe00w6ngoic1" path="res://Scripts/Systems/TurnManager.gd" id="4_turn"]
@@ -26,6 +27,14 @@ shader = ExtResource("9_hptm8")
 [node name="Main" type="Node2D" unique_id=1470391578]
 script = ExtResource("1_game_controller")
 
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1668955908]
+layer = -1
+
+[node name="TextureRect" type="TextureRect" parent="BackgroundLayer" unique_id=285794204]
+offset_right = 640.0
+offset_bottom = 400.0
+texture = ExtResource("3_k12tt")
+
 [node name="CameraArrowManager" type="Node" parent="." unique_id=2000000010]
 script = ExtResource("16_arrow_manager")
 
@@ -47,23 +56,6 @@ offset_right = 85.0
 offset_bottom = 68.0
 theme = SubResource("Theme_ui_font")
 text = "Hover over a node to view information"
-
-[node name="TurnInfo" type="Panel" parent="UILayer" unique_id=1959215300]
-custom_minimum_size = Vector2(65, 18)
-offset_left = 3.0
-offset_top = 280.0
-offset_right = 48.0
-offset_bottom = 292.0
-
-[node name="TurnLabel" type="Label" parent="UILayer/TurnInfo" unique_id=817640371]
-layout_mode = 0
-offset_left = 2.0
-offset_top = 1.0
-offset_right = 43.0
-offset_bottom = 11.0
-theme = SubResource("Theme_ui_font")
-text = "Turn: 0"
-horizontal_alignment = 1
 
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
@@ -124,12 +116,29 @@ layout_mode = 2
 theme = SubResource("Theme_ui_font")
 text = "Quit Game"
 
+[node name="TurnInfo" type="Panel" parent="UILayer" unique_id=1959215300]
+custom_minimum_size = Vector2(65, 18)
+offset_left = 320.0
+offset_top = 15.0
+offset_right = 385.0
+offset_bottom = 33.0
+
+[node name="TurnLabel" type="Label" parent="UILayer/TurnInfo" unique_id=817640371]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 43.0
+offset_bottom = 11.0
+theme = SubResource("Theme_ui_font")
+text = "Turn: 0"
+horizontal_alignment = 1
+
 [node name="NextTurnButton" type="Button" parent="UILayer" unique_id=1370219917]
 custom_minimum_size = Vector2(65, 16)
-offset_left = 409.0
-offset_top = 275.0
-offset_right = 474.0
-offset_bottom = 296.0
+offset_left = 400.0
+offset_top = 15.0
+offset_right = 465.0
+offset_bottom = 36.0
 theme = SubResource("Theme_ui_font")
 text = "Next Turn"
 

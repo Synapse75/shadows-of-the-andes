@@ -64,6 +64,7 @@ func _process(_delta: float) -> void:
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
+			hovered_node.hide_resource_icons()  # ← 加这一行
 			
 		if node_at_pos != null:
 			hovered_node = node_at_pos
