@@ -15,11 +15,17 @@
 [ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
 [ext_resource type="PackedScene" uid="uid://cn5qkm1m0uw6e" path="res://Scenes/arrow.tscn" id="15_arrow"]
 [ext_resource type="Script" uid="uid://c741yxjalgwl2" path="res://Scripts/UI/CameraArrowManager.gd" id="16_arrow_manager"]
+[ext_resource type="Shader" uid="uid://b8mh4p863qhec" path="res://Shaders/map_mask.gdshader" id="17_h1bgf"]
+[ext_resource type="Texture2D" uid="uid://dluq7oaabkgvc" path="res://Sprites/mapmask.png" id="18_b3802"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 
 [sub_resource type="Theme" id="Theme_ui_font"]
 default_font = ExtResource("font_clear")
 default_font_size = 16
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b3802"]
+shader = ExtResource("17_h1bgf")
+shader_parameter/mask_texture = ExtResource("18_b3802")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jkdf5"]
 shader = ExtResource("9_hptm8")
@@ -196,6 +202,7 @@ script = ExtResource("4_turn")
 script = ExtResource("7_unit_manager")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1395615210]
+material = SubResource("ShaderMaterial_b3802")
 offset_left = 140.0
 offset_top = 50.0
 offset_right = 640.0

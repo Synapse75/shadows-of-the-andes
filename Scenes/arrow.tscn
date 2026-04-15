@@ -1,8 +1,50 @@
 [gd_scene format=3 uid="uid://cn5qkm1m0uw6e"]
 
 [ext_resource type="Script" uid="uid://bhrb01xhhmyhe" path="res://Scripts/UI/ArrowButton.gd" id="2_arrow_button"]
+[ext_resource type="Texture2D" uid="uid://b6p6iev8tpkog" path="res://Sprites/arrow.png" id="2_h5x2m"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_40cdi"]
+atlas = ExtResource("2_h5x2m")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xxsqv"]
+atlas = ExtResource("2_h5x2m")
+region = Rect2(8, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yjaco"]
+atlas = ExtResource("2_h5x2m")
+region = Rect2(16, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c32fr"]
+atlas = ExtResource("2_h5x2m")
+region = Rect2(24, 0, 8, 8)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pu778"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_40cdi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xxsqv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yjaco")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c32fr")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
 
 [node name="Arrow" type="Button" unique_id=173884477]
 flat = true
 icon_alignment = 1
 script = ExtResource("2_arrow_button")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=416343989]
+sprite_frames = SubResource("SpriteFrames_pu778")
+autoplay = "default"
+frame_progress = 0.23298891

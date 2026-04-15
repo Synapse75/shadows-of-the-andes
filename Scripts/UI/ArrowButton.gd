@@ -4,6 +4,7 @@ class_name ArrowButton
 @export var direction: String = "up"
 var game_controller: GameController
 var camera_manager: CameraManager
+var arrow_sprite: AnimatedSprite2D
 
 # 动画帧数据
 var animation_frames: Array[AtlasTexture] = []
@@ -21,6 +22,15 @@ func _ready() -> void:
 		push_error("ArrowButton[%s]: 无法获取 CameraManager" % direction)
 	else:
 		print("ArrowButton[%s]: 成功获取 CameraManager，当前镜头: %s" % [direction, camera_manager.current_camera])
+	
+	# 获取 AnimatedSprite2D 引用
+	arrow_sprite = get_node_or_null("AnimatedSprite2D")
+	if not arrow_sprite:
+		push_error("ArrowButton[%s]: 无法获取 AnimatedSprite2D" % direction)
+	else:
+		# 设置精灵位置到按钮中心，确保绕中心旋转
+		arrow_sprite.position = size / 2.0
+		arrow_sprite.offset = Vector2.ZERO
 	
 	# 初始化动画帧
 	_setup_animation_frames()
@@ -57,10 +67,6 @@ func _setup_animation_frames() -> void:
 		atlas.atlas = arrow_texture
 		atlas.region = Rect2(i * 8, 0, 8, 8)
 		animation_frames.append(atlas)
-	
-	# 设置初始图标
-	if animation_frames.size() > 0:
-		icon = animation_frames[0]
 
 func _process(delta: float) -> void:
 	"""每帧更新动画"""
@@ -74,7 +80,6 @@ func _process(delta: float) -> void:
 	if frame_timer >= frame_duration:
 		frame_timer = 0.0
 		current_frame = (current_frame + 1) % animation_frames.size()
-		icon = animation_frames[current_frame]
 
 func _input(event: InputEvent) -> void:
 	"""捕获所有输入事件用于调试"""
@@ -154,14 +159,17 @@ func _on_pressed() -> void:
 
 func _rotate_arrow() -> void:
 	"""根据箭头方向旋转图标"""
+	if not arrow_sprite:
+		return
+	
 	match direction:
 		"up":
-			rotation = 0.0
+			arrow_sprite.rotation = 0.0
 		"down":
-			rotation = PI  # 180度
+			arrow_sprite.rotation = PI  # 180度
 		"left":
-			rotation = -PI / 2.0  # -90度
+			arrow_sprite.rotation = -PI / 2.0  # -90度
 		"right":
-			rotation = PI / 2.0  # 90度
+			arrow_sprite.rotation = PI / 2.0  # 90度
 		_:
 			push_warning("ArrowButton: 未知的方向 %s" % direction)
