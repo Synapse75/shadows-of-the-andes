@@ -6,7 +6,7 @@ var game_map: GameMap
 var village_ui_nodes: Dictionary = {}  # village_id -> VillageNode
 
 func _ready() -> void:
-	game_map = get_tree().root.get_node("Main/Map")
+	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
 	
 	# 收集所有村庄的UI引用
 	_collect_village_uis()

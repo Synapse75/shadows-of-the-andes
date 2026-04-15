@@ -13,10 +13,10 @@ signal game_over(winner: String)
 
 func _ready() -> void:
 	# 获取各个系统的引用
-	game_map = get_node("Map")
+	game_map = get_node("SubViewportContainer/SubViewport/Map")
 	turn_manager = get_node("Systems/TurnManager")
 	pause_menu = get_node("UILayer/PauseMenu")
-	camera_manager = get_node("Camera2D")
+	camera_manager = get_node("SubViewportContainer/SubViewport/Camera2D")
 	settings = SettingsAndData.new()
 	
 	# 连接暂停按钮

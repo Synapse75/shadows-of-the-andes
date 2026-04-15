@@ -14,7 +14,7 @@ func _ready() -> void:
 		push_error("CameraArrowManager: 无法获取 Main 节点")
 		return
 	
-	camera_manager = main_node.get_node("Camera2D") as CameraManager
+	camera_manager = main_node.get_node("SubViewportContainer/SubViewport/Camera2D") as CameraManager
 	if not camera_manager:
 		push_error("CameraArrowManager: 无法获取 CameraManager")
 		return
@@ -119,8 +119,7 @@ func update_arrows_display() -> void:
 				arrow_buttons["left"].visible = true
 				print("  → 显示 left 箭头")
 		
-		"jung
-le":
+		"jungle":
 			# Jungle (Paucartambo/Pilcopata中点): 显示返回箭头（向下）返回到 Andahuaylillas
 			if "down" in arrow_buttons and arrow_buttons["down"]:
 				arrow_buttons["down"].visible = true

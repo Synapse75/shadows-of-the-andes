@@ -20,8 +20,8 @@ func _ready() -> void:
 	# 自动查找所有节点
 	_collect_all_nodes()
 	_setup_connections()
-	ui_manager = get_parent().get_node("Systems/UIManager")
-	unit_manager = get_parent().get_node("Systems/UnitManager")
+	ui_manager = get_tree().root.get_node("Main/Systems/UIManager")
+	unit_manager = get_tree().root.get_node("Main/Systems/UnitManager")
 	
 	# 等待 UnitManager 收集单位后，将单位分配到节点
 	await unit_manager.tree_entered

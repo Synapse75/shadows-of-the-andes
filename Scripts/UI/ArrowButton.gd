@@ -14,7 +14,7 @@ var frame_duration: float = 0.5  # 2fps = 0.5秒/帧
 func _ready() -> void:
 	# 获取gambe controller引用
 	game_controller = get_tree().root.get_node("Main") as GameController
-	camera_manager = get_tree().root.get_node("Main/Camera2D") as CameraManager
+	camera_manager = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Camera2D") as CameraManager
 	
 	# 检查是否成功获取管理器
 	if not camera_manager:

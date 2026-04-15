@@ -16,7 +16,7 @@ signal auto_phase_ended      # 自动流程结束
 
 func _ready() -> void:
 	# 获取GameMap引用
-	game_map = get_tree().root.get_node("Main/Map")
+	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
 	
 	# 获取UI元素
 	var main_node = get_tree().root.get_node("Main")
