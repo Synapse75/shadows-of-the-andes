@@ -61,24 +61,19 @@ func _process(_delta: float) -> void:
 	var global_mouse_pos = get_global_mouse_position()
 	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
-	# Hover effect
+	# Hover effect - only update shader, not information display
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
-			# 悬浮到不同节点时隐藏资源滚动框
-			if ui_manager.resources_scroll_container:
-				ui_manager.resources_scroll_container.visible = false
 			
 		if node_at_pos != null:
 			hovered_node = node_at_pos
 			if hovered_node.has_method("set_hover_state"):
 				hovered_node.set_hover_state(true)
 			print("[GameMap._process] Hovering over: %s" % node_at_pos.node_id)
-			ui_manager.show_node_info(node_at_pos)
 		else:
 			hovered_node = null
 			print("[GameMap._process] Not hovering over any node")
-			ui_manager.hide_node_info()
 	
 	# Click detection in _process (since _input might be consumed by UI)
 	if Input.is_action_just_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -103,6 +98,9 @@ func _process(_delta: float) -> void:
 			# Not on UI buttons, check for node click
 			var clicked_node = _get_node_at_position(global_mouse_pos)
 			if clicked_node:
+				# Display node information on click
+				ui_manager.show_node_info(clicked_node)
+				
 				var units_here = clicked_node.stationed_units
 				if units_here.size() > 0:
 					unit_manager.select_unit(units_here[0])

@@ -59,27 +59,6 @@ func _ready() -> void:
 		village_label.text = location_name
 
 	update_visual()
-	resources_changed.connect(_on_resources_changed)
-
-func _create_resource_icons_container() -> void:
-	"""Deprecated - resource icons display removed"""
-	pass
-
-func _on_resources_changed(_resources: Dictionary) -> void:
-	"""Called when resources change"""
-	pass
-
-func _update_resource_display() -> void:
-	"""Deprecated - resource icons display removed"""
-	pass
-
-func show_resource_icons() -> void:
-	"""Deprecated - resource icons display removed"""
-	pass
-
-func hide_resource_icons() -> void:
-	"""Deprecated - resource icons display removed"""
-	pass
 
 func add_neighbor(node: VillageNode) -> void:
 	"""Add adjacent node"""

@@ -27,8 +27,16 @@ var resource_icons: Dictionary = {
 	"coca": "res://Sprites/coca.png"
 }
 
+# 单位图标映射
+var unit_icons: Dictionary = {
+	"rebel_army": "res://Sprites/rebelarmy.png",
+	"female_corps": "res://Sprites/femalecorps.png",
+	"enemy": "res://Sprites/enemy.png"
+}
+
 # resourcepanel 背景
 var resource_panel_bg: String = "res://Sprites/resourcepanel.png"
+var unit_panel_bg: String = "res://Sprites/unitpanel.png"
 
 func _ready() -> void:
 	info_panel = get_node("../../UILayer/InfoPanel")
@@ -41,12 +49,15 @@ func _ready() -> void:
 	# 创建 RichTextLabel 替代原有的 Label
 	info_label = RichTextLabel.new()
 	info_label.name = "Label"
+	info_label.layout_mode = 1  # Anchored layout
+	info_label.anchors_preset = 15  # Fill parent
 	info_label.offset_left = 2.0
 	info_label.offset_top = 2.0
-	info_label.offset_right = 2.0
-	info_label.offset_bottom = 2.0
+	info_label.offset_right = -2.0
+	info_label.offset_bottom = -2.0
 	info_label.bbcode_enabled = true
 	info_label.scroll_active = true
+	info_label.custom_minimum_size = Vector2(80, 60)
 	
 	# 继承旧样式
 	if old_font:
@@ -56,9 +67,9 @@ func _ready() -> void:
 		info_label.add_theme_font_size_override("normal_font_size", old_font_size)
 		info_label.add_theme_font_size_override("bold_font_size", old_font_size)
 	
-	# 设置文字颜色为黑色
-	info_label.add_theme_color_override("default_color", Color.BLACK)
-	info_label.add_theme_color_override("font_bold_color", Color.BLACK)
+	# 设置文字颜色为白色
+	info_label.add_theme_color_override("default_color", Color.WHITE)
+	info_label.add_theme_color_override("font_bold_color", Color.WHITE)
 	
 	# 替换旧的 Label
 	old_label.queue_free()
@@ -99,7 +110,7 @@ func _ready() -> void:
 		game_map.node_selected.connect(_on_node_selected)
 
 func show_node_info(node: VillageNode) -> void:
-	"""Display node information in bottom-left (without resources)"""
+	"""Display node information in bottom-left and show resources/units in left panel"""
 	print("[UIManager.show_node_info] Showing info for: %s" % node.node_id)
 	current_hovered_node = node
 	var info = node.get_node_info()
@@ -126,15 +137,14 @@ func show_node_info(node: VillageNode) -> void:
 	info_label.text = text
 	info_panel.visible = true
 	
-	# 悬浮时隐藏资源列表（点击时才显示）
-	if resources_scroll_container:
-		resources_scroll_container.visible = false
-
-func _on_node_selected(node: VillageNode) -> void:
-	"""Handle node click - display resources in left panel"""
+	# Display resources and units in left panel
 	_display_node_resources(node)
 	if resources_scroll_container:
 		resources_scroll_container.visible = true
+
+func _on_node_selected(node: VillageNode) -> void:
+	"""Handle node click - display information via show_node_info"""
+	show_node_info(node)
 
 func hide_node_info() -> void:
 	"""Hide node information and icons"""
@@ -167,7 +177,7 @@ func unlock_node_info() -> void:
 	print("Unlocked node information panel")
 
 func _display_node_resources(node: VillageNode) -> void:
-	"""Display resources for the given node"""
+	"""Display resources and units for the given node"""
 	if not resources_vbox:
 		print("[UIManager._display_node_resources] ERROR: resources_vbox is null!")
 		return
@@ -176,14 +186,49 @@ func _display_node_resources(node: VillageNode) -> void:
 	for child in resources_vbox.get_children():
 		child.queue_free()
 	
-	# 资源类型列表（按优先级）
-	var resource_types = ["potato", "corn", "quinoa", "llama", "coca"]
+	# 加载 ClearFont
+	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
 	
-	# Create resource panel for each resource type with amount > 0
+	# 显示玩家单位标题 ========================================
+	var unit_title = Label.new()
+	unit_title.text = "--- Units ---"
+	unit_title.add_theme_font_override("font", clear_font)
+	unit_title.add_theme_font_size_override("font_size", 16)
+	unit_title.add_theme_color_override("font_color", Color.WHITE)
+	resources_vbox.add_child(unit_title)
+	
+	# 显示每个单位
+	for unit in node.stationed_units:
+		print("[UIManager] Adding player unit: %s (type: %s)" % [unit.unit_name, unit.unit_type])
+		_create_unit_panel_row(unit)
+	
+	# 显示资源标题 ========================================
+	var resource_title = Label.new()
+	resource_title.text = "--- Resources ---"
+	resource_title.add_theme_font_override("font", clear_font)
+	resource_title.add_theme_font_size_override("font_size", 16)
+	resource_title.add_theme_color_override("font_color", Color.WHITE)
+	resources_vbox.add_child(resource_title)
+	
+	# 显示资源
+	var resource_types = ["potato", "corn", "quinoa", "llama", "coca"]
 	for resource_type in resource_types:
 		var amount = node.resources.get(resource_type, 0)
 		if amount > 0:
 			_create_resource_panel_row(resource_type, amount)
+	
+	# 显示敌方单位标题 ========================================
+	var enemy_title = Label.new()
+	enemy_title.text = "--- Enemies ---"
+	enemy_title.add_theme_font_override("font", clear_font)
+	enemy_title.add_theme_font_size_override("font_size", 16)
+	enemy_title.add_theme_color_override("font_color", Color.WHITE)
+	resources_vbox.add_child(enemy_title)
+	
+	# 显示每个敌方单位
+	for enemy_unit in node.enemy_units:
+		print("[UIManager] Adding enemy unit: %s (type: %s)" % [enemy_unit.unit_name, enemy_unit.unit_type])
+		_create_enemy_unit_panel_row(enemy_unit)
 
 func _create_resource_panel_row(resource_type: String, amount: int) -> void:
 	"""Create a single resource panel row"""
@@ -221,6 +266,98 @@ func _create_resource_panel_row(resource_type: String, amount: int) -> void:
 	
 	inner_hbox.add_child(icon_texture)
 	inner_hbox.add_child(amount_label)
+	bg_panel.add_child(inner_hbox)
+	
+	resources_vbox.add_child(bg_panel)
+
+func _create_unit_panel_row(unit: Unit) -> void:
+	"""Create a single unit panel row"""
+	# Unit icon (32x32)
+	var icon_path = unit_icons.get(unit.unit_type, "")
+	print("[UIManager._create_unit_panel_row] Unit type: %s, Icon path: %s" % [unit.unit_type, icon_path])
+	
+	# Check if icon exists
+	if not icon_path or not ResourceLoader.exists(icon_path):
+		print("[UIManager._create_unit_panel_row] ERROR: Icon not found for unit type: %s, skipping" % unit.unit_type)
+		return
+	
+	# Background panel (140x40)
+	var bg_panel = Panel.new()
+	bg_panel.custom_minimum_size = Vector2(140, 40)
+	var stylebox = StyleBoxTexture.new()
+	if ResourceLoader.exists(unit_panel_bg):
+		stylebox.texture = ResourceLoader.load(unit_panel_bg)
+	bg_panel.add_theme_stylebox_override("panel", stylebox)
+	
+	# Inner container for content (positioned at 4,4 inside the panel)
+	var inner_hbox = HBoxContainer.new()
+	inner_hbox.add_theme_constant_override("separation", 4)
+	inner_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
+	inner_hbox.offset_left = 4
+	inner_hbox.offset_top = 4
+	inner_hbox.offset_right = 4
+	inner_hbox.offset_bottom = 4
+	inner_hbox.custom_minimum_size = Vector2(132, 32)
+	
+	# Unit icon
+	var icon_texture = TextureRect.new()
+	icon_texture.texture = ResourceLoader.load(icon_path)
+	icon_texture.custom_minimum_size = Vector2(32, 32)
+	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	
+	# Unit name label
+	var name_label = Label.new()
+	name_label.text = unit.unit_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	
+	inner_hbox.add_child(icon_texture)
+	inner_hbox.add_child(name_label)
+	bg_panel.add_child(inner_hbox)
+	
+	resources_vbox.add_child(bg_panel)
+
+func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
+	"""Create a single enemy unit panel row"""
+	# Enemy unit icon
+	var icon_path = unit_icons.get(enemy_unit.unit_type, "")
+	print("[UIManager._create_enemy_unit_panel_row] Enemy type: %s, Icon path: %s" % [enemy_unit.unit_type, icon_path])
+	
+	# Check if icon exists
+	if not icon_path or not ResourceLoader.exists(icon_path):
+		print("[UIManager._create_enemy_unit_panel_row] ERROR: Icon not found for enemy type: %s, skipping" % enemy_unit.unit_type)
+		return
+	
+	# Background panel (140x40)
+	var bg_panel = Panel.new()
+	bg_panel.custom_minimum_size = Vector2(140, 40)
+	var stylebox = StyleBoxTexture.new()
+	if ResourceLoader.exists(unit_panel_bg):
+		stylebox.texture = ResourceLoader.load(unit_panel_bg)
+	bg_panel.add_theme_stylebox_override("panel", stylebox)
+	
+	# Inner container for content (positioned at 4,4 inside the panel)
+	var inner_hbox = HBoxContainer.new()
+	inner_hbox.add_theme_constant_override("separation", 4)
+	inner_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
+	inner_hbox.offset_left = 4
+	inner_hbox.offset_top = 4
+	inner_hbox.offset_right = 4
+	inner_hbox.offset_bottom = 4
+	inner_hbox.custom_minimum_size = Vector2(132, 32)
+	
+	# Enemy unit icon
+	var icon_texture = TextureRect.new()
+	icon_texture.texture = ResourceLoader.load(icon_path)
+	icon_texture.custom_minimum_size = Vector2(32, 32)
+	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	
+	# Enemy unit name label
+	var name_label = Label.new()
+	name_label.text = enemy_unit.unit_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	
+	inner_hbox.add_child(icon_texture)
+	inner_hbox.add_child(name_label)
 	bg_panel.add_child(inner_hbox)
 	
 	resources_vbox.add_child(bg_panel)
