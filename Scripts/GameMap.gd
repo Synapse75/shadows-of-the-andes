@@ -52,7 +52,7 @@ func _assign_units_to_nodes() -> void:
 		print("All units assigned to Tinta")
 
 func _process(_delta: float) -> void:
-	"""Handle mouse hover effect - based on village sprite collision"""
+	"""Handle mouse hover effect and click detection"""
 	# Only respond to hover when not locked
 	if ui_manager.is_panel_locked:
 		return
@@ -61,10 +61,13 @@ func _process(_delta: float) -> void:
 	var global_mouse_pos = get_global_mouse_position()
 	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
+	# Hover effect
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
-			hovered_node.hide_resource_icons()  # ← 加这一行
+			# 悬浮到不同节点时隐藏资源滚动框
+			if ui_manager.resources_scroll_container:
+				ui_manager.resources_scroll_container.visible = false
 			
 		if node_at_pos != null:
 			hovered_node = node_at_pos
@@ -76,6 +79,35 @@ func _process(_delta: float) -> void:
 			hovered_node = null
 			print("[GameMap._process] Not hovering over any node")
 			ui_manager.hide_node_info()
+	
+	# Click detection in _process (since _input might be consumed by UI)
+	if Input.is_action_just_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		# Check UI button areas first
+		var screen_mouse_pos = get_viewport().get_mouse_position()
+		
+		# Skip if clicking on UI elements
+		var next_turn_rect = Rect2(Vector2(3, 90), Vector2(48, 10))
+		var pause_btn_rect = Rect2(Vector2(460, 3), Vector2(18, 10))
+		var arrow_up_rect = Rect2(Vector2(236, 3), Vector2(10, 10))
+		var arrow_down_rect = Rect2(Vector2(236, 290), Vector2(10, 10))
+		var arrow_left_rect = Rect2(Vector2(0, 145), Vector2(10, 10))
+		var arrow_right_rect = Rect2(Vector2(470, 145), Vector2(10, 10))
+		
+		if not (next_turn_rect.has_point(screen_mouse_pos) or 
+				pause_btn_rect.has_point(screen_mouse_pos) or
+				arrow_up_rect.has_point(screen_mouse_pos) or
+				arrow_down_rect.has_point(screen_mouse_pos) or
+				arrow_left_rect.has_point(screen_mouse_pos) or
+				arrow_right_rect.has_point(screen_mouse_pos)):
+			
+			# Not on UI buttons, check for node click
+			var clicked_node = _get_node_at_position(global_mouse_pos)
+			if clicked_node:
+				var units_here = clicked_node.stationed_units
+				if units_here.size() > 0:
+					unit_manager.select_unit(units_here[0])
+				
+				node_selected.emit(clicked_node)
 
 func _input(event: InputEvent) -> void:
 	"""Handle mouse click - only consume if clicking on game nodes"""

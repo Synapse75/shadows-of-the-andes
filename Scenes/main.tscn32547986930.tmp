@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://hfq4dtksx8pb" path="res://Scripts/Systems/UnitManager.gd" id="7_unit_manager"]
 [ext_resource type="Script" uid="uid://bkv3380swpyew" path="res://Scripts/Units/Unit.gd" id="8_unit"]
 [ext_resource type="Shader" uid="uid://diqd3tufib4ue" path="res://Shaders/lighten_map.gdshader" id="9_hptm8"]
+[ext_resource type="Script" uid="uid://0xvyip32wbma" path="res://Scripts/Systems/VillageUIManager.gd" id="12_village_ui"]
 [ext_resource type="Script" uid="uid://c1gr3kuusyp3a" path="res://Scripts/Systems/CameraManager.gd" id="13_camera_manager"]
 [ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
 [ext_resource type="PackedScene" uid="uid://cn5qkm1m0uw6e" path="res://Scenes/arrow.tscn" id="15_arrow"]
@@ -46,25 +47,21 @@ script = ExtResource("16_arrow_manager")
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
 
-[node name="ScrollContainer" type="ScrollContainer" parent="UILayer" unique_id=314055249]
-offset_top = 50.0
-offset_right = 140.0
-offset_bottom = 300.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/ScrollContainer" unique_id=1289612340]
-layout_mode = 2
-
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
 custom_minimum_size = Vector2(120, 100)
-offset_top = 300.0
-offset_right = 140.0
-offset_bottom = 400.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 90.0
+offset_bottom = 73.0
 
 [node name="Label" type="Label" parent="UILayer/InfoPanel" unique_id=827306435]
 layout_mode = 0
-offset_right = 140.0
-offset_bottom = 100.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 85.0
+offset_bottom = 68.0
 theme = SubResource("Theme_ui_font")
+text = "Hover over a node to view information"
 
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
@@ -186,6 +183,9 @@ offset_right = 150.0
 offset_bottom = 230.0
 direction = "left"
 
+[node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]
+script = ExtResource("12_village_ui")
+
 [node name="Systems" type="Node" parent="." unique_id=1968131527]
 
 [node name="MapSystem" type="Node" parent="Systems" unique_id=1111111111]
@@ -230,6 +230,8 @@ location_description = "Birthplace of the rebellion"
 node_type = "start"
 altitude = "high"
 control_by_player = true
+max_population = null
+recruitment_rate = null
 
 [node name="Rebel1" type="Node" parent="SubViewportContainer/SubViewport/Map/Tinta" unique_id=2085185984]
 script = ExtResource("8_unit")
@@ -243,6 +245,9 @@ location_name = "Tungasuca"
 location_description = "Highland stronghold"
 node_type = "resource"
 altitude = "high"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Pampamarca" parent="SubViewportContainer/SubViewport/Map" unique_id=875643600 instance=ExtResource("6_village_prefab")]
 position = Vector2(692, 963)
@@ -251,6 +256,9 @@ location_name = "Pampamarca"
 location_description = "High altitude fortress"
 node_type = "resource"
 altitude = "high"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Sicuani" parent="SubViewportContainer/SubViewport/Map" unique_id=1769919553 instance=ExtResource("6_village_prefab")]
 position = Vector2(851, 1051)
@@ -259,6 +267,9 @@ location_name = "Sicuani"
 location_description = "Eastern highland pass"
 node_type = "resource"
 altitude = "high"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Urcos" parent="SubViewportContainer/SubViewport/Map" unique_id=998254688 instance=ExtResource("6_village_prefab")]
 position = Vector2(585, 638)
@@ -267,6 +278,9 @@ location_name = "Urcos"
 location_description = "Corn farming lands"
 node_type = "resource"
 altitude = "medium"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Quiquijana" parent="SubViewportContainer/SubViewport/Map" unique_id=344981993 instance=ExtResource("6_village_prefab")]
 position = Vector2(640, 740)
@@ -275,6 +289,9 @@ location_name = "Quiquijana"
 location_description = "Agricultural zone"
 node_type = "resource"
 altitude = "medium"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Paucartambo" parent="SubViewportContainer/SubViewport/Map" unique_id=1590070800 instance=ExtResource("6_village_prefab")]
 position = Vector2(603, 372)
@@ -283,6 +300,9 @@ location_name = "Paucartambo"
 location_description = "Gateway to the jungle"
 node_type = "resource"
 altitude = "low"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Andahuaylillas" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000001 instance=ExtResource("6_village_prefab")]
 position = Vector2(547, 633)
@@ -291,6 +311,9 @@ location_name = "Andahuaylillas"
 location_description = "Ancient community"
 node_type = "resource"
 altitude = "medium"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Marcapata" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000002 instance=ExtResource("6_village_prefab")]
 position = Vector2(1027, 574)
@@ -299,6 +322,9 @@ location_name = "Marcapata"
 location_description = "Lowland transition area"
 node_type = "resource"
 altitude = "low"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Pilcopata" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000004 instance=ExtResource("6_village_prefab")]
 position = Vector2(737, 107)
@@ -307,6 +333,9 @@ location_name = "Pilcopata"
 location_description = "Amazon frontier settlement"
 node_type = "resource"
 altitude = "low"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Cusco" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000005 instance=ExtResource("6_village_prefab")]
 position = Vector2(354, 532)
@@ -315,6 +344,9 @@ location_name = "Cusco"
 location_description = "Inca capital & ultimate objective"
 node_type = "capital"
 altitude = "medium"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Ocongate" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000006 instance=ExtResource("6_village_prefab")]
 position = Vector2(744, 598)
@@ -323,6 +355,9 @@ location_name = "Ocongate"
 location_description = "Highland town"
 node_type = "resource"
 altitude = "high"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Challabamba" parent="SubViewportContainer/SubViewport/Map" unique_id=2000000007 instance=ExtResource("6_village_prefab")]
 position = Vector2(566, 310)
@@ -331,6 +366,9 @@ location_name = "Challabamba"
 location_description = "Lowland settlement"
 node_type = "resource"
 altitude = "low"
+control_by_player = null
+max_population = null
+recruitment_rate = null
 
 [node name="Camera2D" type="Camera2D" parent="SubViewportContainer/SubViewport" unique_id=1111111112]
 script = ExtResource("13_camera_manager")

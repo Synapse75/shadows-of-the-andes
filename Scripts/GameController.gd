@@ -43,28 +43,24 @@ func _ready() -> void:
 func initialize_villages() -> void:
 	"""Initialize all villages with resources and enemy garrisons"""
 	var all_populations = settings.get_all_populations()
-	print("[GameController.initialize_villages] Starting with %d villages" % all_populations.size())
 	
 	for village_id in all_populations:
 		var village = game_map._get_node_by_id(village_id)
 		if not village:
-			print("[GameController.initialize_villages] ERROR: Could not find village: %s" % village_id)
 			continue
 		
 		# Initialize village population
 		var population = settings.get_village_population(village_id)
 		village.resources["population"] = population
-		print("[GameController.initialize_villages] %s population set to %d" % [village_id, population])
 		
 		# Initialize resource production
 		var resource_types = settings.get_initial_resources(village_id)
 		var production_rate = settings.get_production_rate(village_id)
 		village.initialize_resource_production(resource_types, production_rate)
-		print("[GameController.initialize_villages] %s resource types: %s" % [village_id, resource_types])
 		
 		# Initialize resource amounts (start with some initial resources for testing)
 		for resource_type in resource_types:
-			village.resources[resource_type] = 3  # 初始3个资源用于测试
+			village.resources[resource_type] = 3
 		
 		# Trigger signal to update display
 		village.resources_changed.emit(village.resources)

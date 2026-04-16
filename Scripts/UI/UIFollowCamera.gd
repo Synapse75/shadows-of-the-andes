@@ -1,33 +1,34 @@
 extends Node
 class_name UIFollowCamera
 
-# 璺熼殢鎽勫儚鏈虹殑UI缁勪欢
+# UIFollowCamera deprecated - resource icons removed
 var camera: Camera2D
 var ui_layer: CanvasLayer
-var village_ui_manager: VillageUIManager
+var game_map: GameMap
 
 func _ready() -> void:
-	# 鑾峰彇寮曠敤
+	# 获取引用
 	camera = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Camera2D")
 	ui_layer = get_tree().root.get_node("Main/UILayer")
-	village_ui_manager = get_tree().root.get_node("Main/UILayer/VillageUIManager")
+	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
 	
 	set_process(true)
 
 func _process(_delta: float) -> void:
-	"""姣忓抚鏇存柊UI浣嶇疆浠ヨ窡闅忔憚鍍忔満"""
-	if not camera or not village_ui_manager:
+	"""每帧更新UI位置以跟随摄像机"""
+	if not camera or not game_map:
 		return
 	
-	# 鏇存柊鎵€鏈夋潙搴刄I绮剧伒鐨勫睆骞曞潗鏍?
-	for village_id in village_ui_manager.village_ui_nodes:
-		var sprite = village_ui_manager.village_ui_nodes[village_id]
-		var game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
+	# 更新所有村庄UI精灵的屏幕座标
+	for node in game_map.all_nodes:
+		# 计算世界座标在屏幕上的投影
+		var world_pos = node.global_position
+		var screen_pos = _world_to_screen(world_pos)
 		
-		# 鑾峰彇瀵瑰簲鐨勬潙搴勮妭鐐?
-		for node in game_map.all_nodes:
-			if node.node_id == village_id:
-				# 璁＄畻涓栫晫鍧愭爣鍦ㄥ睆骞曚笂鐨勬姇褰?
+		# 如果节点有resource_icons_container，更新其屏幕位置
+		if node.has_node("ResourceIconsContainer"):
+			var resource_container = node.get_node("ResourceIconsContainer")
+			resource_container.position = screen_pos
 				var world_pos = node.global_position
 				var screen_pos = _world_to_screen(world_pos)
 				

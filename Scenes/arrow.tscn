@@ -47,4 +47,4 @@ script = ExtResource("2_arrow_button")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=416343989]
 sprite_frames = SubResource("SpriteFrames_pu778")
 autoplay = "default"
-frame_progress = 0.23298891
+frame_progress = 0.8755032

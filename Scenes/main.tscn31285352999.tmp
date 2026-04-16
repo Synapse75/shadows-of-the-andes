@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://hfq4dtksx8pb" path="res://Scripts/Systems/UnitManager.gd" id="7_unit_manager"]
 [ext_resource type="Script" uid="uid://bkv3380swpyew" path="res://Scripts/Units/Unit.gd" id="8_unit"]
 [ext_resource type="Shader" uid="uid://diqd3tufib4ue" path="res://Shaders/lighten_map.gdshader" id="9_hptm8"]
+[ext_resource type="Script" uid="uid://0xvyip32wbma" path="res://Scripts/Systems/VillageUIManager.gd" id="12_village_ui"]
 [ext_resource type="Script" uid="uid://c1gr3kuusyp3a" path="res://Scripts/Systems/CameraManager.gd" id="13_camera_manager"]
 [ext_resource type="Script" uid="uid://cshhod0fn32k1" path="res://Scripts/UI/PauseMenuController.gd" id="14_pause_menu"]
 [ext_resource type="PackedScene" uid="uid://cn5qkm1m0uw6e" path="res://Scenes/arrow.tscn" id="15_arrow"]
@@ -46,25 +47,21 @@ script = ExtResource("16_arrow_manager")
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
 
-[node name="ScrollContainer" type="ScrollContainer" parent="UILayer" unique_id=314055249]
-offset_top = 50.0
-offset_right = 140.0
-offset_bottom = 300.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/ScrollContainer" unique_id=1289612340]
-layout_mode = 2
-
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
 custom_minimum_size = Vector2(120, 100)
-offset_top = 300.0
-offset_right = 140.0
-offset_bottom = 400.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 90.0
+offset_bottom = 73.0
 
 [node name="Label" type="Label" parent="UILayer/InfoPanel" unique_id=827306435]
 layout_mode = 0
-offset_right = 140.0
-offset_bottom = 100.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 85.0
+offset_bottom = 68.0
 theme = SubResource("Theme_ui_font")
+text = "Hover over a node to view information"
 
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
@@ -185,6 +182,9 @@ offset_top = 220.0
 offset_right = 150.0
 offset_bottom = 230.0
 direction = "left"
+
+[node name="VillageUIManager" type="Node" parent="UILayer" unique_id=1234567891]
+script = ExtResource("12_village_ui")
 
 [node name="Systems" type="Node" parent="." unique_id=1968131527]
 

@@ -59,86 +59,27 @@ func _ready() -> void:
 		village_label.text = location_name
 
 	update_visual()
-
-	print("[VillageNode._ready] %s - Creating resource icons container" % node_id)
-	_create_resource_icons_container()
 	resources_changed.connect(_on_resources_changed)
-	# 初始显示已有的资源
-	print("[VillageNode._ready] %s - Resources: %s" % [node_id, resources])
-	_update_resource_display()
 
 func _create_resource_icons_container() -> void:
-	"""Create container for displaying resource icons below the node"""
-	resource_icons_container = VBoxContainer.new()
-	resource_icons_container.name = "ResourceIcons"
-	resource_icons_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	resource_icons_container.offset_top = 50  # 放在节点下方
-	resource_icons_container.offset_left = -40  # 左对齐调整
-	resource_icons_container.custom_minimum_size = Vector2(80, 0)  # 宽度固定
-	resource_icons_container.visible = false
-	add_child(resource_icons_container)
-	print("[VillageNode] %s - Resource icons container created" % node_id)
+	"""Deprecated - resource icons display removed"""
+	pass
 
 func _on_resources_changed(_resources: Dictionary) -> void:
-	"""Update resource icons when resources change"""
-	print("[VillageNode._on_resources_changed] %s - Resources changed: %s" % [node_id, _resources])
-	_update_resource_display()
+	"""Called when resources change"""
+	pass
 
 func _update_resource_display() -> void:
-	"""Update visual display of resources (icons and amounts)"""
-	print("[VillageNode._update_resource_display] %s - Starting update" % node_id)
-	# Clear old displays
-	for child in resource_icons_container.get_children():
-		child.queue_free()
-	resource_icon_scenes.clear()
-	
-	# Add new resource displays
-	for resource_type in resources:
-		if resource_type in ["food", "population", "units"]:
-			continue  # Skip meta resources
-		
-		var amount = resources[resource_type]
-		print("[VillageNode._update_resource_display] %s - %s: %d" % [node_id, resource_type, amount])
-		if amount <= 0:
-			continue  # Don't show empty resources
-		
-		# Create icon + amount display (horizontal box)
-		var hbox = HBoxContainer.new()
-		hbox.name = "Resource_%s" % resource_type
-		hbox.add_theme_constant_override("separation", 4)
-		
-		# Icon image
-		var icon_path = "res://Sprites/%s.png" % resource_type
-		if ResourceLoader.exists(icon_path):
-			var texture_rect = TextureRect.new()
-			texture_rect.texture = load(icon_path)
-			texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			texture_rect.custom_minimum_size = Vector2(16, 16)
-			hbox.add_child(texture_rect)
-			print("[VillageNode] %s - Icon loaded: %s" % [node_id, icon_path])
-		else:
-			print("[VillageNode] %s - Icon NOT found: %s" % [node_id, icon_path])
-		
-		# Amount label
-		var label = Label.new()
-		label.text = "x%d" % amount
-		label.add_theme_font_size_override("font_size", 16)
-		hbox.add_child(label)
-		
-		resource_icons_container.add_child(hbox)
-		resource_icon_scenes[resource_type] = hbox
-	
-	print("[VillageNode._update_resource_display] %s - Finished, total items: %d" % [node_id, resource_icon_scenes.size()])
+	"""Deprecated - resource icons display removed"""
+	pass
 
 func show_resource_icons() -> void:
-	"""Show resource icons"""
-	print("[VillageNode.show_resource_icons] %s - Showing icons" % node_id)
-	resource_icons_container.visible = true
+	"""Deprecated - resource icons display removed"""
+	pass
 
 func hide_resource_icons() -> void:
-	"""Hide resource icons"""
-	print("[VillageNode.hide_resource_icons] %s - Hiding icons" % node_id)
-	resource_icons_container.visible = false
+	"""Deprecated - resource icons display removed"""
+	pass
 
 func add_neighbor(node: VillageNode) -> void:
 	"""Add adjacent node"""

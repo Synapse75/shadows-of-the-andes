@@ -25,8 +25,14 @@ var moving_satiety_consumption: int = 15  # Per turn when moving
 # Current state
 var unit_state: UnitState = UnitState.STATIONED
 var current_node: VillageNode = null
+var origin_village: VillageNode = null  # The village this unit belongs to
 var is_alive: bool = true
 var is_special: bool = false  # Special unit flag (leader, hero, etc.)
+
+# Combat and multiplier attributes (all default to 1.0)
+var combat_multiplier: float = 1.0  # Combat power multiplier (e.g., from Corn)
+var movement_speed_multiplier: float = 1.0  # Movement speed multiplier (e.g., from Quinoa)
+var transport_speed_multiplier: float = 1.0  # Transport speed multiplier (e.g., from Llama)
 
 # Unit inventory/backpack system
 var inventory: Dictionary = {}  # {"resource_type": amount}
@@ -73,6 +79,16 @@ func get_unit_info() -> Dictionary:
 func get_current_attack_power() -> int:
 	"""Get current attack power (Female Corps doubles when stationed)"""
 	return attack_power
+
+func get_current_satiety_consumption() -> int:
+	"""Get current satiety consumption based on unit state
+	- Stationed: -10 per turn
+	- Moving/Attacking: -15 per turn
+	"""
+	if unit_state == UnitState.STATIONED:
+		return -10
+	else:  # MOVING or ATTACKING
+		return -15
 
 func assign_to_node(node: VillageNode) -> void:
 	"""Assign unit to node"""

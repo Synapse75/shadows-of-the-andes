@@ -50,9 +50,6 @@ func _collect_arrows() -> void:
 			# 初始隐藏所有箭头
 			if child:
 				child.visible = false
-			print("找到箭头: %s -> %s (类型: %s)" % [direction, child.name, child.get_class()])
-	
-	print("CameraArrowManager: 收集了 %d 个箭头" % arrow_buttons.size())
 
 func _find_ui_layer(node: Node) -> void:
 	"""递归搜索 UILayer 节点"""

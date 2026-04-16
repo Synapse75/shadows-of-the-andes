@@ -46,8 +46,6 @@ func _ready() -> void:
 	menu_button.pressed.connect(_on_menu_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	
-	print("PauseMenuController: 所有按钮已成功连接")
-	
 	# 设置 process_mode 为 ALWAYS，确保暂停时 UI 仍然可以响应
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	

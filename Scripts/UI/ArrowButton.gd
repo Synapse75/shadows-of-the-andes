@@ -39,16 +39,7 @@ func _ready() -> void:
 	_rotate_arrow()
 	
 	# 连接信号
-	print("ArrowButton[%s]: 正在连接 pressed 信号" % direction)
 	pressed.connect(_on_pressed)
-	print("ArrowButton[%s]: pressed 信号已连接" % direction)
-	print("ArrowButton[%s]: 按钮详细信息:" % direction)
-	print("  - 可见性: %s" % visible)
-	print("  - 禁用: %s" % disabled)
-	print("  - 位置: %s" % position)
-	print("  - 全局位置: %s" % get_global_rect())
-	print("  - 大小: %s" % size)
-	print("  - 自定义大小: %s" % custom_minimum_size)
 	
 	# 样式设置
 	modulate = Color.WHITE
