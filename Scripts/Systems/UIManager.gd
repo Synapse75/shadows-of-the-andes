@@ -2,10 +2,16 @@ extends Node
 class_name UIManager
 
 var info_panel: Panel
-var info_label: RichTextLabel
+var info_label: Label
+var recruit_button: TextureButton
 var current_hovered_node: VillageNode = null
 var locked_node: VillageNode = null
 var is_panel_locked: bool = false
+
+# InfoPanel 资源图标显示
+var altitude_texture_rect: TextureRect
+var resource1_texture_rect: TextureRect
+var resource2_texture_rect: TextureRect
 
 # 资源容器
 var resources_scroll_container: ScrollContainer
@@ -14,7 +20,7 @@ var resources_vbox: VBoxContainer
 # 海拔图标映射
 var altitude_icons: Dictionary = {
 	"high": "res://Sprites/high.png",
-	"middle": "res://Sprites/middle.png",
+	"medium": "res://Sprites/middle.png",
 	"low": "res://Sprites/low.png"
 }
 
@@ -46,8 +52,8 @@ func _ready() -> void:
 	var old_font = old_label.get_theme_font("font")
 	var old_font_size = old_label.get_theme_font_size("font_size")
 	
-	# 创建 RichTextLabel 替代原有的 Label
-	info_label = RichTextLabel.new()
+	# 创建 Label 替代原有的 RichTextLabel
+	info_label = Label.new()
 	info_label.name = "Label"
 	info_label.layout_mode = 1  # Anchored layout
 	info_label.anchors_preset = 15  # Fill parent
@@ -55,29 +61,36 @@ func _ready() -> void:
 	info_label.offset_top = 2.0
 	info_label.offset_right = -2.0
 	info_label.offset_bottom = -2.0
-	info_label.bbcode_enabled = true
-	info_label.scroll_active = true
-	info_label.custom_minimum_size = Vector2(80, 60)
+	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	
 	# 继承旧样式
 	if old_font:
-		info_label.add_theme_font_override("normal_font", old_font)
-		info_label.add_theme_font_override("bold_font", old_font)
+		info_label.add_theme_font_override("font", old_font)
 	if old_font_size:
-		info_label.add_theme_font_size_override("normal_font_size", old_font_size)
-		info_label.add_theme_font_size_override("bold_font_size", old_font_size)
+		info_label.add_theme_font_size_override("font_size", old_font_size)
 	
-	# 设置文字颜色为白色
-	info_label.add_theme_color_override("default_color", Color.WHITE)
-	info_label.add_theme_color_override("font_bold_color", Color.WHITE)
+	# 设置文字颜色为黑色
+	info_label.add_theme_color_override("font_color", Color.BLACK)
 	
 	# 替换旧的 Label
 	old_label.queue_free()
 	info_panel.add_child(info_label)
 	
 	info_panel.visible = false
-	# 调整面板大小以适配 480x300 分辨率
-	info_panel.custom_minimum_size = Vector2(87, 70)
+	
+	# 设置 InfoPanel 的背景纹理
+	var info_panel_stylebox = StyleBoxTexture.new()
+	if ResourceLoader.exists("res://Sprites/infopanel.png"):
+		info_panel_stylebox.texture = ResourceLoader.load("res://Sprites/infopanel.png")
+	info_panel.add_theme_stylebox_override("panel", info_panel_stylebox)
+	
+	# 获取 InfoPanel 下的资源图标 TextureRect
+	altitude_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Altitude")
+	resource1_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Resource1")
+	resource2_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Resource2")
+	
+	# 获取 RecruitButton
+	recruit_button = get_node_or_null("../../UILayer/RecruitButton")
 	
 	# 获取手动添加的 ScrollContainer
 	print("[UIManager._ready] UIManager path: ", get_path())
@@ -116,31 +129,49 @@ func show_node_info(node: VillageNode) -> void:
 	var info = node.get_node_info()
 	
 	var text = ""
-	# Location name and description
-	text += "[b]📍 %s[/b]\n" % info["location_name"]
-	text += "%s\n\n" % info["location_description"]
-	
-	# Altitude with icon
-	var altitude = info["altitude"]
-	var altitude_icon_path = altitude_icons.get(altitude, "")
-	if altitude_icon_path and ResourceLoader.exists(altitude_icon_path):
-		text += "[b]Altitude:[/b] [img=20x20]%s[/img] %s\n" % [altitude_icon_path, altitude.capitalize()]
-	else:
-		text += "[b]Altitude:[/b] %s\n" % altitude.capitalize()
-	
-	# Control status
-	text += "Status: %s\n" % ("✅ Player Controlled" if info["player_controlled"] else "❌ Enemy Controlled")
+	# Location name
+	text += info["location_name"] + "\n"
 	
 	# Population
-	text += "\n[b]Population:[/b] %d\n" % info["resources"].get("population", 0)
+	text += "Pop: %d" % info["resources"].get("population", 0)
 	
 	info_label.text = text
 	info_panel.visible = true
+	
+	# Set altitude icon in TextureRect
+	var altitude = info["altitude"]
+	var altitude_icon_path = altitude_icons.get(altitude, "")
+	if altitude_texture_rect:
+		if altitude_icon_path and ResourceLoader.exists(altitude_icon_path):
+			altitude_texture_rect.texture = load(altitude_icon_path)
+		else:
+			altitude_texture_rect.texture = null
+	
+	# Set produced resource icons
+	if resource1_texture_rect:
+		resource1_texture_rect.texture = null
+	if resource2_texture_rect:
+		resource2_texture_rect.texture = null
+	
+	var produced_resources = node.produced_resource_types
+	if produced_resources.size() > 0 and resource1_texture_rect:
+		var resource1_path = resource_icons.get(produced_resources[0], "")
+		if resource1_path and ResourceLoader.exists(resource1_path):
+			resource1_texture_rect.texture = load(resource1_path)
+	
+	if produced_resources.size() > 1 and resource2_texture_rect:
+		var resource2_path = resource_icons.get(produced_resources[1], "")
+		if resource2_path and ResourceLoader.exists(resource2_path):
+			resource2_texture_rect.texture = load(resource2_path)
 	
 	# Display resources and units in left panel
 	_display_node_resources(node)
 	if resources_scroll_container:
 		resources_scroll_container.visible = true
+	
+	# Show RecruitButton
+	if recruit_button:
+		recruit_button.visible = true
 
 func _on_node_selected(node: VillageNode) -> void:
 	"""Handle node click - display information via show_node_info"""

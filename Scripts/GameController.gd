@@ -52,11 +52,13 @@ func initialize_villages() -> void:
 		# Initialize village population
 		var population = settings.get_village_population(village_id)
 		village.resources["population"] = population
+		village.population = population  # Set new population attribute
 		
 		# Initialize resource production
 		var resource_types = settings.get_initial_resources(village_id)
 		var production_rate = settings.get_production_rate(village_id)
 		village.initialize_resource_production(resource_types, production_rate)
+		village.produced_resource_types = resource_types  # Set produced resource types
 		
 		# Initialize resource amounts (start with some initial resources for testing)
 		for resource_type in resource_types:

@@ -16,6 +16,12 @@ var resources: Dictionary = {
 	"units": 0
 }
 
+# Village attributes from GDD section 3.2
+var hunger_status: bool = false  # Whether village is experiencing hunger
+var consumption_accumulator: float = 0.0  # Accumulator for resource consumption
+var produced_resource_types: Array = []  # Types of resources produced here
+var population: int = 0  # Current village population
+
 # Resource storage limits (each resource type max 10)
 const RESOURCE_STORAGE_LIMIT = 10
 

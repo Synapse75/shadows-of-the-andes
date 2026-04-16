@@ -17,6 +17,9 @@
 [ext_resource type="Shader" uid="uid://b8mh4p863qhec" path="res://Shaders/map_mask.gdshader" id="17_h1bgf"]
 [ext_resource type="Texture2D" uid="uid://dluq7oaabkgvc" path="res://Sprites/mapmask.png" id="18_b3802"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
+[ext_resource type="Texture2D" uid="uid://jh56ljp3v4x4" path="res://Sprites/recruit_hovered.png" id="recruit_hovered"]
+[ext_resource type="Texture2D" uid="uid://cgltod35f1ufo" path="res://Sprites/recruit.png" id="recruit_normal"]
+[ext_resource type="Texture2D" uid="uid://d4gjmfxdfrbal" path="res://Sprites/recruit_pressed.png" id="recruit_pressed"]
 
 [sub_resource type="Theme" id="Theme_ui_font"]
 default_font = ExtResource("font_clear")
@@ -46,14 +49,6 @@ script = ExtResource("16_arrow_manager")
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1032500409]
 layer = 10
 
-[node name="ScrollContainer" type="ScrollContainer" parent="UILayer" unique_id=314055249]
-offset_top = 150.0
-offset_right = 140.0
-offset_bottom = 400.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/ScrollContainer" unique_id=1289612340]
-layout_mode = 2
-
 [node name="InfoPanel" type="Panel" parent="UILayer" unique_id=1813996431]
 custom_minimum_size = Vector2(120, 100)
 offset_top = 50.0
@@ -62,18 +57,73 @@ offset_bottom = 150.0
 
 [node name="Label" type="Label" parent="UILayer/InfoPanel" unique_id=827306435]
 layout_mode = 0
-offset_right = 140.0
-offset_bottom = 100.0
+offset_left = 10.0
+offset_top = 5.0
+offset_right = 130.0
+offset_bottom = 95.0
 theme = SubResource("Theme_ui_font")
+
+[node name="Altitude" type="TextureRect" parent="UILayer/InfoPanel" unique_id=1897475307]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 10.0
+offset_right = 132.0
+offset_bottom = 42.0
+
+[node name="Resource1" type="TextureRect" parent="UILayer/InfoPanel" unique_id=968341591]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 60.0
+offset_right = 40.0
+offset_bottom = 92.0
+
+[node name="Resource2" type="TextureRect" parent="UILayer/InfoPanel" unique_id=1873960749]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 60.0
+offset_right = 72.0
+offset_bottom = 92.0
+
+[node name="RecruitButton" type="TextureButton" parent="UILayer" unique_id=1922673650]
+visible = false
+custom_minimum_size = Vector2(140, 30)
+offset_top = 150.0
+offset_right = 140.0
+offset_bottom = 180.0
+texture_normal = ExtResource("recruit_normal")
+texture_pressed = ExtResource("recruit_pressed")
+texture_hover = ExtResource("recruit_hovered")
+
+[node name="Label" type="Label" parent="UILayer/RecruitButton" unique_id=877738475]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_ui_font")
+text = "Recruit - 25 Pop"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer" unique_id=314055249]
+offset_top = 180.0
+offset_right = 140.0
+offset_bottom = 400.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/ScrollContainer" unique_id=1289612340]
+layout_mode = 2
 
 [node name="PauseMenu" type="Control" parent="UILayer" unique_id=1234567892]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 640.0
 offset_bottom = 400.0
+mouse_filter = 2
 script = ExtResource("14_pause_menu")
 
 [node name="PausePanel" type="Panel" parent="UILayer/PauseMenu" unique_id=1234567894]
+visible = false
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
