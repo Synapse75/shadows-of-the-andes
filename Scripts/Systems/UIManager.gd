@@ -91,6 +91,9 @@ func _ready() -> void:
 	
 	# 获取 RecruitButton
 	recruit_button = get_node_or_null("../../UILayer/RecruitButton")
+	if recruit_button:
+		recruit_button.pressed.connect(_on_recruit_button_pressed)
+		print("[UIManager._ready] RecruitButton signal connected!")
 	
 	# 获取手动添加的 ScrollContainer
 	print("[UIManager._ready] UIManager path: ", get_path())
@@ -126,6 +129,7 @@ func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left and show resources/units in left panel"""
 	print("[UIManager.show_node_info] Showing info for: %s" % node.node_id)
 	current_hovered_node = node
+	locked_node = node  # Lock the node for recruitment and other operations
 	var info = node.get_node_info()
 	
 	var text = ""
@@ -392,3 +396,57 @@ func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
 	bg_panel.add_child(inner_hbox)
 	
 	resources_vbox.add_child(bg_panel)
+
+func _on_recruit_button_pressed() -> void:
+	"""Recruit a new unit at the locked node"""
+	if not locked_node:
+		print("[UIManager] ERROR: No locked node for recruitment")
+		return
+	
+	if not locked_node.control_by_player:
+		print("[UIManager] ERROR: Cannot recruit at uncontrolled node")
+		return
+	
+	# Check population requirement (25 population per unit)
+	if locked_node.population < 25:
+		show_recruitment_failed_tooltip("Not enough population!\n(Need 25, Have %d)" % locked_node.population)
+		return
+	
+	# Recruit a unit - 80% Rebel Army, 20% Female Corps
+	var unit: Unit
+	if randf() < 0.8:
+		unit = RebelArmy.new()
+	else:
+		unit = FemaleCorps.new()
+	
+	# Set unit position and add to node
+	unit.current_node = locked_node
+	locked_node.add_unit(unit)
+	locked_node.population -= 25
+	locked_node.resources["population"] -= 25  # Also update resources dict
+	
+	print("[UIManager._on_recruit_button_pressed] Recruited: %s at %s (Pop left: %d)" % [unit.unit_name, locked_node.location_name, locked_node.population])
+	
+	# Refresh display
+	show_node_info(locked_node)
+
+func show_recruitment_failed_tooltip(message: String) -> void:
+	"""Show a temporary tooltip at the top-left when recruitment fails"""
+	var ui_layer = get_node("../../UILayer")
+	
+	# Create a temporary label at top-left
+	var tooltip = Label.new()
+	tooltip.text = message
+	tooltip.add_theme_font_override("font", ResourceLoader.load("res://Fonts/ClearFont.ttf"))
+	tooltip.add_theme_font_size_override("font_size", 12)
+	tooltip.add_theme_color_override("font_color", Color.RED)
+	tooltip.position = Vector2(5, 5)
+	
+	# Add to UILayer
+	ui_layer.add_child(tooltip)
+	
+	print("[UIManager] Recruitment failed: %s" % message)
+	
+	# Auto-remove after 2 seconds
+	await get_tree().create_timer(2.0).timeout
+	tooltip.queue_free()

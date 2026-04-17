@@ -69,6 +69,23 @@ func initialize_villages() -> void:
 		
 		# Spawn enemy units
 		spawn_enemy_garrison(village, village_id)
+		
+		# Spawn initial player units at Tinta
+		if village_id == "tinta":
+			spawn_initial_garrison(village)
+
+func spawn_initial_garrison(village: VillageNode) -> void:
+	"""Spawn initial player units at Tinta"""
+	# Create 2 initial units: 1 Rebel Army, 1 Female Corps
+	var unit1 = RebelArmy.new()
+	unit1.current_node = village
+	village.add_unit(unit1)
+	
+	var unit2 = FemaleCorps.new()
+	unit2.current_node = village
+	village.add_unit(unit2)
+	
+	print("[GameController.spawn_initial_garrison] Created initial units for Tinta")
 
 func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 	"""Spawn enemy units to garrison a village"""
