@@ -58,27 +58,38 @@ const INITIAL_RESOURCES = {
 	"challabamba": ["coca"],               # 65 pop → 1 resource
 }
 
-# Resource Production Speed: population / 50 = resources per turn
-# E.g. 150 pop → 3 resources/turn, 75 pop → 1.5 resources/turn
+# Resource Production Speed: population / 100 = base resources per turn
+# Then multiplied by resource type multiplier
+# E.g. 150 pop potato → (150/100) * 2.0 = 3.0 resources/turn
 const RESOURCE_PRODUCTION_RATES = {
 	# High Altitude
-	"tinta": 3.0,          # 150 / 50
-	"tungasuca": 2.4,      # 120 / 50
-	"pampamarca": 1.6,     # 80 / 50
-	"sicuani": 1.9,        # 95 / 50
-	"ocongate": 1.7,       # 85 / 50
+	"tinta": 1.5,          # 150 / 100
+	"tungasuca": 1.2,      # 120 / 100
+	"pampamarca": 0.8,     # 80 / 100
+	"sicuani": 0.95,       # 95 / 100
+	"ocongate": 0.85,      # 85 / 100
 	
 	# Medium Altitude
-	"cusco": 6.0,          # 300 / 50
-	"urcos": 2.2,          # 110 / 50
-	"quiquijana": 2.0,     # 100 / 50
-	"andahuaylillas": 2.6, # 130 / 50
+	"cusco": 3.0,          # 300 / 100
+	"urcos": 1.1,          # 110 / 100
+	"quiquijana": 1.0,     # 100 / 100
+	"andahuaylillas": 1.3, # 130 / 100
 	
 	# Low Altitude
-	"paucartambo": 1.5,    # 75 / 50
-	"marcapata": 1.4,      # 70 / 50
-	"pilcopata": 1.2,      # 60 / 50
-	"challabamba": 1.3,    # 65 / 50
+	"paucartambo": 0.75,   # 75 / 100
+	"marcapata": 0.7,      # 70 / 100
+	"pilcopata": 0.6,      # 60 / 100
+	"challabamba": 0.65,   # 65 / 100
+}
+
+# Resource Type Multipliers for production speed
+# Applied to base production rate to get final production speed
+const RESOURCE_TYPE_MULTIPLIERS = {
+	"potato": 2.0,   # Potatoes grow fast
+	"llama": 0.5,    # Llamas are harder to breed
+	"corn": 1.0,     # Standard corn
+	"quinoa": 1.0,   # Standard quinoa
+	"coca": 1.0      # Standard coca
 }
 
 # Enemy Units Garrison Configuration
@@ -141,6 +152,10 @@ func get_production_rate(village_id: String) -> float:
 		return RESOURCE_PRODUCTION_RATES[village_id]
 	return 0.0
 
+func get_resource_type_multiplier(resource_type: String) -> float:
+	"""Get production multiplier for a specific resource type"""
+	return RESOURCE_TYPE_MULTIPLIERS.get(resource_type, 1.0)
+
 func get_enemy_garrison_count(village_id: String) -> int:
 	"""Get number of enemy units garrisoned at a village"""
 	if village_id in ENEMY_GARRISON:
@@ -184,3 +199,7 @@ func get_altitude_for_village(village_id: String) -> String:
 	
 	# Medium altitude (default for the rest)
 	return "medium"
+
+func get_camera_for_node(village_name: String) -> String:
+	"""Get which camera view a village node belongs to (wrapper for get_camera_for_village)"""
+	return get_camera_for_village(village_name.to_lower())

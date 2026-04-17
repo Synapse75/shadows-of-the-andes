@@ -24,6 +24,8 @@ var camera_tween: Tween  # 用于平滑过渡的 Tween
 var is_transitioning: bool = false
 var transition_speed: float = 300.0  # 像素/秒
 
+signal camera_view_changed(view_name: String)  # Emitted when camera finishes moving
+
 func _ready() -> void:
 	# 初始化相机
 	make_current()
@@ -55,6 +57,11 @@ func set_camera_view(view_name: String) -> void:
 		camera_tween.set_trans(Tween.TRANS_QUART)  # 四次立方缓动，更陡峭
 		camera_tween.set_ease(Tween.EASE_OUT)      # 缓出
 		camera_tween.tween_property(self, "global_position", new_pos, 0.5)
+		
+		# After tween completes, emit signal to notify GameMap and other listeners
+		camera_tween.tween_callback(func():
+			camera_view_changed.emit(current_camera)
+		)
 	else:
 		push_error("镜头不存在: %s" % view_name)
 

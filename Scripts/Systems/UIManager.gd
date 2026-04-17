@@ -8,6 +8,19 @@ var current_hovered_node: VillageNode = null
 var locked_node: VillageNode = null
 var is_panel_locked: bool = false
 
+# Cached references
+var game_map: GameMap = null
+var camera_manager: CameraManager = null
+
+# Drag-and-drop system
+var dragging_unit: Unit = null
+var drag_start_position: Vector2 = Vector2.ZERO
+var is_dragging: bool = false
+var valid_drop_targets: Array[VillageNode] = []
+var dragging_icon: TextureRect = null  # Icon following mouse during drag
+var original_icon: TextureRect = null  # Original icon in panel
+var unit_panel_container: Control = null  # Reference to panel with original icon
+
 # InfoPanel 资源图标显示
 var altitude_texture_rect: TextureRect
 var resource1_texture_rect: TextureRect
@@ -109,9 +122,12 @@ func _ready() -> void:
 		push_error("[UIManager] ScrollContainer not found in UILayer!")
 	
 	# 连接 GameMap 的点击事件
-	var game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
+	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map") as GameMap
 	if game_map and game_map.has_signal("node_selected"):
 		game_map.node_selected.connect(_on_node_selected)
+	
+	# Cache CameraManager reference
+	camera_manager = get_tree().root.get_node_or_null("Main/SubViewportContainer/SubViewport/Camera2D") as CameraManager
 
 func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left and show resources/units in left panel"""
@@ -308,6 +324,21 @@ func _create_unit_panel_row(unit: Unit) -> void:
 		stylebox.texture = ResourceLoader.load(unit_panel_bg)
 	bg_panel.add_theme_stylebox_override("panel", stylebox)
 	
+	# Store reference to unit on the panel for drag detection
+	bg_panel.set_meta("unit_ref", unit)
+	
+	# Enable mouse input for drag detection
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	# Create lambda for input handling that captures unit reference
+	var unit_ref = unit
+	var panel_ref = bg_panel
+	bg_panel.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if not unit_ref.is_locked:  # Only allow drag if not locked
+				_on_unit_panel_pressed(unit_ref, panel_ref)
+	)
+	
 	# Inner container for content (positioned at 4,4 inside the panel)
 	var inner_hbox = HBoxContainer.new()
 	inner_hbox.add_theme_constant_override("separation", 4)
@@ -324,17 +355,43 @@ func _create_unit_panel_row(unit: Unit) -> void:
 	icon_texture.custom_minimum_size = Vector2(32, 32)
 	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	
-	# Unit name label
+	# Store icon reference for drag operations
+	bg_panel.set_meta("icon_ref", icon_texture)
+	
+	# Unit name label or "Moving" indicator if locked
 	var name_label = Label.new()
-	name_label.text = unit.unit_name
 	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
 	name_label.add_theme_font_override("font", clear_font)
 	name_label.add_theme_font_size_override("font_size", 16)
 	
-	inner_hbox.add_child(icon_texture)
-	inner_hbox.add_child(name_label)
-	bg_panel.add_child(inner_hbox)
+	if unit.is_locked and unit.unit_state == Unit.UnitState.MOVING:
+		# Create "Moving" indicator with semi-transparent black background
+		# Hide the original icon when moving
+		icon_texture.visible = false
+		
+		# Create a semi-transparent black background panel
+		var moving_overlay = ColorRect.new()
+		moving_overlay.color = Color(0, 0, 0, 0.5)  # Semi-transparent black
+		moving_overlay.custom_minimum_size = Vector2(132, 32)
+		
+		# Create "Moving" label
+		var moving_label = Label.new()
+		moving_label.text = "Moving"
+		moving_label.add_theme_font_override("font", clear_font)
+		moving_label.add_theme_font_size_override("font_size", 16)
+		moving_label.add_theme_color_override("font_color", Color.WHITE)
+		moving_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		moving_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		
+		# Add moving overlay to inner_hbox instead of icon+name
+		inner_hbox.add_child(moving_overlay)
+		inner_hbox.add_child(moving_label)
+	else:
+		name_label.text = unit.unit_name
+		inner_hbox.add_child(icon_texture)
+		inner_hbox.add_child(name_label)
 	
+	bg_panel.add_child(inner_hbox)
 	resources_vbox.add_child(bg_panel)
 
 func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
@@ -436,3 +493,192 @@ func refresh_displayed_node_info() -> void:
 	This ensures that all resource/population changes are reflected in the UI"""
 	if locked_node and info_panel.visible:
 		show_node_info(locked_node)
+
+# Drag-and-drop system implementation (GDD 5.2.1)
+func _on_unit_panel_pressed(unit: Unit, panel: Panel) -> void:
+	"""Handle unit panel mouse press - initiate drag if unit is not locked"""
+	# Don't allow dragging if unit is already moving/locked
+	if unit.is_locked:
+		return
+	
+	# Use cached GameMap reference
+	if not game_map:
+		print("ERROR: Cannot find GameMap!")
+		return
+	
+	dragging_unit = unit
+	drag_start_position = get_viewport().get_mouse_position()
+	is_dragging = true
+	unit_panel_container = panel
+	
+	# Get the original icon from the panel
+	original_icon = panel.get_meta("icon_ref") if panel.has_meta("icon_ref") else null
+	
+	# Hide the original icon
+	if original_icon:
+		original_icon.visible = false
+	
+	# Create a dragging icon that follows the mouse
+	if original_icon and original_icon.texture:
+		dragging_icon = TextureRect.new()
+		dragging_icon.texture = original_icon.texture
+		dragging_icon.custom_minimum_size = Vector2(32, 32)
+		dragging_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		dragging_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dragging_icon.z_index = 1000  # Ensure it's on top
+		
+		# Add to UI layer so it appears above everything
+		var ui_layer = get_node("../../UILayer")
+		ui_layer.add_child(dragging_icon)
+		
+		# Update icon position to center it on mouse (will be updated in _process)
+		_update_dragging_icon_position()
+	
+	# Calculate valid drop targets (all nodes except current node)
+	valid_drop_targets.clear()
+	if unit.current_node:
+		print("\n=== DEBUG: Calculating drop targets ===")
+		print("Unit %s at node: %s (camera: %s)" % [
+			unit.unit_name, unit.current_node.location_name,
+			game_map.node_camera_map.get(unit.current_node.node_id, "unknown")
+		])
+		print("DEBUG: map.all_nodes size: %d" % game_map.all_nodes.size())
+		
+		# All nodes are draggable targets except the current node
+		for node in game_map.all_nodes:
+			if node != unit.current_node:
+				valid_drop_targets.append(node)
+				var movement_time = game_map.get_movement_time_to_node(unit.current_node, node)
+				print("  ✓ Added %s: %d turns (camera: %s)" % [
+					node.location_name, movement_time,
+					game_map.node_camera_map.get(node.node_id, "unknown")
+				])
+		
+		print("DEBUG: Final valid_drop_targets count: %d" % valid_drop_targets.size())
+		print("===\n")
+	
+	# Debug output
+	print("Started dragging unit %s from %s. Valid targets: %d" % [unit.unit_name, unit.current_node.location_name, valid_drop_targets.size()])
+
+func _process(_delta: float) -> void:
+	"""Process drag operations"""
+	if not is_dragging or not dragging_unit:
+		return
+	
+	# Check if mouse button is still held
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_complete_drag()
+		return
+	
+	# Check distance from start position to initiate visual feedback
+	var current_pos = get_viewport().get_mouse_position()
+	var distance = drag_start_position.distance_to(current_pos)
+	
+	if distance > 5:  # Minimum drag distance to show feedback
+		_update_drag_visualization()
+
+func _update_drag_visualization() -> void:
+	"""Update visual feedback during drag"""
+	# Update dragging icon position to follow mouse with center aligned
+	_update_dragging_icon_position()
+
+func _update_dragging_icon_position() -> void:
+	"""Update the position of the dragging icon to follow the mouse with centered alignment"""
+	if not dragging_icon:
+		return
+	
+	var mouse_pos = get_viewport().get_mouse_position()
+	# Center the icon on the mouse position using custom_minimum_size (32x32)
+	var icon_size = dragging_icon.custom_minimum_size
+	if icon_size == Vector2.ZERO:
+		icon_size = Vector2(32, 32)
+	dragging_icon.global_position = mouse_pos - icon_size / 2
+
+func _complete_drag() -> void:
+	"""Complete drag operation and attempt movement"""
+	if not dragging_unit:
+		is_dragging = false
+		return
+	
+	# Get the node at cursor from precomputed coordinate mapping
+	var target_node = _get_node_at_cursor()
+	
+	print("\n=== DEBUG: Drag completion ===")
+	print("Unit: %s, Valid targets: %d" % [dragging_unit.unit_name, valid_drop_targets.size()])
+	if target_node:
+		print("Target node found: %s (in valid targets: %s)" % [
+			target_node.location_name, 
+			target_node in valid_drop_targets
+		])
+	else:
+		print("No target node found")
+	print("===\n")
+	
+	var movement_successful = false
+	
+	if target_node and target_node in valid_drop_targets:
+		# Valid drop target - start movement
+		print("Valid drop target! Starting movement to %s" % target_node.location_name)
+		if dragging_unit.start_movement(target_node):
+			# Movement started successfully
+			print("Movement started successfully. Duration: %d turns" % dragging_unit.movement_time_remaining)
+			movement_successful = true
+			# Refresh UI to show "Moving" label
+			refresh_displayed_node_info()
+		else:
+			# Movement failed (shouldn't happen if validation is correct)
+			print("Movement start failed!")
+	else:
+		if target_node:
+			print("Target %s is not in valid drop targets" % target_node.location_name)
+	
+	# Remove dragging icon
+	if dragging_icon:
+		dragging_icon.queue_free()
+		dragging_icon = null
+	
+	# Refresh UI to sync with unit state
+	# This will properly display the unit panel based on whether movement succeeded
+	refresh_displayed_node_info()
+	
+	# Clean up drag state
+	dragging_unit = null
+	is_dragging = false
+	valid_drop_targets.clear()
+	unit_panel_container = null
+	original_icon = null
+
+func _get_node_at_cursor() -> VillageNode:
+	"""Get the VillageNode under the cursor position using pre-computed coordinate mapping"""
+	
+	# Use cached references
+	if not game_map or not game_map is GameMap:
+		print("Cannot find GameMap!")
+		return null
+	
+	if not camera_manager:
+		print("ERROR: Cannot find CameraManager!")
+		return null
+	
+	var current_camera = camera_manager.current_camera
+	print("DEBUG _get_node_at_cursor: current_camera = '%s'" % current_camera)
+	print("DEBUG: Available cameras in map: %s" % str(game_map.node_screen_positions_by_camera.keys()))
+	print("DEBUG: Updating camera positions before query...")
+	
+	# Ensure GameMap has the correct camera positions loaded
+	game_map._update_camera_positions(current_camera)
+	
+	print("DEBUG: After _update_camera_positions, current_camera_positions size: %d" % game_map.current_camera_positions.size())
+	
+	# Get current mouse position in screen space
+	var mouse_screen_pos = get_viewport().get_mouse_position()
+	
+	# Use the pre-computed coordinate mapping from GameMap
+	var target_node = game_map.get_node_at_screen_position(mouse_screen_pos)
+	
+	if target_node:
+		print("Found node %s at screen position (%.1f, %.1f)" % [target_node.location_name, mouse_screen_pos.x, mouse_screen_pos.y])
+	else:
+		print("No node found at screen position (%.1f, %.1f)" % [mouse_screen_pos.x, mouse_screen_pos.y])
+	
+	return target_node

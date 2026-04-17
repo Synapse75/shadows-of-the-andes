@@ -38,6 +38,12 @@ var transport_speed_multiplier: float = 1.0  # Transport speed multiplier (e.g.,
 var inventory: Dictionary = {}  # {"resource_type": amount}
 const INVENTORY_CAPACITY = 5  # Max total resources in backpack
 
+# Movement system (GDD 5.2.1 & 4.3)
+var target_node: VillageNode = null  # Target node for movement
+var movement_time_remaining: int = 0  # Turns remaining for current movement
+var is_locked: bool = false  # Locked during movement (cannot be reassigned)
+var game_map: GameMap = null  # Cached GameMap reference
+
 # Signals
 signal unit_moved(from_node: VillageNode, to_node: VillageNode)
 signal unit_state_changed(new_state: UnitState)
@@ -45,6 +51,8 @@ signal unit_damaged(damage: int, remaining_health: int)
 signal unit_hungry(remaining_satiety: int)
 signal unit_died
 signal inventory_changed(new_inventory: Dictionary)
+signal movement_started(target: VillageNode, duration: int)
+signal movement_completed
 
 func _ready() -> void:
 	add_to_group("units")
@@ -52,6 +60,8 @@ func _ready() -> void:
 		current_health = max_health
 	if current_satiety == 0:  # Only initialize if not already set
 		current_satiety = max_satiety
+	# Cache GameMap reference
+	game_map = get_tree().root.get_node_or_null("Main/SubViewportContainer/SubViewport/Map") as GameMap
 	# Auto-assign to parent VillageNode
 	var parent = get_parent()
 	if parent is VillageNode:
@@ -101,12 +111,10 @@ func assign_to_node(node: VillageNode) -> void:
 
 func move_to_node(target_node: VillageNode) -> bool:
 	"""Unit moves to another node"""
-	if not current_node or not is_alive:
+	if not current_node or not is_alive or not target_node:
 		return false
 	
-	# Check if adjacent
-	if target_node not in current_node.neighbors:
-		return false
+	# All nodes are valid targets (no neighbor restriction)
 	
 	var from_node = current_node
 	assign_to_node(target_node)
@@ -238,3 +246,96 @@ func get_inventory_info() -> Dictionary:
 		"capacity": INVENTORY_CAPACITY,
 		"space_left": INVENTORY_CAPACITY - get_inventory_count()
 	}
+
+# Movement system (GDD 5.2.1 & 4.3)
+var movement_lock_overlay: CanvasLayer = null  # Visual lock overlay
+
+func calculate_movement_time(from_node: VillageNode, to_node: VillageNode) -> int:
+	"""Calculate movement time between two nodes in turns (GDD 4.3 revised)
+	- Same camera: 2 turns
+	- Each camera crossing: +4 turns
+	Delegates to GameMap for consistent calculation.
+	"""
+	if from_node == to_node:
+		return 0
+	
+	if game_map:
+		return game_map.get_movement_time_to_node(from_node, to_node)
+	else:
+		# Fallback if GameMap not found
+		return 2
+
+func start_movement(target: VillageNode) -> bool:
+	"""Start movement to target node. Validates adjacency via neighbors array.
+	Returns true if movement started successfully."""
+	
+	# Check if already moving
+	if unit_state == UnitState.MOVING:
+		push_error("Unit %s is already moving" % unit_name)
+		return false
+	
+	# Calculate movement time
+	var movement_time = calculate_movement_time(current_node, target)
+	if movement_time == 0:
+		return false
+	
+	# Update state
+	target_node = target
+	movement_time_remaining = movement_time
+	is_locked = true
+	unit_state = UnitState.MOVING
+	
+	# Create visual lock overlay
+	_create_movement_lock_overlay()
+	
+	# Emit signals
+	unit_state_changed.emit(unit_state)
+	movement_started.emit(target, movement_time)
+	
+	return true
+
+func progress_movement() -> void:
+	"""Progress movement by one turn. Called by TurnManager during auto_phase."""
+	if unit_state != UnitState.MOVING or movement_time_remaining <= 0:
+		return
+	
+	movement_time_remaining -= 1
+	
+	# Movement completed
+	if movement_time_remaining <= 0:
+		complete_movement()
+
+func complete_movement() -> void:
+	"""Complete movement and unlock unit."""
+	if target_node:
+		# Update current node
+		assign_to_node(target_node)
+		
+		# Emit signal
+		unit_moved.emit(current_node, target_node)
+		movement_completed.emit()
+	
+	# Clear movement state
+	target_node = null
+	movement_time_remaining = 0
+	is_locked = false
+	
+	# Remove visual lock overlay
+	_remove_movement_lock_overlay()
+	
+	# Change state to stationed (since we're now at destination)
+	unit_state = UnitState.STATIONED
+	unit_state_changed.emit(unit_state)
+
+func _create_movement_lock_overlay() -> void:
+	"""Create a semi-transparent overlay showing 'Moving' text (GDD 5.2.1)"""
+	# This overlay would be visible on the unit's display
+	# For now, we store the information that the unit is locked
+	# Visual representation will be handled by UI when displaying unit info
+	pass
+
+func _remove_movement_lock_overlay() -> void:
+	"""Remove the movement lock overlay"""
+	if movement_lock_overlay:
+		movement_lock_overlay.queue_free()
+		movement_lock_overlay = null

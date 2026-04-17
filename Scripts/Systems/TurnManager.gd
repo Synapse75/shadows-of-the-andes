@@ -70,6 +70,11 @@ func execute_auto_phase() -> void:
 	"""执行自动流程（资源生产等）"""
 	auto_phase_started.emit()
 	
+	# Progress all moving units (GDD 5.2.1)
+	for unit in get_tree().get_nodes_in_group("units"):
+		if unit is Unit and unit.unit_state == Unit.UnitState.MOVING:
+			unit.progress_movement()
+	
 	# 所有村庄消耗资源，然后生产资源
 	for node in game_map.all_nodes:
 		if node is VillageNode:

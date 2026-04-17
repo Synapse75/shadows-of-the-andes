@@ -55,12 +55,10 @@ func assign_to_node(node: VillageNode) -> void:
 
 func move_to_node(target_node: VillageNode) -> bool:
 	"""Unit moves to another node"""
-	if not current_node or not is_alive:
+	if not current_node or not is_alive or not target_node:
 		return false
 	
-	# Check if adjacent
-	if target_node not in current_node.neighbors:
-		return false
+	# All nodes are valid targets (no neighbor restriction)
 	
 	var from_node = current_node
 	assign_to_node(target_node)

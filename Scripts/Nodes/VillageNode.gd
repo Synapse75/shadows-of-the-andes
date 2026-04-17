@@ -29,7 +29,6 @@ const RESOURCE_STORAGE_LIMIT = 10
 var resource_production_rates: Dictionary = {}  # {"resource_name": production_rate_per_turn}
 var resource_accumulated: Dictionary = {}  # Floating point accumulator for production
 
-var neighbors: Array[VillageNode] = []
 var stationed_units: Array[Unit] = []  # Units stationed at this node
 var enemy_units: Array[EnemyUnit] = []  # Enemy units at this node
 
@@ -65,11 +64,6 @@ func _ready() -> void:
 		village_label.text = location_name
 
 	update_visual()
-
-func add_neighbor(node: VillageNode) -> void:
-	"""Add adjacent node"""
-	if node not in neighbors:
-		neighbors.append(node)
 
 func add_unit(unit: Unit) -> void:
 	"""Add unit to this node"""
@@ -134,8 +128,7 @@ func get_node_info() -> Dictionary:
 		"type": node_type,
 		"altitude": altitude,
 		"player_controlled": control_by_player,
-		"resources": resources.duplicate(),
-		"neighbors_count": neighbors.size()
+		"resources": resources.duplicate()
 	}
 
 func initialize_resource_production(resource_types: Array, production_rate: float) -> void:
@@ -146,11 +139,15 @@ func initialize_resource_production(resource_types: Array, production_rate: floa
 
 func produce_resources() -> void:
 	"""Produce resources based on production rates (called each turn)
-	GDD 4.4.5: When hunger_status=true, production rate is multiplied by 0.2"""
+	GDD 4.4.5: When hunger_status=true, production rate is multiplied by 0.2
+	Each resource type has its own multiplier (e.g., potato ×2, llama ×0.5)"""
 	var production_multiplier = 0.2 if hunger_status else 1.0
+	var settings = SettingsAndData.new()
 	
 	for resource_type in resource_production_rates:
-		var rate = resource_production_rates[resource_type] * production_multiplier
+		var base_rate = resource_production_rates[resource_type]
+		var resource_multiplier = settings.get_resource_type_multiplier(resource_type)
+		var rate = base_rate * resource_multiplier * production_multiplier
 		resource_accumulated[resource_type] += rate
 		
 		# Convert accumulated to integer production
