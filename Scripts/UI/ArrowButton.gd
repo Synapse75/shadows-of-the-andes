@@ -20,8 +20,6 @@ func _ready() -> void:
 	# 检查是否成功获取管理器
 	if not camera_manager:
 		push_error("ArrowButton[%s]: 无法获取 CameraManager" % direction)
-	else:
-		print("ArrowButton[%s]: 成功获取 CameraManager，当前镜头: %s" % [direction, camera_manager.current_camera])
 	
 	# 获取 AnimatedSprite2D 引用
 	arrow_sprite = get_node_or_null("AnimatedSprite2D")
@@ -81,72 +79,38 @@ func _input(event: InputEvent) -> void:
 	var mouse_pos = event.position
 	var button_rect = get_global_rect()
 	
-	if button_rect.has_point(mouse_pos):
-		print("ArrowButton[%s]: 捕获到鼠标事件 - 位置:%s, 按下:%s, 按钮区域:%s" % [direction, mouse_pos, event.pressed, button_rect])
+	pass
 
 func _on_pressed() -> void:
 	"""按钮被点击时切换相机"""
-	print("\n========== ArrowButton[%s] 被点击 ==========" % direction)
-	
 	if not camera_manager:
 		push_error("ArrowButton[%s]: camera_manager 为 null，无法切换镜头" % direction)
 		return
 	
 	var current = camera_manager.current_camera
-	print("当前镜头: %s" % current)
-	print("目标方向: %s" % direction)
 	
 	match direction:
 		"up":
-			print("  → up 箭头逻辑")
 			if current == "tinta":
-				print("    → Tinta -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
-				print("    → set_camera_view 已调用")
 			elif current == "andahuaylillas":
-				print("    → Andahuaylillas -> Jungle")
 				camera_manager.set_camera_view("jungle")
-				print("    → set_camera_view 已调用")
 			elif current == "jungle":
-				print("    → Jungle -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
-				print("    → set_camera_view 已调用")
-			else:
-				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"down":
-			print("  → down 箭头逻辑")
 			if current == "andahuaylillas":
-				print("    → Andahuaylillas -> Tinta")
 				camera_manager.set_camera_view("tinta")
-				print("    → set_camera_view 已调用")
 			elif current == "jungle":
-				print("    → Jungle -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
-				print("    → set_camera_view 已调用")
-			else:
-				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"left":
-			print("  → left 箭头逻辑")
 			if current == "marcapata":
-				print("    → Marcapata -> Andahuaylillas")
 				camera_manager.set_camera_view("andahuaylillas")
-				print("    → set_camera_view 已调用")
-			else:
-				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
 		
 		"right":
-			print("  → right 箭头逻辑")
 			if current == "andahuaylillas":
-				print("    → Andahuaylillas -> Marcapata")
 				camera_manager.set_camera_view("marcapata")
-				print("    → set_camera_view 已调用")
-			else:
-				print("    → 不匹配任何条件 (当前镜头: %s)" % current)
-	
-	print("新的镜头位置: %s" % camera_manager.global_position)
-	print("========================================\n")
 
 func _rotate_arrow() -> void:
 	"""根据箭头方向旋转图标"""

@@ -60,13 +60,11 @@ func move_to_node(target_node: VillageNode) -> bool:
 	
 	# Check if adjacent
 	if target_node not in current_node.neighbors:
-		print("Nodes not adjacent, cannot move")
 		return false
 	
 	var from_node = current_node
 	assign_to_node(target_node)
 	unit_moved.emit(from_node, target_node)
-	print("%s moved from %s to %s" % [unit_name, from_node.location_name, target_node.location_name])
 	return true
 
 func get_current_attack_power() -> int:
@@ -96,4 +94,3 @@ func die() -> void:
 	if current_node:
 		current_node.remove_enemy_unit(self)
 	unit_died.emit()
-	print("%s has died" % unit_name)

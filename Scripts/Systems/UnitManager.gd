@@ -26,13 +26,11 @@ func select_unit(unit: Unit) -> void:
 	
 	selected_unit = unit
 	unit_selected.emit(unit)
-	print("Selected unit: %s" % unit.unit_name)
 
 func deselect_unit() -> void:
 	"""Deselect unit"""
 	selected_unit = null
 	unit_deselected.emit()
-	print("Deselected unit")
 
 func get_units_at_node(node: VillageNode) -> Array[Unit]:
 	"""Get all units at specified node"""

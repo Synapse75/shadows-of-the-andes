@@ -70,9 +70,12 @@ func execute_auto_phase() -> void:
 	"""执行自动流程（资源生产等）"""
 	auto_phase_started.emit()
 	
-	# 所有村庄生产资源
+	# 所有村庄消耗资源，然后生产资源
 	for node in game_map.all_nodes:
 		if node is VillageNode:
+			# GDD 4.4 - 村庄资源消耗系统
+			node.consume_resources()
+			# GDD 3.5 - 资源生成系统
 			node.produce_resources()
 	
 	auto_phase_ended.emit()

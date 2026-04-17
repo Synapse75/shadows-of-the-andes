@@ -7,6 +7,7 @@ var turn_manager: TurnManager
 var pause_menu: PauseMenuController
 var camera_manager: CameraManager
 var settings: SettingsAndData
+var ui_manager: UIManager
 
 signal game_started
 signal game_over(winner: String)
@@ -17,6 +18,7 @@ func _ready() -> void:
 	turn_manager = get_node("Systems/TurnManager")
 	pause_menu = get_node("UILayer/PauseMenu")
 	camera_manager = get_node("SubViewportContainer/SubViewport/Camera2D")
+	ui_manager = get_node("Systems/UIManager")
 	settings = SettingsAndData.new()
 	
 	# 连接暂停按钮
@@ -84,8 +86,6 @@ func spawn_initial_garrison(village: VillageNode) -> void:
 	var unit2 = FemaleCorps.new()
 	unit2.current_node = village
 	village.add_unit(unit2)
-	
-	print("[GameController.spawn_initial_garrison] Created initial units for Tinta")
 
 func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 	"""Spawn enemy units to garrison a village"""
@@ -115,6 +115,10 @@ func _on_auto_phase_started() -> void:
 
 func _on_auto_phase_ended() -> void:
 	"""自动流程结束时的处理"""
+	# 刷新 UI 显示（资源/人口变化后需要更新显示）
+	if ui_manager:
+		ui_manager.refresh_displayed_node_info()
+	
 	# 检查胜利条件
 	check_victory_condition()
 

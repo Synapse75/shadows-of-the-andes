@@ -55,14 +55,12 @@ func _find_ui_layer(node: Node) -> void:
 	"""递归搜索 UILayer 节点"""
 	for child in node.get_children():
 		if child.name == "UILayer":
-			print("找到 UILayer")
 			for arrow_child in child.get_children():
 				if arrow_child.name.begins_with("Arrow"):
 					var direction = arrow_child.name.to_lower().replace("arrow", "")
 					arrow_buttons[direction] = arrow_child
 					if arrow_child:
 						arrow_child.visible = false
-					print("找到箭头: %s -> %s" % [direction, arrow_child.name])
 			return
 		_find_ui_layer(child)
 
@@ -74,7 +72,6 @@ func _process(_delta: float) -> void:
 	# 仅在镜头改变时更新
 	var current = camera_manager.current_camera
 	if current != last_camera:
-		print("CameraArrowManager: 镜头改变 %s -> %s" % [last_camera, current])
 		last_camera = current
 		update_arrows_display()
 
@@ -84,7 +81,6 @@ func update_arrows_display() -> void:
 		return
 	
 	var current_camera = camera_manager.current_camera
-	print("CameraArrowManager.update_arrows_display: 更新箭头显示，当前镜头 %s" % current_camera)
 	
 	# 隐藏所有箭头
 	for arrow in arrow_buttons.values():
@@ -97,7 +93,6 @@ func update_arrows_display() -> void:
 			# Tinta: 只显示向上箭头（连接到 Andahuaylillas）
 			if "up" in arrow_buttons and arrow_buttons["up"]:
 				arrow_buttons["up"].visible = true
-				print("  → 显示 up 箭头")
 		
 		"andahuaylillas":
 			# Andahuaylillas (中心): 显示上、右、下三个箭头
@@ -108,16 +103,13 @@ func update_arrows_display() -> void:
 				arrow_buttons["right"].visible = true
 			if "down" in arrow_buttons and arrow_buttons["down"]:
 				arrow_buttons["down"].visible = true
-			print("  → 显示 up/right/down 箭头")
 		
 		"marcapata":
 			# Marcapata: 显示返回箭头（向左）返回到 Andahuaylillas
 			if "left" in arrow_buttons and arrow_buttons["left"]:
 				arrow_buttons["left"].visible = true
-				print("  → 显示 left 箭头")
 		
 		"jungle":
 			# Jungle (Paucartambo/Pilcopata中点): 显示返回箭头（向下）返回到 Andahuaylillas
 			if "down" in arrow_buttons and arrow_buttons["down"]:
 				arrow_buttons["down"].visible = true
-				print("  → 显示 down 箭头")

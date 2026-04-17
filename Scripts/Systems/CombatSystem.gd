@@ -33,8 +33,6 @@ func start_combat(node: VillageNode, player_units: Array, enemy_units: Array) ->
 	var combat = Combat.new(node, player_units, enemy_units)
 	active_combats.append(combat)
 	combat_started.emit(combat)
-	print("[Combat] Started combat at %s: %d player units vs %d enemy units" % 
-		[node.location_name, player_units.size(), enemy_units.size()])
 	
 	return combat
 
@@ -86,12 +84,6 @@ func resolve_combat_turn(combat: Combat) -> void:
 	combat.player_units = combat.player_units.filter(func(u): return u.is_alive)
 	combat.enemy_units = combat.enemy_units.filter(func(u): return u.is_alive)
 	
-	print("[Combat] Turn %d at %s: %d player units dealt %d damage to enemies" % 
-		[combat.turn, combat.combat_node.location_name, combat.player_units.size(), damage_per_enemy])
-	print("[Combat] %d enemy units dealt %d damage to player units" % 
-		[combat.enemy_units.size(), damage_per_player])
-	print("[Combat] %d player units died, %d enemy units died" % [players_died_this_turn, enemies_died_this_turn])
-	
 	combat_resolved_turn.emit(combat, combat.turn)
 	
 	# Check if combat should end
@@ -113,8 +105,6 @@ func end_combat(combat: Combat) -> void:
 		result_text = "Player Units Eliminated"
 	else:
 		result_text = "Unknown Outcome"
-	
-	print("[Combat] Combat ended at %s: %s" % [combat.combat_node.location_name, result_text])
 	
 	active_combats.erase(combat)
 	combat_ended.emit(combat)

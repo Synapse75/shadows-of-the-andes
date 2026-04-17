@@ -43,6 +43,7 @@ var unit_icons: Dictionary = {
 # resourcepanel 背景
 var resource_panel_bg: String = "res://Sprites/resourcepanel.png"
 var unit_panel_bg: String = "res://Sprites/unitpanel.png"
+var enemy_panel_bg: String = "res://Sprites/enemypanel.png"
 
 func _ready() -> void:
 	info_panel = get_node("../../UILayer/InfoPanel")
@@ -57,10 +58,10 @@ func _ready() -> void:
 	info_label.name = "Label"
 	info_label.layout_mode = 1  # Anchored layout
 	info_label.anchors_preset = 15  # Fill parent
-	info_label.offset_left = 2.0
-	info_label.offset_top = 2.0
-	info_label.offset_right = -2.0
-	info_label.offset_bottom = -2.0
+	info_label.offset_left = 10.0
+	info_label.offset_top = 5.0
+	info_label.offset_right = -10.0
+	info_label.offset_bottom = -5.0
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	
 	# 继承旧样式
@@ -93,32 +94,19 @@ func _ready() -> void:
 	recruit_button = get_node_or_null("../../UILayer/RecruitButton")
 	if recruit_button:
 		recruit_button.pressed.connect(_on_recruit_button_pressed)
-		print("[UIManager._ready] RecruitButton signal connected!")
 	
 	# 获取手动添加的 ScrollContainer
-	print("[UIManager._ready] UIManager path: ", get_path())
 	var ui_layer = get_node("../../UILayer")
-	print("[UIManager._ready] UILayer path: ", ui_layer.get_path())
-	print("[UIManager._ready] UILayer children count: ", ui_layer.get_child_count())
 	
 	resources_scroll_container = ui_layer.get_node("ScrollContainer")
 	if resources_scroll_container:
-		print("[UIManager._ready] Found ScrollContainer!")
 		if resources_scroll_container.get_child_count() > 0:
 			resources_vbox = resources_scroll_container.get_child(0) as VBoxContainer
 			if resources_vbox:
 				resources_vbox.add_theme_constant_override("separation", 0)
-				print("[UIManager._ready] Found VBoxContainer inside ScrollContainer")
-			else:
-				print("[UIManager._ready] ERROR: First child is not VBoxContainer")
-		else:
-			print("[UIManager._ready] ERROR: ScrollContainer has no children")
 		resources_scroll_container.visible = false
 	else:
-		print("[UIManager] ERROR: ScrollContainer not found in UILayer!")
-		print("[UIManager] Available nodes in UILayer:")
-		for child in ui_layer.get_children():
-			print("  - ", child.name)
+		push_error("[UIManager] ScrollContainer not found in UILayer!")
 	
 	# 连接 GameMap 的点击事件
 	var game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
@@ -127,7 +115,6 @@ func _ready() -> void:
 
 func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left and show resources/units in left panel"""
-	print("[UIManager.show_node_info] Showing info for: %s" % node.node_id)
 	current_hovered_node = node
 	locked_node = node  # Lock the node for recruitment and other operations
 	var info = node.get_node_info()
@@ -138,6 +125,10 @@ func show_node_info(node: VillageNode) -> void:
 	
 	# Population
 	text += "Pop: %d" % info["resources"].get("population", 0)
+	
+	# Show hunger status (GDD 4.4)
+	if node.hunger_status:
+		text += " [HUNGRY]"
 	
 	info_label.text = text
 	info_panel.visible = true
@@ -183,7 +174,6 @@ func _on_node_selected(node: VillageNode) -> void:
 
 func hide_node_info() -> void:
 	"""Hide node information and icons"""
-	print("[UIManager.hide_node_info] Hiding info")
 	current_hovered_node = null
 	# Only hide if not locked
 	if not is_panel_locked:
@@ -201,20 +191,16 @@ func lock_node_info(node: VillageNode) -> void:
 	is_panel_locked = true
 	locked_node = node
 	show_node_info(node)
-	# Already positioned at bottom-left by show_node_info()
-	print("Locked node: %s" % node.location_name)
 
 func unlock_node_info() -> void:
 	"""Unlock node information panel"""
 	is_panel_locked = false
 	locked_node = null
 	info_panel.visible = false
-	print("Unlocked node information panel")
 
 func _display_node_resources(node: VillageNode) -> void:
 	"""Display resources and units for the given node"""
 	if not resources_vbox:
-		print("[UIManager._display_node_resources] ERROR: resources_vbox is null!")
 		return
 	
 	# Clear previous entries
@@ -234,7 +220,6 @@ func _display_node_resources(node: VillageNode) -> void:
 	
 	# 显示每个单位
 	for unit in node.stationed_units:
-		print("[UIManager] Adding player unit: %s (type: %s)" % [unit.unit_name, unit.unit_type])
 		_create_unit_panel_row(unit)
 	
 	# 显示资源标题 ========================================
@@ -262,7 +247,6 @@ func _display_node_resources(node: VillageNode) -> void:
 	
 	# 显示每个敌方单位
 	for enemy_unit in node.enemy_units:
-		print("[UIManager] Adding enemy unit: %s (type: %s)" % [enemy_unit.unit_name, enemy_unit.unit_type])
 		_create_enemy_unit_panel_row(enemy_unit)
 
 func _create_resource_panel_row(resource_type: String, amount: int) -> void:
@@ -297,7 +281,9 @@ func _create_resource_panel_row(resource_type: String, amount: int) -> void:
 	# Amount label
 	var amount_label = Label.new()
 	amount_label.text = "×" + str(amount)
-	amount_label.add_theme_font_size_override("font_size", 10)
+	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
+	amount_label.add_theme_font_override("font", clear_font)
+	amount_label.add_theme_font_size_override("font_size", 16)
 	
 	inner_hbox.add_child(icon_texture)
 	inner_hbox.add_child(amount_label)
@@ -309,11 +295,9 @@ func _create_unit_panel_row(unit: Unit) -> void:
 	"""Create a single unit panel row"""
 	# Unit icon (32x32)
 	var icon_path = unit_icons.get(unit.unit_type, "")
-	print("[UIManager._create_unit_panel_row] Unit type: %s, Icon path: %s" % [unit.unit_type, icon_path])
 	
 	# Check if icon exists
 	if not icon_path or not ResourceLoader.exists(icon_path):
-		print("[UIManager._create_unit_panel_row] ERROR: Icon not found for unit type: %s, skipping" % unit.unit_type)
 		return
 	
 	# Background panel (140x40)
@@ -343,7 +327,9 @@ func _create_unit_panel_row(unit: Unit) -> void:
 	# Unit name label
 	var name_label = Label.new()
 	name_label.text = unit.unit_name
-	name_label.add_theme_font_size_override("font_size", 10)
+	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
+	name_label.add_theme_font_override("font", clear_font)
+	name_label.add_theme_font_size_override("font_size", 16)
 	
 	inner_hbox.add_child(icon_texture)
 	inner_hbox.add_child(name_label)
@@ -355,19 +341,17 @@ func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
 	"""Create a single enemy unit panel row"""
 	# Enemy unit icon
 	var icon_path = unit_icons.get(enemy_unit.unit_type, "")
-	print("[UIManager._create_enemy_unit_panel_row] Enemy type: %s, Icon path: %s" % [enemy_unit.unit_type, icon_path])
 	
 	# Check if icon exists
 	if not icon_path or not ResourceLoader.exists(icon_path):
-		print("[UIManager._create_enemy_unit_panel_row] ERROR: Icon not found for enemy type: %s, skipping" % enemy_unit.unit_type)
 		return
 	
 	# Background panel (140x40)
 	var bg_panel = Panel.new()
 	bg_panel.custom_minimum_size = Vector2(140, 40)
 	var stylebox = StyleBoxTexture.new()
-	if ResourceLoader.exists(unit_panel_bg):
-		stylebox.texture = ResourceLoader.load(unit_panel_bg)
+	if ResourceLoader.exists(enemy_panel_bg):
+		stylebox.texture = ResourceLoader.load(enemy_panel_bg)
 	bg_panel.add_theme_stylebox_override("panel", stylebox)
 	
 	# Inner container for content (positioned at 4,4 inside the panel)
@@ -389,7 +373,9 @@ func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
 	# Enemy unit name label
 	var name_label = Label.new()
 	name_label.text = enemy_unit.unit_name
-	name_label.add_theme_font_size_override("font_size", 10)
+	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
+	name_label.add_theme_font_override("font", clear_font)
+	name_label.add_theme_font_size_override("font_size", 16)
 	
 	inner_hbox.add_child(icon_texture)
 	inner_hbox.add_child(name_label)
@@ -400,11 +386,9 @@ func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
 func _on_recruit_button_pressed() -> void:
 	"""Recruit a new unit at the locked node"""
 	if not locked_node:
-		print("[UIManager] ERROR: No locked node for recruitment")
 		return
 	
 	if not locked_node.control_by_player:
-		print("[UIManager] ERROR: Cannot recruit at uncontrolled node")
 		return
 	
 	# Check population requirement (25 population per unit)
@@ -425,8 +409,6 @@ func _on_recruit_button_pressed() -> void:
 	locked_node.population -= 25
 	locked_node.resources["population"] -= 25  # Also update resources dict
 	
-	print("[UIManager._on_recruit_button_pressed] Recruited: %s at %s (Pop left: %d)" % [unit.unit_name, locked_node.location_name, locked_node.population])
-	
 	# Refresh display
 	show_node_info(locked_node)
 
@@ -445,8 +427,12 @@ func show_recruitment_failed_tooltip(message: String) -> void:
 	# Add to UILayer
 	ui_layer.add_child(tooltip)
 	
-	print("[UIManager] Recruitment failed: %s" % message)
-	
 	# Auto-remove after 2 seconds
 	await get_tree().create_timer(2.0).timeout
 	tooltip.queue_free()
+
+func refresh_displayed_node_info() -> void:
+	"""Refresh the currently displayed node info (called after auto phase ends)
+	This ensures that all resource/population changes are reflected in the UI"""
+	if locked_node and info_panel.visible:
+		show_node_info(locked_node)

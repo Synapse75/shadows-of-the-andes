@@ -145,9 +145,12 @@ func initialize_resource_production(resource_types: Array, production_rate: floa
 		resource_accumulated[resource_type] = 0.0
 
 func produce_resources() -> void:
-	"""Produce resources based on production rates (called each turn)"""
+	"""Produce resources based on production rates (called each turn)
+	GDD 4.4.5: When hunger_status=true, production rate is multiplied by 0.2"""
+	var production_multiplier = 0.2 if hunger_status else 1.0
+	
 	for resource_type in resource_production_rates:
-		var rate = resource_production_rates[resource_type]
+		var rate = resource_production_rates[resource_type] * production_multiplier
 		resource_accumulated[resource_type] += rate
 		
 		# Convert accumulated to integer production
@@ -155,6 +158,63 @@ func produce_resources() -> void:
 		if produced > 0:
 			add_resource(resource_type, produced)
 			resource_accumulated[resource_type] -= produced
+
+func consume_resources() -> void:
+	"""
+	Execute GDD 4.4.5 resource consumption logic for this village.
+	Only player-controlled villages consume resources.
+	"""
+	if not control_by_player:
+		return
+	
+	# GDD 4.4.5 - Step 1: Calculate consumption value
+	# consumption_accumulator += population × 0.01
+	consumption_accumulator += population * 0.01
+	
+	# GDD 4.4.5 - Step 2: Check if consumption is needed (≥ 1.0)
+	# If yes, set hunger status; if no but have consumable food, clear hunger
+	if consumption_accumulator >= 1.0:
+		hunger_status = true
+	else:
+		if _has_consumable_resources():
+			hunger_status = false
+	
+	# GDD 4.4.5 - Step 3: Consume food loop (only when hunger_status = true)
+	# Consume in priority order: Potato → Corn → Quinoa
+	if hunger_status:
+		while consumption_accumulator >= 1.0 and _has_consumable_resources():
+			_consume_one_food()
+			consumption_accumulator -= 1.0
+	
+	# GDD 4.4.5 - Step 4: Update hunger status based on remaining food
+	if not _has_consumable_resources():
+		hunger_status = true
+	else:
+		hunger_status = false
+
+func _has_consumable_resources() -> bool:
+	"""Check if village has any consumable resources (Potato, Corn, or Quinoa)"""
+	return (resources.get("potato", 0) > 0 or 
+			resources.get("corn", 0) > 0 or 
+			resources.get("quinoa", 0) > 0)
+
+func _consume_one_food() -> void:
+	"""Consume one food resource following priority: Potato → Corn → Quinoa"""
+	# GDD 4.4.4 priority order
+	if resources.get("potato", 0) > 0:
+		resources["potato"] -= 1
+		resources_changed.emit(resources)
+		return
+	
+	if resources.get("corn", 0) > 0:
+		resources["corn"] -= 1
+		resources_changed.emit(resources)
+		return
+	
+	if resources.get("quinoa", 0) > 0:
+		resources["quinoa"] -= 1
+		resources_changed.emit(resources)
+		return
 
 func get_displayed_resource_amount(resource_type: String) -> int:
 	"""Get the displayed amount (integer) of a resource"""

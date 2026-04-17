@@ -49,7 +49,6 @@ func _assign_units_to_nodes() -> void:
 		# Assign all units to Tinta
 		for unit in unit_manager.all_units:
 			unit.assign_to_node(tinta_node)
-		print("All units assigned to Tinta")
 
 func _process(_delta: float) -> void:
 	"""Handle mouse hover effect and click detection"""
@@ -70,10 +69,8 @@ func _process(_delta: float) -> void:
 			hovered_node = node_at_pos
 			if hovered_node.has_method("set_hover_state"):
 				hovered_node.set_hover_state(true)
-			print("[GameMap._process] Hovering over: %s" % node_at_pos.node_id)
 		else:
 			hovered_node = null
-			print("[GameMap._process] Not hovering over any node")
 	
 	# Click detection in _process (since _input might be consumed by UI)
 	if Input.is_action_just_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
