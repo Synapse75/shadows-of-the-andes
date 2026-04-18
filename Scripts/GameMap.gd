@@ -40,31 +40,28 @@ var node_camera_map: Dictionary = {
 }
 
 # Hardcoded node screen positions for each camera view (precomputed, no runtime calculation)
-# Formula: screen_pos = viewport_center(390, 225) + (world_pos - camera_center) / 4
+# Formula: screen_pos = viewport_center(390, 225) + 3/4 * (world_pos - camera_center)
 var node_screen_positions_by_camera: Dictionary = {
 	"tinta": {
 		"tinta": Vector2(390, 225),
-		"tungasuca": Vector2(378, 229),
-		"pampamarca": Vector2(380, 226),
-		"sicuani": Vector2(420, 248),
-		"quiquijana": Vector2(367, 170),
+		"tungasuca": Vector2(353, 238),
+		"pampamarca": Vector2(360, 227),
+		"sicuani": Vector2(479, 293),
 	},
 	"andahuaylillas": {
-		"urcos": Vector2(400, 226),
-		"quiquijana": Vector2(413, 252),
-		"paucartambo": Vector2(404, 160),
+		"urcos": Vector2(419, 229),
+		"quiquijana": Vector2(460, 305),
 		"andahuaylillas": Vector2(390, 225),
-		"cusco": Vector2(342, 200),
-		"ocongate": Vector2(439, 216),
+		"cusco": Vector2(245, 149),
+		"ocongate": Vector2(538, 199),
 	},
 	"marcapata": {
 		"marcapata": Vector2(390, 225),
-		"ocongate": Vector2(319, 231),
 	},
 	"jungle": {
-		"paucartambo": Vector2(373, 261),
-		"pilcopata": Vector2(407, 194),
-		"challabamba": Vector2(364, 245),
+		"paucartambo": Vector2(340, 332),
+		"pilcopata": Vector2(440, 133),
+		"challabamba": Vector2(312, 285),
 	},
 }
 
