@@ -126,15 +126,11 @@ func _assign_units_to_nodes() -> void:
 
 func _process(_delta: float) -> void:
 	"""Handle mouse hover effect and click detection"""
-	# Only respond to hover when not locked and not dragging
-	if ui_manager.is_panel_locked or ui_manager.is_dragging:
-		return
-	
 	# Get global mouse position
 	var global_mouse_pos = get_global_mouse_position()
 	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
-	# Hover effect - only update shader, not information display
+	# Hover effect - always update shader, even during dragging
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
@@ -145,6 +141,10 @@ func _process(_delta: float) -> void:
 				hovered_node.set_hover_state(true)
 		else:
 			hovered_node = null
+	
+	# Click detection - only when not dragging and not locked
+	if ui_manager.is_dragging or ui_manager.is_panel_locked:
+		return
 	
 	# Click detection in _process (since _input might be consumed by UI)
 	if Input.is_action_just_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):

@@ -307,12 +307,15 @@ func progress_movement() -> void:
 
 func complete_movement() -> void:
 	"""Complete movement and unlock unit."""
-	if target_node:
+	var from_node = current_node
+	var arrived_node = target_node
+
+	if arrived_node:
 		# Update current node
-		assign_to_node(target_node)
+		assign_to_node(arrived_node)
 		
 		# Emit signal
-		unit_moved.emit(current_node, target_node)
+		unit_moved.emit(from_node, arrived_node)
 		movement_completed.emit()
 	
 	# Clear movement state
@@ -322,10 +325,31 @@ func complete_movement() -> void:
 	
 	# Remove visual lock overlay
 	_remove_movement_lock_overlay()
-	
-	# Change state to stationed (since we're now at destination)
-	unit_state = UnitState.STATIONED
-	unit_state_changed.emit(unit_state)
+
+	if arrived_node:
+		# Update based on node control first, then let combat system process entry.
+		update_state()
+		_handle_arrival_combat(arrived_node)
+
+func _handle_arrival_combat(arrived_node: VillageNode) -> void:
+	"""Handle immediate capture/combat checks after reaching destination."""
+	if not arrived_node or unit_state == UnitState.MOVING:
+		return
+
+	var combat_system = get_tree().root.get_node_or_null("Main/Systems/CombatSystem")
+	if combat_system and combat_system.has_method("process_player_entry"):
+		combat_system.process_player_entry(arrived_node)
+		return
+
+	# Fallback behavior if combat system is missing.
+	if arrived_node.control_by_player:
+		set_unit_state(UnitState.STATIONED)
+		return
+
+	set_unit_state(UnitState.ATTACKING)
+	if arrived_node.enemy_units.is_empty():
+		arrived_node.set_control(true)
+		set_unit_state(UnitState.STATIONED)
 
 func _create_movement_lock_overlay() -> void:
 	"""Create a semi-transparent overlay showing 'Moving' text (GDD 5.2.1)"""

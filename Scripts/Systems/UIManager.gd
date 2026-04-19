@@ -369,23 +369,34 @@ func _create_unit_panel_row(unit: Unit) -> void:
 		# Hide the original icon when moving
 		icon_texture.visible = false
 		
-		# Create a semi-transparent black background panel
-		var moving_overlay = ColorRect.new()
-		moving_overlay.color = Color(0, 0, 0, 0.5)  # Semi-transparent black
-		moving_overlay.custom_minimum_size = Vector2(132, 32)
+		# Create a container for the moving state
+		var moving_container = Control.new()
+		moving_container.custom_minimum_size = Vector2(132, 32)
 		
-		# Create "Moving" label
+		# Semi-transparent black background
+		var moving_overlay = ColorRect.new()
+		moving_overlay.color = Color(0, 0, 0, 0.5)
+		moving_overlay.anchor_left = 0
+		moving_overlay.anchor_top = 0
+		moving_overlay.anchor_right = 1
+		moving_overlay.anchor_bottom = 1
+		
+		# "Moving" label centered on top of background
 		var moving_label = Label.new()
 		moving_label.text = "Moving"
 		moving_label.add_theme_font_override("font", clear_font)
 		moving_label.add_theme_font_size_override("font_size", 16)
 		moving_label.add_theme_color_override("font_color", Color.WHITE)
+		moving_label.anchor_left = 0
+		moving_label.anchor_top = 0
+		moving_label.anchor_right = 1
+		moving_label.anchor_bottom = 1
 		moving_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		moving_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		
-		# Add moving overlay to inner_hbox instead of icon+name
-		inner_hbox.add_child(moving_overlay)
-		inner_hbox.add_child(moving_label)
+		moving_container.add_child(moving_overlay)
+		moving_container.add_child(moving_label)
+		inner_hbox.add_child(moving_container)
 	else:
 		name_label.text = unit.unit_name
 		inner_hbox.add_child(icon_texture)
@@ -526,6 +537,7 @@ func _on_unit_panel_pressed(unit: Unit, panel: Panel) -> void:
 		dragging_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		dragging_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		dragging_icon.z_index = 1000  # Ensure it's on top
+		dragging_icon.modulate = Color(1, 1, 1, 0.5)  # Semi-transparent (50% opacity)
 		
 		# Add to UI layer so it appears above everything
 		var ui_layer = get_node("../../UILayer")

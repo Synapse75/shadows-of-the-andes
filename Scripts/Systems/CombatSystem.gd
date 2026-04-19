@@ -126,3 +126,78 @@ func resolve_all_combats() -> void:
 	for combat in combats_copy:
 		if combat in active_combats:  # Check in case it was removed
 			resolve_combat_turn(combat)
+
+func process_player_entry(node: VillageNode) -> void:
+	"""Handle player unit entering a node.
+	- If node is uncontrolled and has no enemies: capture immediately.
+	- If node is uncontrolled and has enemies: resolve one combat turn immediately.
+	"""
+	if not node:
+		return
+
+	# Only non-moving, alive player units on the node can participate or garrison.
+	var player_units := _get_alive_player_combatants(node)
+	if player_units.is_empty():
+		return
+
+	if node.control_by_player:
+		_set_player_units_state(player_units, Unit.UnitState.STATIONED)
+		return
+
+	# Entering uncontrolled node puts units into attacking state.
+	_set_player_units_state(player_units, Unit.UnitState.ATTACKING)
+
+	var enemy_units := _get_alive_enemy_combatants(node)
+	if enemy_units.is_empty():
+		_capture_node(node)
+		return
+
+	var combat = get_combat_at_node(node)
+	if combat == null:
+		combat = start_combat(node, player_units, enemy_units)
+	else:
+		combat.player_units = player_units
+		combat.enemy_units = enemy_units
+
+	if combat:
+		resolve_combat_turn(combat)
+
+	_post_combat_update(node)
+
+func _post_combat_update(node: VillageNode) -> void:
+	"""Update control and player states after a combat turn."""
+	var alive_players := _get_alive_player_combatants(node)
+	var alive_enemies := _get_alive_enemy_combatants(node)
+
+	if alive_enemies.is_empty() and not alive_players.is_empty():
+		_capture_node(node)
+		return
+
+	if not alive_players.is_empty():
+		node.set_control(false)
+		_set_player_units_state(alive_players, Unit.UnitState.ATTACKING)
+
+func _capture_node(node: VillageNode) -> void:
+	"""Capture node for player and set local units to stationed."""
+	node.set_control(true)
+	var alive_players := _get_alive_player_combatants(node)
+	_set_player_units_state(alive_players, Unit.UnitState.STATIONED)
+
+func _get_alive_player_combatants(node: VillageNode) -> Array[Unit]:
+	var units: Array[Unit] = []
+	for unit in node.stationed_units:
+		if unit and unit.is_alive and unit.unit_state != Unit.UnitState.MOVING:
+			units.append(unit)
+	return units
+
+func _get_alive_enemy_combatants(node: VillageNode) -> Array[EnemyUnit]:
+	var units: Array[EnemyUnit] = []
+	for unit in node.enemy_units:
+		if unit and unit.is_alive:
+			units.append(unit)
+	return units
+
+func _set_player_units_state(units: Array[Unit], state: Unit.UnitState) -> void:
+	for unit in units:
+		if unit and unit.is_alive and unit.unit_state != Unit.UnitState.MOVING:
+			unit.set_unit_state(state)
