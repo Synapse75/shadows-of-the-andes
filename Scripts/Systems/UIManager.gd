@@ -10,7 +10,6 @@ var is_panel_locked: bool = false
 
 # Cached references
 var game_map: GameMap = null
-var camera_manager: CameraManager = null
 
 # Drag-and-drop system
 var dragging_unit: Unit = null
@@ -126,9 +125,6 @@ func _ready() -> void:
 	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map") as GameMap
 	if game_map and game_map.has_signal("node_selected"):
 		game_map.node_selected.connect(_on_node_selected)
-	
-	# Cache CameraManager reference
-	camera_manager = get_tree().root.get_node_or_null("Main/SubViewportContainer/SubViewport/Camera2D") as CameraManager
 	
 	# Node data can change during movement/combat; wire realtime refresh.
 	call_deferred("_connect_node_runtime_signals")
@@ -653,11 +649,13 @@ func _complete_drag() -> void:
 		is_dragging = false
 		return
 	
-	# Get the node at cursor from precomputed coordinate mapping
-	var target_node = _get_node_at_cursor()
+	# Drop targeting uses the same hovered node source that drives shader highlight.
+	var target_node = _get_drop_target_from_hover()
 	
 	print("\n=== DEBUG: Drag completion ===")
 	print("Unit: %s, Valid targets: %d" % [dragging_unit.unit_name, valid_drop_targets.size()])
+	print("Drop target source: hovered_node(shader)")
+	print("Hovered target: %s" % (target_node.location_name if target_node else "None"))
 	if target_node:
 		print("Target node found: %s (in valid targets: %s)" % [
 			target_node.location_name, 
@@ -701,37 +699,10 @@ func _complete_drag() -> void:
 	unit_panel_container = null
 	original_icon = null
 
-func _get_node_at_cursor() -> VillageNode:
-	"""Get the VillageNode under the cursor position using pre-computed coordinate mapping"""
-	
-	# Use cached references
+func _get_drop_target_from_hover() -> VillageNode:
+	"""Return current drag target using GameMap hover state (same source as shader highlight)."""
 	if not game_map or not game_map is GameMap:
-		print("Cannot find GameMap!")
+		print("Cannot find GameMap for hovered drop target!")
 		return null
-	
-	if not camera_manager:
-		print("ERROR: Cannot find CameraManager!")
-		return null
-	
-	var current_camera = camera_manager.current_camera
-	print("DEBUG _get_node_at_cursor: current_camera = '%s'" % current_camera)
-	print("DEBUG: Available cameras in map: %s" % str(game_map.node_screen_positions_by_camera.keys()))
-	print("DEBUG: Updating camera positions before query...")
-	
-	# Ensure GameMap has the correct camera positions loaded
-	game_map._update_camera_positions(current_camera)
-	
-	print("DEBUG: After _update_camera_positions, current_camera_positions size: %d" % game_map.current_camera_positions.size())
-	
-	# Get current mouse position in screen space
-	var mouse_screen_pos = get_viewport().get_mouse_position()
-	
-	# Use the pre-computed coordinate mapping from GameMap
-	var target_node = game_map.get_node_at_screen_position(mouse_screen_pos)
-	
-	if target_node:
-		print("Found node %s at screen position (%.1f, %.1f)" % [target_node.location_name, mouse_screen_pos.x, mouse_screen_pos.y])
-	else:
-		print("No node found at screen position (%.1f, %.1f)" % [mouse_screen_pos.x, mouse_screen_pos.y])
-	
-	return target_node
+
+	return game_map.hovered_node
