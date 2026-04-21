@@ -82,12 +82,18 @@ func add_enemy_unit(unit: EnemyUnit) -> void:
 	if unit not in enemy_units:
 		enemy_units.append(unit)
 		enemy_units_changed.emit(enemy_units)
+		# Any enemy presence means this node is not controlled by player.
+		if control_by_player:
+			set_control(false)
 
 func remove_enemy_unit(unit: EnemyUnit) -> void:
 	"""Remove enemy unit from this node"""
 	if unit in enemy_units:
 		enemy_units.erase(unit)
 		enemy_units_changed.emit(enemy_units)
+		# When no enemy units remain, node becomes player-controlled immediately.
+		if enemy_units.is_empty():
+			set_control(true)
 
 func set_control(is_player: bool) -> void:
 	"""Change node control"""
