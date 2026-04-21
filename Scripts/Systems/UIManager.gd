@@ -57,6 +57,7 @@ var unit_icons: Dictionary = {
 var resource_panel_bg: String = "res://Sprites/resourcepanel.png"
 var unit_panel_bg: String = "res://Sprites/unitpanel.png"
 var enemy_panel_bg: String = "res://Sprites/enemypanel.png"
+var _node_signal_connect_retries: int = 0
 
 func _ready() -> void:
 	info_panel = get_node("../../UILayer/InfoPanel")
@@ -128,6 +129,46 @@ func _ready() -> void:
 	
 	# Cache CameraManager reference
 	camera_manager = get_tree().root.get_node_or_null("Main/SubViewportContainer/SubViewport/Camera2D") as CameraManager
+	
+	# Node data can change during movement/combat; wire realtime refresh.
+	call_deferred("_connect_node_runtime_signals")
+
+func _connect_node_runtime_signals() -> void:
+	if not game_map:
+		return
+
+	# GameMap may still be initializing all_nodes in this frame.
+	if game_map.all_nodes.is_empty() and _node_signal_connect_retries < 5:
+		_node_signal_connect_retries += 1
+		call_deferred("_connect_node_runtime_signals")
+		return
+
+	for node in game_map.all_nodes:
+		if not (node is VillageNode):
+			continue
+
+		var units_callable = Callable(self, "_on_observed_node_changed").bind(node)
+		if not node.units_changed.is_connected(units_callable):
+			node.units_changed.connect(units_callable)
+
+		var enemies_callable = Callable(self, "_on_observed_node_changed").bind(node)
+		if not node.enemy_units_changed.is_connected(enemies_callable):
+			node.enemy_units_changed.connect(enemies_callable)
+
+		var resources_callable = Callable(self, "_on_observed_node_changed").bind(node)
+		if not node.resources_changed.is_connected(resources_callable):
+			node.resources_changed.connect(resources_callable)
+
+		var control_callable = Callable(self, "_on_observed_node_changed").bind(node)
+		if not node.control_changed.is_connected(control_callable):
+			node.control_changed.connect(control_callable)
+
+func _on_observed_node_changed(_changed_data = null, node: VillageNode = null) -> void:
+	if not node:
+		return
+
+	if locked_node == node and info_panel.visible:
+		show_node_info(node)
 
 func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left and show resources/units in left panel"""
@@ -472,8 +513,8 @@ func _on_recruit_button_pressed() -> void:
 		unit = FemaleCorps.new()
 	
 	# Set unit position and add to node
-	unit.current_node = locked_node
-	locked_node.add_unit(unit)
+	locked_node.add_child(unit)
+	unit.assign_to_node(locked_node)
 	locked_node.population -= 25
 	locked_node.resources["population"] -= 25  # Also update resources dict
 	

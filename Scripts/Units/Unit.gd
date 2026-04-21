@@ -291,6 +291,7 @@ func start_movement(target: VillageNode) -> bool:
 	# Emit signals
 	unit_state_changed.emit(unit_state)
 	movement_started.emit(target, movement_time)
+	print("[Unit] %s started moving: %s -> %s, duration=%d" % [unit_name, current_node.location_name if current_node else "None", target.location_name if target else "None", movement_time])
 	
 	return true
 
@@ -298,8 +299,11 @@ func progress_movement() -> void:
 	"""Progress movement by one turn. Called by TurnManager during auto_phase."""
 	if unit_state != UnitState.MOVING or movement_time_remaining <= 0:
 		return
+
+	var before = movement_time_remaining
 	
 	movement_time_remaining -= 1
+	print("[Unit] %s movement progress: %d -> %d" % [unit_name, before, movement_time_remaining])
 	
 	# Movement completed
 	if movement_time_remaining <= 0:
@@ -308,11 +312,11 @@ func progress_movement() -> void:
 func complete_movement() -> void:
 	"""Complete movement and unlock unit."""
 	var from_node = current_node
-	var arrived_node = target_node
-
-	if arrived_node:
+	var arrived_node: VillageNode = target_node
+	
+	if target_node:
 		# Update current node
-		assign_to_node(arrived_node)
+		assign_to_node(target_node)
 		
 		# Emit signal
 		unit_moved.emit(from_node, arrived_node)
@@ -322,34 +326,132 @@ func complete_movement() -> void:
 	target_node = null
 	movement_time_remaining = 0
 	is_locked = false
+	# Movement finished: leave MOVING state before arrival state evaluation.
+	set_unit_state(UnitState.STATIONED)
 	
 	# Remove visual lock overlay
 	_remove_movement_lock_overlay()
+	
+	# On arrival, immediately resolve state/combat/capture logic.
+	_handle_arrival_state_and_combat()
+	print("[Unit] %s movement completed: arrived at %s" % [unit_name, current_node.location_name if current_node else "None"])
 
-	if arrived_node:
-		# Update based on node control first, then let combat system process entry.
-		update_state()
-		_handle_arrival_combat(arrived_node)
+func _handle_arrival_state_and_combat() -> void:
+	"""Apply arrival rules: attacking on uncontrolled nodes, immediate capture if no enemies,
+	or resolve one combat round immediately if enemies are present."""
+	if not current_node or not is_alive:
+		return
+	
+	# Determine baseline state from node control.
+	update_state()
+	var enemy_count = _get_alive_enemy_count(current_node)
+	
+	# Controlled node: arrive as stationed, no combat.
+	if unit_state != UnitState.ATTACKING:
+		print("[Unit] %s arrived at %s -> state=%s, enemies=%d" % [
+			unit_name,
+			current_node.location_name,
+			UnitState.keys()[unit_state],
+			enemy_count
+		])
+		return
+	
+	print("[Unit] %s arrived at uncontrolled node %s -> ATTACKING, enemies=%d" % [unit_name, current_node.location_name, enemy_count])
+	_resolve_node_combat_or_capture(current_node)
 
-func _handle_arrival_combat(arrived_node: VillageNode) -> void:
-	"""Handle immediate capture/combat checks after reaching destination."""
-	if not arrived_node or unit_state == UnitState.MOVING:
+func _resolve_node_combat_or_capture(node: VillageNode) -> void:
+	"""Set attacking state on hostile entry and register node combat.
+	If no enemies are present, capture immediately."""
+	if not node:
+		return
+	
+	if _get_alive_enemy_count(node) == 0:
+		print("[Unit] %s no enemies at %s, capturing immediately" % [unit_name, node.location_name])
+		_capture_node_if_possible(node)
+		return
+	
+	# Node with enemy presence must be uncontrolled and all non-moving player units are attacking.
+	if game_map:
+		game_map.occupy_node(node, false)
+	else:
+		node.set_control(false)
+	
+	for player_unit in node.stationed_units:
+		if player_unit and player_unit.is_alive and player_unit.unit_state != UnitState.MOVING:
+			player_unit.set_unit_state(UnitState.ATTACKING)
+	
+	var combat_system = _get_combat_system()
+	if not combat_system:
+		print("[Unit] WARNING: CombatSystem not found when %s entered %s" % [unit_name, node.location_name])
 		return
 
-	var combat_system = get_tree().root.get_node_or_null("Main/Systems/CombatSystem")
-	if combat_system and combat_system.has_method("process_player_entry"):
-		combat_system.process_player_entry(arrived_node)
+	var player_units: Array[Unit] = []
+	for player_unit in node.stationed_units:
+		if player_unit and player_unit.is_alive and player_unit.unit_state != UnitState.MOVING:
+			player_units.append(player_unit)
+	
+	var enemy_units: Array[EnemyUnit] = []
+	for enemy_unit in node.enemy_units:
+		if enemy_unit and enemy_unit.is_alive:
+			enemy_units.append(enemy_unit)
+	
+	if player_units.is_empty() or enemy_units.is_empty():
+		print("[Unit] %s combat setup empty at %s (player=%d, enemy=%d), fallback capture check" % [unit_name, node.location_name, player_units.size(), enemy_units.size()])
+		_capture_node_if_possible(node)
 		return
 
-	# Fallback behavior if combat system is missing.
-	if arrived_node.control_by_player:
-		set_unit_state(UnitState.STATIONED)
+	var combat = combat_system.get_combat_at_node(node)
+	if not combat:
+		print("[Unit] %s starting combat at %s (player=%d, enemy=%d)" % [unit_name, node.location_name, player_units.size(), enemy_units.size()])
+		combat_system.start_combat(node, player_units, enemy_units)
 		return
 
-	set_unit_state(UnitState.ATTACKING)
-	if arrived_node.enemy_units.is_empty():
-		arrived_node.set_control(true)
-		set_unit_state(UnitState.STATIONED)
+	# Merge newly arrived units or refreshed enemy list into ongoing combat.
+	for player_unit in player_units:
+		if player_unit not in combat.player_units:
+			combat.player_units.append(player_unit)
+
+	for enemy_unit in enemy_units:
+		if enemy_unit not in combat.enemy_units:
+			combat.enemy_units.append(enemy_unit)
+
+	print("[Unit] %s joined existing combat at %s (combat player=%d, enemy=%d)" % [unit_name, node.location_name, combat.player_units.size(), combat.enemy_units.size()])
+
+func _capture_node_if_possible(node: VillageNode) -> void:
+	"""Capture node for player if at least one player unit survives there, then station units."""
+	if not node:
+		return
+	
+	if _get_alive_player_count(node) == 0:
+		return
+	
+	if game_map:
+		game_map.occupy_node(node, true)
+	else:
+		node.set_control(true)
+
+	print("[Unit] Node captured: %s (alive player units=%d)" % [node.location_name, _get_alive_player_count(node)])
+	
+	for player_unit in node.stationed_units:
+		if player_unit and player_unit.is_alive and player_unit.unit_state != UnitState.MOVING:
+			player_unit.set_unit_state(UnitState.STATIONED)
+
+func _get_alive_player_count(node: VillageNode) -> int:
+	var alive := 0
+	for player_unit in node.stationed_units:
+		if player_unit and player_unit.is_alive:
+			alive += 1
+	return alive
+
+func _get_alive_enemy_count(node: VillageNode) -> int:
+	var alive := 0
+	for enemy_unit in node.enemy_units:
+		if enemy_unit and enemy_unit.is_alive:
+			alive += 1
+	return alive
+
+func _get_combat_system() -> CombatSystem:
+	return get_tree().root.get_node_or_null("Main/Systems/CombatSystem") as CombatSystem
 
 func _create_movement_lock_overlay() -> void:
 	"""Create a semi-transparent overlay showing 'Moving' text (GDD 5.2.1)"""

@@ -4,6 +4,7 @@ class_name TurnManager
 var current_turn: int = 0
 var is_player_turn: bool = true  # 是否是玩家操作阶段
 var game_map: GameMap
+var combat_system: CombatSystem
 var turn_label: Label
 var next_turn_button: Button
 
@@ -17,6 +18,8 @@ signal auto_phase_ended      # 自动流程结束
 func _ready() -> void:
 	# 获取GameMap引用
 	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
+	combat_system = get_tree().root.get_node_or_null("Main/Systems/CombatSystem") as CombatSystem
+	print("[TurnManager] _ready: combat_system found = %s" % str(combat_system != null))
 	
 	# 获取UI元素
 	var main_node = get_tree().root.get_node("Main")
@@ -69,11 +72,34 @@ func end_player_phase() -> void:
 func execute_auto_phase() -> void:
 	"""执行自动流程（资源生产等）"""
 	auto_phase_started.emit()
+	print("[TurnManager] Auto phase start - Turn %d" % current_turn)
 	
 	# Progress all moving units (GDD 5.2.1)
-	for unit in get_tree().get_nodes_in_group("units"):
-		if unit is Unit and unit.unit_state == Unit.UnitState.MOVING:
-			unit.progress_movement()
+	# Use node stationed_units as source of truth so units spawned outside scene tree
+	# are still progressed correctly.
+	var processed_units: Array[Unit] = []
+	var moving_units_progressed := 0
+	for node in game_map.all_nodes:
+		if not (node is VillageNode):
+			continue
+		for unit in node.stationed_units:
+			if not (unit is Unit):
+				continue
+			if unit in processed_units:
+				continue
+			processed_units.append(unit)
+			if unit.unit_state == Unit.UnitState.MOVING:
+				moving_units_progressed += 1
+				unit.progress_movement()
+	print("[TurnManager] Moving units progressed this turn: %d" % moving_units_progressed)
+
+	# Resolve one combat round for all active combats in this turn.
+	if combat_system:
+		print("[TurnManager] Active combats before resolve: %d" % combat_system.active_combats.size())
+		combat_system.resolve_all_combats()
+		print("[TurnManager] Active combats after resolve: %d" % combat_system.active_combats.size())
+	else:
+		print("[TurnManager] WARNING: CombatSystem not found, combat resolution skipped")
 	
 	# 所有村庄消耗资源，然后生产资源
 	for node in game_map.all_nodes:
@@ -84,6 +110,7 @@ func execute_auto_phase() -> void:
 			node.produce_resources()
 	
 	auto_phase_ended.emit()
+	print("[TurnManager] Auto phase end - Turn %d" % current_turn)
 
 func update_ui() -> void:
 	"""更新UI显示"""

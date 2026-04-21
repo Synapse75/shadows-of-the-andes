@@ -80,12 +80,12 @@ func spawn_initial_garrison(village: VillageNode) -> void:
 	"""Spawn initial player units at Tinta"""
 	# Create 2 initial units: 1 Rebel Army, 1 Female Corps
 	var unit1 = RebelArmy.new()
-	unit1.current_node = village
-	village.add_unit(unit1)
+	village.add_child(unit1)
+	unit1.assign_to_node(village)
 	
 	var unit2 = FemaleCorps.new()
-	unit2.current_node = village
-	village.add_unit(unit2)
+	village.add_child(unit2)
+	unit2.assign_to_node(village)
 
 func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 	"""Spawn enemy units to garrison a village"""
@@ -99,6 +99,7 @@ func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 		var enemy = EnemyUnit.new()
 		enemy.unit_id = "enemy_%s_%d" % [village_id, i]
 		enemy.unit_name = "Spanish Guard %d" % (i + 1)
+		village.add_child(enemy)
 		enemy.assign_to_node(village)
 
 func _on_turn_started(turn_number: int) -> void:

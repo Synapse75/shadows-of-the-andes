@@ -16,7 +16,6 @@
 [ext_resource type="Script" uid="uid://c741yxjalgwl2" path="res://Scripts/UI/CameraArrowManager.gd" id="16_arrow_manager"]
 [ext_resource type="Shader" uid="uid://b8mh4p863qhec" path="res://Shaders/map_mask.gdshader" id="17_h1bgf"]
 [ext_resource type="Texture2D" uid="uid://dluq7oaabkgvc" path="res://Sprites/mapmask.png" id="18_b3802"]
-[ext_resource type="Script" uid="uid://b2ag6ny37pq8" path="res://Scripts/Systems/CombatSystem.gd" id="19_combat_system"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 [ext_resource type="Texture2D" uid="uid://jh56ljp3v4x4" path="res://Sprites/recruit_hovered.png" id="recruit_hovered"]
 [ext_resource type="Texture2D" uid="uid://cgltod35f1ufo" path="res://Sprites/recruit.png" id="recruit_normal"]
@@ -251,9 +250,6 @@ script = ExtResource("4_turn")
 
 [node name="UnitManager" type="Node" parent="Systems" unique_id=1518842294]
 script = ExtResource("7_unit_manager")
-
-[node name="CombatSystem" type="Node" parent="Systems" unique_id=1518842295]
-script = ExtResource("19_combat_system")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1395615210]
 material = SubResource("ShaderMaterial_b3802")
