@@ -59,6 +59,11 @@ var enemy_panel_bg: String = "res://Sprites/enemypanel.png"
 var _node_signal_connect_retries: int = 0
 
 func _ready() -> void:
+	# 初始化提示框系统
+	print("[UIManager] _ready() started")
+	await _initialize_tooltip_system()
+	print("[UIManager] _ready() - tooltip system initialized, _instance = %s" % TooltipManager._instance)
+	
 	info_panel = get_node("../../UILayer/InfoPanel")
 	var old_label = get_node("../../UILayer/InfoPanel/Label")
 	
@@ -164,7 +169,8 @@ func _on_observed_node_changed(_changed_data = null, node: VillageNode = null) -
 		return
 
 	if locked_node == node and info_panel.visible:
-		show_node_info(node)
+		# Use call_deferred to avoid multiple updates in the same frame
+		call_deferred("show_node_info", node)
 
 func show_node_info(node: VillageNode) -> void:
 	"""Display node information in bottom-left and show resources/units in left panel"""
@@ -374,6 +380,25 @@ func _create_unit_panel_row(unit: Unit) -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if not unit_ref.is_locked:  # Only allow drag if not locked
 				_on_unit_panel_pressed(unit_ref, panel_ref)
+	)
+	
+	# Add tooltip on mouse hover
+	print("[UIManager] Connecting mouse_entered signal for unit: %s" % unit_ref.unit_name)
+	bg_panel.mouse_entered.connect(func():
+		print("[MOUSE_ENTERED_FIRED] %s - _instance=%s" % [unit_ref.unit_name, TooltipManager._instance])
+		if TooltipManager._instance == null:
+			print("[UIManager] WARNING: mouse_entered but TooltipManager._instance is null!")
+			return
+		print("[UIManager] mouse_entered for: %s" % unit_ref.unit_name)
+		_show_unit_tooltip(unit_ref)
+	)
+	bg_panel.mouse_exited.connect(func():
+		print("[MOUSE_EXITED_FIRED]")
+		if TooltipManager._instance == null:
+			print("[UIManager] WARNING: mouse_exited but TooltipManager._instance is null!")
+			return
+		print("[UIManager] mouse_exited")
+		TooltipManager.hide()
 	)
 	
 	# Inner container for content (positioned at 4,4 inside the panel)
@@ -698,6 +723,66 @@ func _complete_drag() -> void:
 	valid_drop_targets.clear()
 	unit_panel_container = null
 	original_icon = null
+
+# ============ Unit Tooltip Handler ============
+
+func _show_unit_tooltip(unit: Unit) -> void:
+	"""Display tooltip with unit stats"""
+	print("[_show_unit_tooltip] START for unit: %s" % unit.unit_name)
+	print("[_show_unit_tooltip] TooltipManager._instance = %s" % TooltipManager._instance)
+	var tooltip_text = "%s\n" % unit.unit_name
+	tooltip_text += "\n"
+	tooltip_text += "Health: %d/%d\n" % [unit.current_health, unit.max_health]
+	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
+	tooltip_text += "Attack: %d\n" % unit.attack_power
+	tooltip_text += "Speed: %.1f×" % unit.movement_speed_multiplier
+	
+	print("[_show_unit_tooltip] Text prepared: %s" % tooltip_text.split("\n")[0])
+	print("[_show_unit_tooltip] Calling TooltipManager.show_text")
+	TooltipManager.show_text(tooltip_text, 0.1)
+	print("[_show_unit_tooltip] show_text called")
+
+# ============ Tooltip System Initialization ============
+
+func _initialize_tooltip_system() -> void:
+	"""Initialize tooltip system"""
+	# Check if already initialized
+	if TooltipManager._instance != null:
+		print("[_initialize_tooltip_system] TooltipManager already initialized, _instance = %s" % TooltipManager._instance)
+		return
+	
+	print("[_initialize_tooltip_system] started")
+	var tooltip_manager = TooltipManager.new()
+	print("[_initialize_tooltip_system] TooltipManager created: %s" % tooltip_manager)
+	print("[_initialize_tooltip_system] Manually setting _instance before add_child")
+	TooltipManager._instance = tooltip_manager
+	print("[_initialize_tooltip_system] TooltipManager._instance set to: %s" % TooltipManager._instance)
+	
+	# Now initialize the node
+	print("[_initialize_tooltip_system] Calling _enter_tree manually")
+	tooltip_manager._enter_tree()
+	print("[_initialize_tooltip_system] After _enter_tree, _instance = %s" % TooltipManager._instance)
+	
+	print("[_initialize_tooltip_system] Adding to tree")
+	get_tree().root.add_child(tooltip_manager)
+	print("[_initialize_tooltip_system] TooltipManager added to tree")
+	
+	# Wait for next frame
+	await get_tree().process_frame
+	print("[_initialize_tooltip_system] After first await")
+	
+	# Call _ready if not already called
+	if not tooltip_manager.is_node_ready():
+		print("[_initialize_tooltip_system] Calling _ready")
+		tooltip_manager._ready()
+		print("[_initialize_tooltip_system] _ready called")
+	
+	print("[_initialize_tooltip_system] Final check: _instance = %s" % TooltipManager._instance)
+	
+	if TooltipManager._instance == null:
+		push_error("TooltipManager._instance is still null after initialization!")
+	else:
+		print("[_initialize_tooltip_system] SUCCESS: TooltipManager initialized!")
 
 func _get_drop_target_from_hover() -> VillageNode:
 	"""Return current drag target using GameMap hover state (same source as shader highlight)."""

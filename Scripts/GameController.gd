@@ -124,13 +124,15 @@ func _on_auto_phase_ended() -> void:
 	check_victory_condition()
 
 func check_victory_condition() -> bool:
-	"""检查胜利条件"""
-	# 检查是否占领了Cusco（目标城市）
-	var cusco = game_map._get_node_by_id("cusco")
-	if cusco and cusco.control_by_player:
-		emit_signal("game_over", "player")
-		return true
-	return false
+	"""检查胜利条件 - 占领所有节点"""
+	# 检查是否占领了所有村庄
+	for node in game_map.all_nodes:
+		if not node.control_by_player:
+			return false  # 还有未占领的村庄
+	
+	# 所有村庄都被占领 - 玩家胜利
+	emit_signal("game_over", "player")
+	return true
 
 # 镜头切换方法 - 供UI按钮调用
 func camera_next() -> void:
