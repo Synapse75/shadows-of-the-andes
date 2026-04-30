@@ -728,19 +728,13 @@ func _complete_drag() -> void:
 
 func _show_unit_tooltip(unit: Unit) -> void:
 	"""Display tooltip with unit stats"""
-	print("[_show_unit_tooltip] START for unit: %s" % unit.unit_name)
-	print("[_show_unit_tooltip] TooltipManager._instance = %s" % TooltipManager._instance)
 	var tooltip_text = "%s\n" % unit.unit_name
 	tooltip_text += "\n"
 	tooltip_text += "Health: %d/%d\n" % [unit.current_health, unit.max_health]
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
 	tooltip_text += "Attack: %d\n" % unit.attack_power
 	tooltip_text += "Speed: %.1f×" % unit.movement_speed_multiplier
-	
-	print("[_show_unit_tooltip] Text prepared: %s" % tooltip_text.split("\n")[0])
-	print("[_show_unit_tooltip] Calling TooltipManager.show_text")
 	TooltipManager.show_text(tooltip_text, 0.1)
-	print("[_show_unit_tooltip] show_text called")
 
 # ============ Tooltip System Initialization ============
 

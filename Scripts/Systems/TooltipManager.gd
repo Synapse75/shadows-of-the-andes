@@ -15,8 +15,23 @@ func _ready() -> void:
 	print("[TooltipManager._ready] called, _instance = %s" % _instance)
 	# Create tooltip panel
 	tooltip_panel = TooltipPanel.new()
-	add_child(tooltip_panel)
-	print("[TooltipManager._ready] tooltip_panel created")
+	# caveman: 延迟挂载 tooltip_panel，确保 get_tree() 可用
+	call_deferred("_add_tooltip_panel_to_ui")
+
+func _add_tooltip_panel_to_ui():
+	var tree = get_tree()
+	var ui_layer = null
+	if tree == null or tree.root == null:
+		add_child(tooltip_panel)
+		return
+	if tree.root.has_node("UILayer"):
+		ui_layer = tree.root.get_node("UILayer")
+		ui_layer.add_child(tooltip_panel)
+	elif tree.root.has_node("Main/UILayer"):
+		ui_layer = tree.root.get_node("Main/UILayer")
+		ui_layer.add_child(tooltip_panel)
+	else:
+		add_child(tooltip_panel)
 	
 	# Create registry instance
 	tooltip_registry = TooltipRegistry.new()
@@ -71,7 +86,7 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 	add_child(current_timer)
 	current_timer.wait_time = delay
 	current_timer.one_shot = true
-	print("[request_tooltip_with_text] Timer created, wait_time = %.1f" % wait_time)
+	print("[request_tooltip_with_text] Timer created, wait_time = %.1f" % delay)
 	current_timer.timeout.connect(func():
 		print("[request_tooltip_with_text] Timer timeout! Calling tooltip_panel.show_tooltip")
 		tooltip_panel.show_tooltip(text)

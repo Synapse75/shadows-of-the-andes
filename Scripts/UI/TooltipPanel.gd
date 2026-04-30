@@ -63,33 +63,45 @@ func show_tooltip(text: String, position_override: Vector2 = Vector2.ZERO) -> vo
 		text: 提示框中显示的文字
 		position_override: 位置覆盖，如果为 Vector2.ZERO 则跟随鼠标
 	"""
+	print("[TooltipPanel.show_tooltip] called")
+	print("[TooltipPanel.show_tooltip] self = %s" % self)
+	print("[TooltipPanel.show_tooltip] label = %s" % label)
 	if tween:
 		tween.kill()
+	print("[TooltipPanel.show_tooltip] tween killed")
 	
 	label.text = text
+	print("[TooltipPanel.show_tooltip] Text set to label")
 	
 	# 等待下一帧让标签尺寸更新
 	await get_tree().process_frame
+	print("[TooltipPanel.show_tooltip] after process_frame, label.size=%s, self.size=%s" % [label.size, size])
 	
 	# 设置初始位置
 	is_visible_tooltip = true
 	_update_position_to_mouse()
+	print("[TooltipPanel.show_tooltip] Position updated, calling show()")
 	show()
+	print("[TooltipPanel.show_tooltip] After show(), visible = %s" % visible)
 	
 	# 渐入效果
 	tween = create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION)
+	print("[TooltipPanel.show_tooltip] Tween started")
 
 func _update_position_to_mouse() -> void:
 	"""
 	更新位置到鼠标位置
 	鼠标点击点（光标）和信息框的左下角重合
 	"""
+	print("[_update_position_to_mouse] called")
 	if not visible:
+		print("[_update_position_to_mouse] WARNING: not visible!")
 		return
 	
 	var mouse_pos = get_global_mouse_position()
 	var panel_size = size
+	print("[_update_position_to_mouse] mouse_pos = %s, panel_size = %s" % [mouse_pos, panel_size])
 	
 	# 信息框的左下角与鼠标位置重合
 	# 即：信息框左上角 = 鼠标位置 - (0, panel_height)
@@ -97,6 +109,7 @@ func _update_position_to_mouse() -> void:
 	
 	# 边界检查 - 确保不超出屏幕
 	var screen_size = get_viewport_rect().size
+	print("[_update_position_to_mouse] screen_size = %s" % screen_size)
 	
 	# 右边界检查
 	if final_position.x + panel_size.x > screen_size.x:
@@ -115,6 +128,7 @@ func _update_position_to_mouse() -> void:
 		final_position.y = screen_size.y - panel_size.y - PANEL_MARGIN
 	
 	global_position = final_position
+	print("[_update_position_to_mouse] Final position: %s" % global_position)
 
 func hide_tooltip() -> void:
 	"""隐藏提示框（带渐出效果）"""
