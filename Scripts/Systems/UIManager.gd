@@ -20,6 +20,13 @@ var dragging_icon: TextureRect = null  # Icon following mouse during drag
 var original_icon: TextureRect = null  # Original icon in panel
 var unit_panel_container: Control = null  # Reference to panel with original icon
 
+# Resource drag-and-drop system
+var dragging_resource: String = ""
+var dragging_resource_amount: int = 0
+var dragging_resource_icon: TextureRect = null
+var dragging_resource_panel: Panel = null
+var original_resource_icon: TextureRect = null
+
 # InfoPanel 资源图标显示
 var altitude_texture_rect: TextureRect
 var resource1_texture_rect: TextureRect
@@ -59,10 +66,7 @@ var enemy_panel_bg: String = "res://Sprites/enemypanel.png"
 var _node_signal_connect_retries: int = 0
 
 func _ready() -> void:
-	# 初始化提示框系统
-	print("[UIManager] _ready() started")
 	await _initialize_tooltip_system()
-	print("[UIManager] _ready() - tooltip system initialized, _instance = %s" % TooltipManager._instance)
 	
 	info_panel = get_node("../../UILayer/InfoPanel")
 	var old_label = get_node("../../UILayer/InfoPanel/Label")
@@ -318,36 +322,67 @@ func _create_resource_panel_row(resource_type: String, amount: int) -> void:
 		stylebox.texture = ResourceLoader.load(resource_panel_bg)
 	bg_panel.add_theme_stylebox_override("panel", stylebox)
 	
-	# Inner container for content (positioned at 4,4 inside the panel)
-	var inner_hbox = HBoxContainer.new()
-	inner_hbox.add_theme_constant_override("separation", 4)
-	inner_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
-	# Position the inner container at (4,4)
-	inner_hbox.offset_left = 4
-	inner_hbox.offset_top = 4
-	inner_hbox.offset_right = 4
-	inner_hbox.offset_bottom = 4
-	inner_hbox.custom_minimum_size = Vector2(132, 32)
-	
-	# Resource icon (32x32)
+	# Resource icon (32x32, fixed position)
 	var icon_texture = TextureRect.new()
 	var icon_path = resource_icons.get(resource_type, "")
 	if icon_path and ResourceLoader.exists(icon_path):
 		icon_texture.texture = ResourceLoader.load(icon_path)
-	icon_texture.custom_minimum_size = Vector2(32, 32)
+	icon_texture.offset_left = 4.0
+	icon_texture.offset_top = 4.0
+	icon_texture.offset_right = 36.0
+	icon_texture.offset_bottom = 36.0
 	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Amount label
-	var amount_label = Label.new()
-	amount_label.text = "×" + str(amount)
+	# Resource name label (fixed position)
+	var name_label = Label.new()
+	name_label.text = resource_type.capitalize()
+	name_label.offset_left = 40.0
+	name_label.offset_top = 12.0
+	name_label.offset_right = 70.0
+	name_label.offset_bottom = 28.0
 	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
+	name_label.add_theme_font_override("font", clear_font)
+	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# Amount label (fixed position)
+	var amount_label = Label.new()
+	amount_label.text = "x" + str(amount)
+	amount_label.offset_left = 120.0
+	amount_label.offset_top = 12.0
+	amount_label.offset_right = 138.0
+	amount_label.offset_bottom = 28.0
 	amount_label.add_theme_font_override("font", clear_font)
 	amount_label.add_theme_font_size_override("font_size", 16)
+	amount_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	inner_hbox.add_child(icon_texture)
-	inner_hbox.add_child(amount_label)
-	bg_panel.add_child(inner_hbox)
+	# Add tooltip on mouse hover
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	bg_panel.mouse_entered.connect(func():
+		_show_resource_tooltip(resource_type)
+	)
+	bg_panel.mouse_exited.connect(func():
+		TooltipManager.hide()
+	)
 	
+	# Store metadata for drag operations
+	bg_panel.set_meta("resource_type", resource_type)
+	bg_panel.set_meta("resource_amount", amount)
+	bg_panel.set_meta("icon_ref", icon_texture)
+	
+	# Add drag listener
+	var res_type = resource_type
+	var res_amount = amount
+	var panel_ref = bg_panel
+	bg_panel.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_on_resource_panel_pressed(res_type, res_amount, panel_ref)
+	)
+	
+	bg_panel.add_child(icon_texture)
+	bg_panel.add_child(name_label)
+	bg_panel.add_child(amount_label)
 	resources_vbox.add_child(bg_panel)
 
 func _create_unit_panel_row(unit: Unit) -> void:
@@ -383,88 +418,57 @@ func _create_unit_panel_row(unit: Unit) -> void:
 	)
 	
 	# Add tooltip on mouse hover
-	print("[UIManager] Connecting mouse_entered signal for unit: %s" % unit_ref.unit_name)
 	bg_panel.mouse_entered.connect(func():
-		print("[MOUSE_ENTERED_FIRED] %s - _instance=%s" % [unit_ref.unit_name, TooltipManager._instance])
-		if TooltipManager._instance == null:
-			print("[UIManager] WARNING: mouse_entered but TooltipManager._instance is null!")
-			return
-		print("[UIManager] mouse_entered for: %s" % unit_ref.unit_name)
 		_show_unit_tooltip(unit_ref)
 	)
 	bg_panel.mouse_exited.connect(func():
-		print("[MOUSE_EXITED_FIRED]")
-		if TooltipManager._instance == null:
-			print("[UIManager] WARNING: mouse_exited but TooltipManager._instance is null!")
-			return
-		print("[UIManager] mouse_exited")
 		TooltipManager.hide()
 	)
 	
-	# Inner container for content (positioned at 4,4 inside the panel)
-	var inner_hbox = HBoxContainer.new()
-	inner_hbox.add_theme_constant_override("separation", 4)
-	inner_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
-	inner_hbox.offset_left = 4
-	inner_hbox.offset_top = 4
-	inner_hbox.offset_right = 4
-	inner_hbox.offset_bottom = 4
-	inner_hbox.custom_minimum_size = Vector2(132, 32)
-	
-	# Unit icon
+	# Unit icon (32x32, fixed position)
 	var icon_texture = TextureRect.new()
 	icon_texture.texture = ResourceLoader.load(icon_path)
-	icon_texture.custom_minimum_size = Vector2(32, 32)
+	icon_texture.offset_left = 4.0
+	icon_texture.offset_top = 4.0
+	icon_texture.offset_right = 36.0
+	icon_texture.offset_bottom = 36.0
 	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Store icon reference for drag operations
 	bg_panel.set_meta("icon_ref", icon_texture)
 	
-	# Unit name label or "Moving" indicator if locked
+	# Unit name label (fixed position)
 	var name_label = Label.new()
+	name_label.offset_left = 40.0
+	name_label.offset_top = 12.0
+	name_label.offset_right = 138.0
+	name_label.offset_bottom = 28.0
 	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
 	name_label.add_theme_font_override("font", clear_font)
 	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	if unit.is_locked and unit.unit_state == Unit.UnitState.MOVING:
-		# Create "Moving" indicator with semi-transparent black background
-		# Hide the original icon when moving
+		# Hide icon, show "Moving" overlay
 		icon_texture.visible = false
+		name_label.text = "Moving"
+		name_label.add_theme_color_override("font_color", Color.WHITE)
 		
-		# Create a container for the moving state
-		var moving_container = Control.new()
-		moving_container.custom_minimum_size = Vector2(132, 32)
-		
-		# Semi-transparent black background
-		var moving_overlay = ColorRect.new()
-		moving_overlay.color = Color(0, 0, 0, 0.5)
-		moving_overlay.anchor_left = 0
-		moving_overlay.anchor_top = 0
-		moving_overlay.anchor_right = 1
-		moving_overlay.anchor_bottom = 1
-		
-		# "Moving" label centered on top of background
-		var moving_label = Label.new()
-		moving_label.text = "Moving"
-		moving_label.add_theme_font_override("font", clear_font)
-		moving_label.add_theme_font_size_override("font_size", 16)
-		moving_label.add_theme_color_override("font_color", Color.WHITE)
-		moving_label.anchor_left = 0
-		moving_label.anchor_top = 0
-		moving_label.anchor_right = 1
-		moving_label.anchor_bottom = 1
-		moving_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		moving_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		
-		moving_container.add_child(moving_overlay)
-		moving_container.add_child(moving_label)
-		inner_hbox.add_child(moving_container)
+		# Add semi-transparent background
+		var overlay = ColorRect.new()
+		overlay.color = Color(0, 0, 0, 0.5)
+		overlay.anchor_left = 0
+		overlay.anchor_top = 0
+		overlay.anchor_right = 1
+		overlay.anchor_bottom = 1
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bg_panel.add_child(overlay)
 	else:
 		name_label.text = unit.unit_name
-		inner_hbox.add_child(icon_texture)
-		inner_hbox.add_child(name_label)
 	
-	bg_panel.add_child(inner_hbox)
+	bg_panel.add_child(icon_texture)
+	bg_panel.add_child(name_label)
 	resources_vbox.add_child(bg_panel)
 
 func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
@@ -484,33 +488,40 @@ func _create_enemy_unit_panel_row(enemy_unit: EnemyUnit) -> void:
 		stylebox.texture = ResourceLoader.load(enemy_panel_bg)
 	bg_panel.add_theme_stylebox_override("panel", stylebox)
 	
-	# Inner container for content (positioned at 4,4 inside the panel)
-	var inner_hbox = HBoxContainer.new()
-	inner_hbox.add_theme_constant_override("separation", 4)
-	inner_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
-	inner_hbox.offset_left = 4
-	inner_hbox.offset_top = 4
-	inner_hbox.offset_right = 4
-	inner_hbox.offset_bottom = 4
-	inner_hbox.custom_minimum_size = Vector2(132, 32)
-	
-	# Enemy unit icon
+	# Enemy unit icon (32x32, fixed position)
 	var icon_texture = TextureRect.new()
 	icon_texture.texture = ResourceLoader.load(icon_path)
-	icon_texture.custom_minimum_size = Vector2(32, 32)
+	icon_texture.offset_left = 4.0
+	icon_texture.offset_top = 4.0
+	icon_texture.offset_right = 36.0
+	icon_texture.offset_bottom = 36.0
 	icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Enemy unit name label
+	# Enemy unit name label (fixed position)
 	var name_label = Label.new()
 	name_label.text = enemy_unit.unit_name
+	name_label.offset_left = 40.0
+	name_label.offset_top = 12.0
+	name_label.offset_right = 138.0
+	name_label.offset_bottom = 28.0
 	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
 	name_label.add_theme_font_override("font", clear_font)
 	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	inner_hbox.add_child(icon_texture)
-	inner_hbox.add_child(name_label)
-	bg_panel.add_child(inner_hbox)
+	# Add tooltip on mouse hover
+	var enemy_unit_ref = enemy_unit
+	bg_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	bg_panel.mouse_entered.connect(func():
+		_show_enemy_tooltip(enemy_unit_ref)
+	)
+	bg_panel.mouse_exited.connect(func():
+		TooltipManager.hide()
+	)
 	
+	bg_panel.add_child(icon_texture)
+	bg_panel.add_child(name_label)
 	resources_vbox.add_child(bg_panel)
 
 func _on_recruit_button_pressed() -> void:
@@ -635,13 +646,16 @@ func _on_unit_panel_pressed(unit: Unit, panel: Panel) -> void:
 	print("Started dragging unit %s from %s. Valid targets: %d" % [unit.unit_name, unit.current_node.location_name, valid_drop_targets.size()])
 
 func _process(_delta: float) -> void:
-	"""Process drag operations"""
-	if not is_dragging or not dragging_unit:
+	"""Process drag operations (unit or resource)"""
+	if not is_dragging:
 		return
 	
 	# Check if mouse button is still held
 	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		_complete_drag()
+		if dragging_resource != "":
+			_complete_resource_drag()
+		elif dragging_unit:
+			_complete_drag()
 		return
 	
 	# Check distance from start position to initiate visual feedback
@@ -649,7 +663,10 @@ func _process(_delta: float) -> void:
 	var distance = drag_start_position.distance_to(current_pos)
 	
 	if distance > 5:  # Minimum drag distance to show feedback
-		_update_drag_visualization()
+		if dragging_resource != "":
+			_update_resource_dragging_icon_position()
+		elif dragging_unit:
+			_update_drag_visualization()
 
 func _update_drag_visualization() -> void:
 	"""Update visual feedback during drag"""
@@ -724,6 +741,107 @@ func _complete_drag() -> void:
 	unit_panel_container = null
 	original_icon = null
 
+# ============ Resource Drag-and-Drop ============
+
+func _on_resource_panel_pressed(resource_type: String, amount: int, panel: Panel) -> void:
+	"""Initiate resource drag"""
+	if not locked_node or amount <= 0:
+		return
+	
+	dragging_resource = resource_type
+	dragging_resource_amount = amount
+	dragging_resource_panel = panel
+	drag_start_position = get_viewport().get_mouse_position()
+	is_dragging = true
+	
+	# Get icon and hide original
+	original_resource_icon = panel.get_meta("icon_ref") if panel.has_meta("icon_ref") else null
+	if original_resource_icon:
+		original_resource_icon.visible = false
+	
+	# Create dragging icon
+	if original_resource_icon and original_resource_icon.texture:
+		dragging_resource_icon = TextureRect.new()
+		dragging_resource_icon.texture = original_resource_icon.texture
+		dragging_resource_icon.custom_minimum_size = Vector2(32, 32)
+		dragging_resource_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		dragging_resource_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dragging_resource_icon.z_index = 1000
+		dragging_resource_icon.modulate = Color(1, 1, 1, 0.5)
+		
+		var ui_layer = get_node("../../UILayer")
+		ui_layer.add_child(dragging_resource_icon)
+		_update_resource_dragging_icon_position()
+
+func _update_resource_dragging_icon_position() -> void:
+	"""Update resource dragging icon to follow mouse"""
+	if not dragging_resource_icon:
+		return
+	
+	var mouse_pos = get_viewport().get_mouse_position()
+	var icon_size = dragging_resource_icon.custom_minimum_size
+	if icon_size == Vector2.ZERO:
+		icon_size = Vector2(32, 32)
+	dragging_resource_icon.global_position = mouse_pos - icon_size / 2
+
+func _complete_resource_drag() -> void:
+	"""Complete resource drag - transfer or revert"""
+	if dragging_resource == "":
+		is_dragging = false
+		return
+	
+	var transfer_success = false
+	
+	# Check if dropping on unit panel in same node
+	var mouse_pos = get_viewport().get_mouse_position()
+	var ui_layer = get_node("../../UILayer")
+	var unit_panels = ui_layer.find_children("*", "Panel", false, false)
+	
+	# Find all unit panels in resources_vbox
+	var all_panels = resources_vbox.get_children()
+	var unit_rows: Array[Panel] = []
+	
+	for child in all_panels:
+		if child is Panel and child.has_meta("unit_ref"):
+			unit_rows.append(child)
+	
+	# Check if mouse is over any unit panel
+	for unit_panel in unit_rows:
+		var panel_rect = unit_panel.get_global_rect()
+		if panel_rect.has_point(mouse_pos):
+			# Try to transfer resource to unit
+			var unit = unit_panel.get_meta("unit_ref") as Unit
+			if unit and unit.current_node == locked_node:
+				if unit.add_to_inventory(dragging_resource, 1) > 0:
+					# Transfer successful
+					locked_node.resources[dragging_resource] -= 1
+					transfer_success = true
+					break
+	
+	# Restore or remove icon
+	if original_resource_icon:
+		original_resource_icon.visible = true
+	
+	# Clean up dragging icon
+	if dragging_resource_icon:
+		dragging_resource_icon.queue_free()
+		dragging_resource_icon = null
+	
+	# Refresh UI
+	if transfer_success or dragging_resource_amount <= 1:
+		# Resource gone - remove panel
+		refresh_displayed_node_info()
+	else:
+		# Refresh to update amount
+		refresh_displayed_node_info()
+	
+	# Clean up drag state
+	dragging_resource = ""
+	dragging_resource_amount = 0
+	dragging_resource_panel = null
+	original_resource_icon = null
+	is_dragging = false
+
 # ============ Unit Tooltip Handler ============
 
 func _show_unit_tooltip(unit: Unit) -> void:
@@ -733,50 +851,50 @@ func _show_unit_tooltip(unit: Unit) -> void:
 	tooltip_text += "Health: %d/%d\n" % [unit.current_health, unit.max_health]
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
 	tooltip_text += "Attack: %d\n" % unit.attack_power
-	tooltip_text += "Speed: %.1f×" % unit.movement_speed_multiplier
+	tooltip_text += "Speed: %.1fx" % unit.movement_speed_multiplier
+	TooltipManager.show_text(tooltip_text, 0.1)
+
+func _show_resource_tooltip(resource_type: String) -> void:
+	"""Display tooltip with resource description"""
+	var resource_descriptions = {
+		"population": "Population - Recruit units\nwith 25 population per unit",
+		"potato": "Potato\nRestore satiety: +50",
+		"llama": "Llama\nTransport speed: x2.0",
+		"corn": "Corn\nRestore satiety: +30\nCombat power: x1.2",
+		"quinoa": "Quinoa\nRestore satiety: +20\nHeal: +20\nMove speed: x1.2 (3 turns)",
+		"coca": "Coca\nHeal unit: +50"
+	}
+	var description = resource_descriptions.get(resource_type, resource_type)
+	TooltipManager.show_text(description, 0.1)
+
+func _show_enemy_tooltip(enemy_unit: EnemyUnit) -> void:
+	"""Display tooltip with enemy unit stats"""
+	var tooltip_text = "%s\n" % enemy_unit.unit_name
+	tooltip_text += "\n"
+	tooltip_text += "Health: %d/%d\n" % [enemy_unit.current_health, enemy_unit.max_health]
+	tooltip_text += "Attack: %d" % enemy_unit.attack_power
 	TooltipManager.show_text(tooltip_text, 0.1)
 
 # ============ Tooltip System Initialization ============
 
 func _initialize_tooltip_system() -> void:
 	"""Initialize tooltip system"""
-	# Check if already initialized
 	if TooltipManager._instance != null:
-		print("[_initialize_tooltip_system] TooltipManager already initialized, _instance = %s" % TooltipManager._instance)
 		return
 	
-	print("[_initialize_tooltip_system] started")
-	var tooltip_manager = TooltipManager.new()
-	print("[_initialize_tooltip_system] TooltipManager created: %s" % tooltip_manager)
-	print("[_initialize_tooltip_system] Manually setting _instance before add_child")
+	# Get TooltipManager from scene
+	var tooltip_manager = get_tree().root.get_node_or_null("Main/TooltipManager")
+	if not tooltip_manager:
+		push_error("TooltipManager not found in scene!")
+		return
+	
 	TooltipManager._instance = tooltip_manager
-	print("[_initialize_tooltip_system] TooltipManager._instance set to: %s" % TooltipManager._instance)
-	
-	# Now initialize the node
-	print("[_initialize_tooltip_system] Calling _enter_tree manually")
 	tooltip_manager._enter_tree()
-	print("[_initialize_tooltip_system] After _enter_tree, _instance = %s" % TooltipManager._instance)
 	
-	print("[_initialize_tooltip_system] Adding to tree")
-	get_tree().root.add_child(tooltip_manager)
-	print("[_initialize_tooltip_system] TooltipManager added to tree")
-	
-	# Wait for next frame
 	await get_tree().process_frame
-	print("[_initialize_tooltip_system] After first await")
 	
-	# Call _ready if not already called
 	if not tooltip_manager.is_node_ready():
-		print("[_initialize_tooltip_system] Calling _ready")
 		tooltip_manager._ready()
-		print("[_initialize_tooltip_system] _ready called")
-	
-	print("[_initialize_tooltip_system] Final check: _instance = %s" % TooltipManager._instance)
-	
-	if TooltipManager._instance == null:
-		push_error("TooltipManager._instance is still null after initialization!")
-	else:
-		print("[_initialize_tooltip_system] SUCCESS: TooltipManager initialized!")
 
 func _get_drop_target_from_hover() -> VillageNode:
 	"""Return current drag target using GameMap hover state (same source as shader highlight)."""

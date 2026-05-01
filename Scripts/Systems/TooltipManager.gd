@@ -10,32 +10,17 @@ var tooltip_panel: TooltipPanel
 var tooltip_registry  # TooltipRegistry - type hint removed to avoid parser errors
 var current_timer: Timer
 var last_element_id: String = ""  # Track last hovered element
+var cached_tree  # Cache tree ref since get_tree() may return null during manual init
 
 func _ready() -> void:
-	print("[TooltipManager._ready] called, _instance = %s" % _instance)
-	# Create tooltip panel
-	tooltip_panel = TooltipPanel.new()
-	# caveman: 延迟挂载 tooltip_panel，确保 get_tree() 可用
-	call_deferred("_add_tooltip_panel_to_ui")
-
-func _add_tooltip_panel_to_ui():
-	var tree = get_tree()
-	var ui_layer = null
-	if tree == null or tree.root == null:
-		add_child(tooltip_panel)
+	# Get TooltipPanel from scene (added to UILayer in main.tscn)
+	tooltip_panel = get_tree().root.get_node_or_null("Main/UILayer/TooltipPanel")
+	if not tooltip_panel:
+		push_error("TooltipPanel not found in scene!")
 		return
-	if tree.root.has_node("UILayer"):
-		ui_layer = tree.root.get_node("UILayer")
-		ui_layer.add_child(tooltip_panel)
-	elif tree.root.has_node("Main/UILayer"):
-		ui_layer = tree.root.get_node("Main/UILayer")
-		ui_layer.add_child(tooltip_panel)
-	else:
-		add_child(tooltip_panel)
 	
-	# Create registry instance
 	tooltip_registry = TooltipRegistry.new()
-	print("[TooltipManager._ready] tooltip_registry created, _instance = %s" % _instance)
+	cached_tree = get_tree()
 
 func request_tooltip(category: String, element_name: String, delay: float = 0.3) -> void:
 	"""
@@ -53,29 +38,31 @@ func request_tooltip(category: String, element_name: String, delay: float = 0.3)
 	
 	last_element_id = element_id
 	
-	# 清除之前的计时器
+	# Clear previous timer
 	if current_timer:
 		current_timer.queue_free()
 	
 	current_timer = Timer.new()
-	add_child(current_timer)
 	current_timer.wait_time = delay
 	current_timer.one_shot = true
 	current_timer.timeout.connect(func():
 		var text = tooltip_registry.get_tooltip(category, element_name)
 		tooltip_panel.show_tooltip(text)
 	)
-	current_timer.start()
+	# Defer add_child so Timer is in tree when start() called
+	call_deferred("add_child", current_timer)
+	call_deferred("_start_current_timer")
+
+func _start_current_timer():
+	"""Start timer after deferred add_child ensures it's in tree"""
+	if current_timer and not current_timer.is_stopped():
+		return
+	if current_timer:
+		print("[_start_current_timer] is_inside_tree=%s" % current_timer.is_inside_tree())
+		current_timer.start()
+
 
 func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
-	"""
-	Display tooltip with custom text (bypassing registry)
-	Args:
-		text: Tooltip text
-		delay: Display delay in seconds
-	"""
-	print("[request_tooltip_with_text] called with delay=%.1f" % delay)
-	print("[request_tooltip_with_text] tooltip_panel = %s" % tooltip_panel)
 	last_element_id = ""
 	
 	# Clear previous timer
@@ -83,16 +70,20 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 		current_timer.queue_free()
 	
 	current_timer = Timer.new()
-	add_child(current_timer)
 	current_timer.wait_time = delay
 	current_timer.one_shot = true
-	print("[request_tooltip_with_text] Timer created, wait_time = %.1f" % delay)
 	current_timer.timeout.connect(func():
-		print("[request_tooltip_with_text] Timer timeout! Calling tooltip_panel.show_tooltip")
-		tooltip_panel.show_tooltip(text)
+		print("[Timer.timeout] FIRED!")
+		if tooltip_panel:
+			tooltip_panel.show_tooltip(text)
 	)
+	# Add Timer to root directly, not to self
+	if cached_tree and cached_tree.root:
+		cached_tree.root.add_child(current_timer)
+	else:
+		add_child(current_timer)
 	current_timer.start()
-	print("[request_tooltip_with_text] Timer started")
+	print("[request_tooltip_with_text] Timer started, is_inside_tree=%s" % current_timer.is_inside_tree())
 
 func hide_tooltip() -> void:
 	"""Hide tooltip"""
@@ -117,13 +108,8 @@ func hide_tooltip_immediately() -> void:
 static var _instance: TooltipManager
 
 func _enter_tree() -> void:
-	print("[TooltipManager._enter_tree] called")
-	# This is now called manually from UIManager, so just verify
 	if _instance == null:
-		print("[TooltipManager._enter_tree] WARNING: _instance is null, this means UIManager didn't set it")
-	else:
-		print("[TooltipManager._enter_tree] OK: _instance is already set")
-		# Ensure singleton survives scene changes
+		_instance = self
 		set_meta("singleton", true)
 
 static func get_instance() -> TooltipManager:
@@ -142,10 +128,7 @@ static func show(category: String, element_name: String, delay: float = 0.3) -> 
 
 static func show_text(text: String, delay: float = 0.3) -> void:
 	"""Quickly display custom text tooltip"""
-	print("[TooltipManager.show_text STATIC] called with delay=%.1f" % delay)
-	print("[TooltipManager.show_text STATIC] _instance = %s" % _instance)
 	if _instance:
-		print("[TooltipManager.show_text STATIC] Calling _instance.request_tooltip_with_text")
 		_instance.request_tooltip_with_text(text, delay)
 	else:
 		push_error("TooltipManager not initialized!")

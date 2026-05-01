@@ -101,6 +101,16 @@ func execute_auto_phase() -> void:
 	else:
 		print("[TurnManager] WARNING: CombatSystem not found, combat resolution skipped")
 	
+	# GDD 4.5 - Player unit satiety drain each turn
+	var satiety_drained_units := 0
+	for unit_node in get_tree().get_nodes_in_group("units"):
+		if unit_node is Unit:
+			var unit = unit_node as Unit
+			if unit.is_alive and unit.current_node and unit.current_node.control_by_player:
+				unit.consume_satiety()
+				satiety_drained_units += 1
+	print("[TurnManager] Player units satiety drained this turn: %d" % satiety_drained_units)
+	
 	# 所有村庄消耗资源，然后生产资源
 	for node in game_map.all_nodes:
 		if node is VillageNode:

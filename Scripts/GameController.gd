@@ -37,6 +37,11 @@ func _ready() -> void:
 	# 初始化所有村庄
 	initialize_villages()
 	
+	# Display Tinta info on startup
+	var tinta = game_map._get_node_by_id("tinta")
+	if tinta:
+		ui_manager.show_node_info(tinta)
+	
 	# 启动回合系统
 	turn_manager.start_turn()
 	

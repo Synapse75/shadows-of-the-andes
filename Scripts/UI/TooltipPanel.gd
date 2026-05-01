@@ -17,36 +17,26 @@ const PANEL_MARGIN = 10
 const MAX_WIDTH = 250
 
 func _ready() -> void:
-	print("[TooltipPanel._ready] called")
-	# 创建 MarginContainer
-	margin_container = MarginContainer.new()
-	margin_container.add_theme_constant_override("margin_left", 12)
-	margin_container.add_theme_constant_override("margin_right", 12)
-	margin_container.add_theme_constant_override("margin_top", 8)
-	margin_container.add_theme_constant_override("margin_bottom", 8)
-	add_child(margin_container)
-	print("[TooltipPanel._ready] margin_container added")
+	# Get Label from scene (added as child in main.tscn)
+	label = get_node_or_null("Label")
+	if not label:
+		print("[TooltipPanel._ready] Label not found, creating new one")
+		label = Label.new()
+		label.name = "Label"
+		add_child(label)
 	
-	# 创建 PanelContainer
-	panel_container = PanelContainer.new()
-	panel_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin_container.add_child(panel_container)
-	
-	# 创建标签
-	label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.text = ""
 	label.custom_minimum_size = Vector2(MAX_WIDTH, 0)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	panel_container.add_child(label)
 	
-	# 设置 label 主题
+	# Set label theme
 	var theme = Theme.new()
 	var font_size = 12
 	theme.set_font_size("font_size", "Label", font_size)
 	label.theme = theme
 	
-	# 初始隐藏
+	# Initial hide
 	hide()
 	modulate.a = 0.0
 	print("[TooltipPanel._ready] completed")
@@ -94,14 +84,11 @@ func _update_position_to_mouse() -> void:
 	更新位置到鼠标位置
 	鼠标点击点（光标）和信息框的左下角重合
 	"""
-	print("[_update_position_to_mouse] called")
 	if not visible:
-		print("[_update_position_to_mouse] WARNING: not visible!")
 		return
 	
 	var mouse_pos = get_global_mouse_position()
 	var panel_size = size
-	print("[_update_position_to_mouse] mouse_pos = %s, panel_size = %s" % [mouse_pos, panel_size])
 	
 	# 信息框的左下角与鼠标位置重合
 	# 即：信息框左上角 = 鼠标位置 - (0, panel_height)
@@ -109,7 +96,6 @@ func _update_position_to_mouse() -> void:
 	
 	# 边界检查 - 确保不超出屏幕
 	var screen_size = get_viewport_rect().size
-	print("[_update_position_to_mouse] screen_size = %s" % screen_size)
 	
 	# 右边界检查
 	if final_position.x + panel_size.x > screen_size.x:
@@ -128,7 +114,6 @@ func _update_position_to_mouse() -> void:
 		final_position.y = screen_size.y - panel_size.y - PANEL_MARGIN
 	
 	global_position = final_position
-	print("[_update_position_to_mouse] Final position: %s" % global_position)
 
 func hide_tooltip() -> void:
 	"""隐藏提示框（带渐出效果）"""
