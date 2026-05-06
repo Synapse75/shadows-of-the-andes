@@ -70,17 +70,6 @@ func _process(delta: float) -> void:
 		frame_timer = 0.0
 		current_frame = (current_frame + 1) % animation_frames.size()
 
-func _input(event: InputEvent) -> void:
-	"""捕获所有输入事件用于调试"""
-	if not event is InputEventMouseButton:
-		return
-	
-	# 检查鼠标位置是否在按钮范围内
-	var mouse_pos = event.position
-	var button_rect = get_global_rect()
-	
-	pass
-
 func _on_pressed() -> void:
 	"""按钮被点击时切换相机"""
 	if not camera_manager:

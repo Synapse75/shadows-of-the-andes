@@ -73,7 +73,6 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 	current_timer.wait_time = delay
 	current_timer.one_shot = true
 	current_timer.timeout.connect(func():
-		print("[Timer.timeout] FIRED!")
 		if tooltip_panel:
 			tooltip_panel.show_tooltip(text)
 	)
@@ -83,7 +82,26 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 	else:
 		add_child(current_timer)
 	current_timer.start()
-	print("[request_tooltip_with_text] Timer started, is_inside_tree=%s" % current_timer.is_inside_tree())
+
+func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int, delay: float = 0.3) -> void:
+	last_element_id = ""
+
+	if current_timer:
+		current_timer.queue_free()
+
+	current_timer = Timer.new()
+	current_timer.wait_time = delay
+	current_timer.one_shot = true
+	current_timer.timeout.connect(func():
+		if tooltip_panel:
+			tooltip_panel.show_unit_tooltip_with_inventory(text, inventory, capacity)
+	)
+
+	if cached_tree and cached_tree.root:
+		cached_tree.root.add_child(current_timer)
+	else:
+		add_child(current_timer)
+	current_timer.start()
 
 func hide_tooltip() -> void:
 	"""Hide tooltip"""
@@ -130,6 +148,13 @@ static func show_text(text: String, delay: float = 0.3) -> void:
 	"""Quickly display custom text tooltip"""
 	if _instance:
 		_instance.request_tooltip_with_text(text, delay)
+	else:
+		push_error("TooltipManager not initialized!")
+
+static func show_unit_inventory(text: String, inventory: Dictionary, capacity: int = 5, delay: float = 0.3) -> void:
+	"""Display unit tooltip with inventory icon slots on the right."""
+	if _instance:
+		_instance.request_unit_tooltip_with_inventory(text, inventory, capacity, delay)
 	else:
 		push_error("TooltipManager not initialized!")
 

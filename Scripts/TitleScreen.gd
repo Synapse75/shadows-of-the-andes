@@ -10,7 +10,7 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 
 func _on_start_pressed() -> void:
-	get_tree().change_scene_to_file("res://Scenes/main.tscn")
+	await TransitionManager.transition_to_story()
 
 func _on_credit_pressed() -> void:
 	# TODO: Implement credit scene

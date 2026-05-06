@@ -26,9 +26,6 @@ func _ready() -> void:
 	pause_button.pressed.connect(pause_menu.pause_game)
 	
 	# 连接回合管理器信号
-	turn_manager.turn_started.connect(_on_turn_started)
-	turn_manager.turn_ended.connect(_on_turn_ended)
-	turn_manager.auto_phase_started.connect(_on_auto_phase_started)
 	turn_manager.auto_phase_ended.connect(_on_auto_phase_ended)
 	
 	# Wait one frame for GameMap to complete its initialization
@@ -106,19 +103,6 @@ func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 		enemy.unit_name = "Spanish Guard %d" % (i + 1)
 		village.add_child(enemy)
 		enemy.assign_to_node(village)
-
-func _on_turn_started(turn_number: int) -> void:
-	"""回合开始时的处理"""
-	pass
-
-func _on_turn_ended(turn_number: int) -> void:
-	"""回合结束时的处理"""
-	pass
-
-func _on_auto_phase_started() -> void:
-	"""自动流程开始时的处理"""
-	pass
-
 func _on_auto_phase_ended() -> void:
 	"""自动流程结束时的处理"""
 	# 刷新 UI 显示（资源/人口变化后需要更新显示）

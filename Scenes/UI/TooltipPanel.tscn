@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://b8aq8hf7tan7f"]
+
+[ext_resource type="Script" uid="uid://cvjwsjfbb5iyq" path="res://Scripts/UI/TooltipPanel.gd" id="1_tooltip_panel"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="2_clear_font"]
+
+[node name="TooltipPanel" type="Panel" unique_id=544618624]
+z_index = 999
+custom_minimum_size = Vector2(200, 150)
+script = ExtResource("1_tooltip_panel")
+
+[node name="RootHBox" type="Control" parent="." unique_id=948605962]
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 150.0
+
+[node name="Label" type="Label" parent="RootHBox" unique_id=948605963]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 133.0
+offset_bottom = 140.0
+theme_override_fonts/font = ExtResource("2_clear_font")
+theme_override_font_sizes/font_size = 16
+text = "Tooltip"
+
+[node name="InventoryVBox" type="VBoxContainer" parent="RootHBox" unique_id=948605964]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 0
+offset_left = 161.0
+offset_top = 7.0
+offset_right = 193.0
+offset_bottom = 141.0
+theme_override_constants/separation = 4

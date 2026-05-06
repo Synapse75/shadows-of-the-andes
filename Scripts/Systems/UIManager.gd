@@ -852,7 +852,7 @@ func _show_unit_tooltip(unit: Unit) -> void:
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
 	tooltip_text += "Attack: %d\n" % unit.attack_power
 	tooltip_text += "Speed: %.1fx" % unit.movement_speed_multiplier
-	TooltipManager.show_text(tooltip_text, 0.1)
+	TooltipManager.show_unit_inventory(tooltip_text, unit.inventory, unit.INVENTORY_CAPACITY, 0.1)
 
 func _show_resource_tooltip(resource_type: String) -> void:
 	"""Display tooltip with resource description"""

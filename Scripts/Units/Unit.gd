@@ -109,17 +109,17 @@ func assign_to_node(node: VillageNode) -> void:
 		node.add_unit(self)
 	update_state()
 
-func move_to_node(target_node: VillageNode) -> bool:
+func move_to_node(destination_node: VillageNode) -> bool:
 	"""Unit moves to another node"""
-	if not current_node or not is_alive or not target_node:
+	if not current_node or not is_alive or not destination_node:
 		return false
 	
 	# All nodes are valid targets (no neighbor restriction)
 	
 	var from_node = current_node
-	assign_to_node(target_node)
+	assign_to_node(destination_node)
 	set_unit_state(UnitState.MOVING)
-	unit_moved.emit(from_node, target_node)
+	unit_moved.emit(from_node, destination_node)
 	return true
 
 func set_unit_state(new_state: UnitState) -> void:

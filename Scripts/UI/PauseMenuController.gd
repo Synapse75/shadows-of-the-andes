@@ -4,7 +4,6 @@ class_name PauseMenuController
 var is_paused: bool = false
 var pause_panel: Panel
 var resume_button: Button
-var settings_button: Button
 var menu_button: Button
 var quit_button: Button
 
@@ -25,12 +24,11 @@ func _ready() -> void:
 		return
 	
 	resume_button = pause_panel.get_node_or_null("VBoxContainer/ResumeButton")
-	settings_button = pause_panel.get_node_or_null("VBoxContainer/SettingsButton")
 	menu_button = pause_panel.get_node_or_null("VBoxContainer/MenuButton")
 	quit_button = pause_panel.get_node_or_null("VBoxContainer/QuitButton")
 	
 	# 检查按钮
-	if not resume_button or not settings_button or not menu_button or not quit_button:
+	if not resume_button or not menu_button or not quit_button:
 		push_error("PauseMenuController: 无法找到暂停菜单的所有按钮")
 		return
 	
@@ -39,7 +37,6 @@ func _ready() -> void:
 	
 	# 连接按钮信号
 	resume_button.pressed.connect(_on_resume_pressed)
-	settings_button.pressed.connect(_on_settings_pressed)
 	menu_button.pressed.connect(_on_menu_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	
@@ -84,10 +81,6 @@ func _on_resume_pressed() -> void:
 	"""恢复按钮"""
 	if resume_button:
 		resume_game()
-
-func _on_settings_pressed() -> void:
-	"""设置按钮 - TODO: 实现设置菜单"""
-	pass
 
 func _on_menu_pressed() -> void:
 	"""返回菜单按钮"""

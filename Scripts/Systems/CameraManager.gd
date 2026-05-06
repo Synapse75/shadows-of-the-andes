@@ -31,8 +31,9 @@ func _ready() -> void:
 	make_current()
 	zoom = Vector2.ONE
 	
-	# 设置初始镜头位置
-	set_camera_view("tinta")
+	# 开局直接放到 Tinta，不播放移动动画
+	current_camera = "tinta"
+	global_position = cameras["tinta"]
 	
 	# 启用输入
 	set_process_input(true)

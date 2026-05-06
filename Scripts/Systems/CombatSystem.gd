@@ -69,10 +69,10 @@ func resolve_combat_turn(combat: Combat) -> void:
 	var damage_per_player = 0
 	
 	if combat.enemy_units.size() > 0:
-		damage_per_enemy = int(total_player_attack / combat.enemy_units.size())
+		damage_per_enemy = int(total_player_attack / float(combat.enemy_units.size()))
 	
 	if combat.player_units.size() > 0:
-		damage_per_player = int(total_enemy_attack / combat.player_units.size())
+		damage_per_player = int(total_enemy_attack / float(combat.player_units.size()))
 
 	print("[CombatSystem] Turn %d at %s: p_total=%d, e_total=%d, dmg_to_enemy=%d, dmg_to_player=%d" % [
 		combat.turn,

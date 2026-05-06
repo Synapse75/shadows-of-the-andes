@@ -74,7 +74,6 @@ signal node_selected(node: VillageNode)
 func _ready() -> void:
 	# 自动查找所有节点
 	_collect_all_nodes()
-	_setup_connections()
 	ui_manager = get_tree().root.get_node("Main/Systems/UIManager")
 	unit_manager = get_tree().root.get_node("Main/Systems/UnitManager")
 	camera_manager = get_node("../Camera2D") as CameraManager
@@ -110,10 +109,6 @@ func _collect_all_nodes() -> void:
 				player_nodes.append(node)
 			else:
 				enemy_nodes.append(node)
-
-func _setup_connections() -> void:
-	"""No longer needed - drop targets are determined by camera view, not neighbors"""
-	pass
 
 func _assign_units_to_nodes() -> void:
 	"""Assign units to starting nodes"""
