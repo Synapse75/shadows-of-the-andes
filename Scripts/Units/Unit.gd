@@ -28,6 +28,7 @@ var current_node: VillageNode = null
 var origin_village: VillageNode = null  # The village this unit belongs to
 var is_alive: bool = true
 var is_special: bool = false  # Special unit flag (leader, hero, etc.)
+var has_mount: bool = false  # Whether unit has a llama mount equipped
 
 # Combat and multiplier attributes (all default to 1.0)
 var combat_multiplier: float = 1.0  # Combat power multiplier (e.g., from Corn)
@@ -56,6 +57,8 @@ signal movement_completed
 
 func _ready() -> void:
 	add_to_group("units")
+	if unit_name.strip_edges().is_empty():
+		unit_name = UnitNamePool.draw_name()
 	if current_health == 0:  # Only initialize if not already set
 		current_health = max_health
 	if current_satiety == 0:  # Only initialize if not already set
@@ -189,6 +192,14 @@ func restore_satiety(amount: int) -> void:
 	
 	current_satiety = min(current_satiety + amount, max_satiety)
 
+func set_attack_power(amount: int) -> void:
+	"""Set attack power"""
+	attack_power = max(0, amount)
+
+func set_movement_speed_multiplier(multiplier: float) -> void:
+	"""Set movement speed multiplier"""
+	movement_speed_multiplier = max(0.0, multiplier)
+
 func die() -> void:
 	"""Unit dies"""
 	if not is_alive:
@@ -197,6 +208,7 @@ func die() -> void:
 	is_alive = false
 	if current_node:
 		current_node.remove_unit(self)
+	MessageLog.add_message("Your unit died: %s" % unit_name, "error")
 	unit_died.emit()
 
 # Inventory Management
@@ -214,6 +226,14 @@ func can_add_to_inventory(amount: int) -> bool:
 func add_to_inventory(resource_type: String, amount: int) -> int:
 	"""Add resource to inventory. Returns amount actually added (capped at capacity).
 	Example: if capacity allows 2 more items, returns 2 even if requested 5."""
+	# Special handling for llama (mount) - only 1 allowed
+	if resource_type == "llama":
+		if has_mount:
+			return 0  # Already has mount
+		has_mount = true
+		inventory_changed.emit(inventory)
+		return 1
+	
 	var current_count = get_inventory_count()
 	var space_left = INVENTORY_CAPACITY - current_count
 	var added = min(amount, space_left)
@@ -291,7 +311,6 @@ func start_movement(target: VillageNode) -> bool:
 	# Emit signals
 	unit_state_changed.emit(unit_state)
 	movement_started.emit(target, movement_time)
-	print("[Unit] %s started moving: %s -> %s, duration=%d" % [unit_name, current_node.location_name if current_node else "None", target.location_name if target else "None", movement_time])
 	
 	return true
 
@@ -303,7 +322,6 @@ func progress_movement() -> void:
 	var before = movement_time_remaining
 	
 	movement_time_remaining -= 1
-	print("[Unit] %s movement progress: %d -> %d" % [unit_name, before, movement_time_remaining])
 	
 	# Movement completed
 	if movement_time_remaining <= 0:
@@ -317,6 +335,9 @@ func complete_movement() -> void:
 	if target_node:
 		# Update current node
 		assign_to_node(target_node)
+		
+		# Unload resources to destination (except llama/mount)
+		_unload_inventory_to_node(target_node)
 		
 		# Emit signal
 		unit_moved.emit(from_node, arrived_node)
@@ -334,7 +355,25 @@ func complete_movement() -> void:
 	
 	# On arrival, immediately resolve state/combat/capture logic.
 	_handle_arrival_state_and_combat()
-	print("[Unit] %s movement completed: arrived at %s" % [unit_name, current_node.location_name if current_node else "None"])
+
+func _unload_inventory_to_node(node: VillageNode) -> void:
+	"""Unload all resources except llama to destination node."""
+	if not node:
+		return
+	
+	for resource_type in inventory.keys():
+		if resource_type == "llama":
+			continue  # Keep mount equipped, but not in inventory dict
+		
+		var amount = inventory.get(resource_type, 0)
+		if amount > 0:
+			node.resources[resource_type] += amount
+	
+	# Clear inventory but keep mount state
+	inventory.clear()
+	# has_mount stays true (llama stays equipped)
+	
+	inventory_changed.emit(inventory)
 
 func _handle_arrival_state_and_combat() -> void:
 	"""Apply arrival rules: attacking on uncontrolled nodes, immediate capture if no enemies,
@@ -348,15 +387,8 @@ func _handle_arrival_state_and_combat() -> void:
 	
 	# Controlled node: arrive as stationed, no combat.
 	if unit_state != UnitState.ATTACKING:
-		print("[Unit] %s arrived at %s -> state=%s, enemies=%d" % [
-			unit_name,
-			current_node.location_name,
-			UnitState.keys()[unit_state],
-			enemy_count
-		])
 		return
 	
-	print("[Unit] %s arrived at uncontrolled node %s -> ATTACKING, enemies=%d" % [unit_name, current_node.location_name, enemy_count])
 	_resolve_node_combat_or_capture(current_node)
 
 func _resolve_node_combat_or_capture(node: VillageNode) -> void:
@@ -366,7 +398,6 @@ func _resolve_node_combat_or_capture(node: VillageNode) -> void:
 		return
 	
 	if _get_alive_enemy_count(node) == 0:
-		print("[Unit] %s no enemies at %s, capturing immediately" % [unit_name, node.location_name])
 		_capture_node_if_possible(node)
 		return
 	
@@ -382,7 +413,6 @@ func _resolve_node_combat_or_capture(node: VillageNode) -> void:
 	
 	var combat_system = _get_combat_system()
 	if not combat_system:
-		print("[Unit] WARNING: CombatSystem not found when %s entered %s" % [unit_name, node.location_name])
 		return
 
 	var player_units: Array[Unit] = []
@@ -396,13 +426,11 @@ func _resolve_node_combat_or_capture(node: VillageNode) -> void:
 			enemy_units.append(enemy_unit)
 	
 	if player_units.is_empty() or enemy_units.is_empty():
-		print("[Unit] %s combat setup empty at %s (player=%d, enemy=%d), fallback capture check" % [unit_name, node.location_name, player_units.size(), enemy_units.size()])
 		_capture_node_if_possible(node)
 		return
 
 	var combat = combat_system.get_combat_at_node(node)
 	if not combat:
-		print("[Unit] %s starting combat at %s (player=%d, enemy=%d)" % [unit_name, node.location_name, player_units.size(), enemy_units.size()])
 		combat_system.start_combat(node, player_units, enemy_units)
 		return
 
@@ -414,8 +442,6 @@ func _resolve_node_combat_or_capture(node: VillageNode) -> void:
 	for enemy_unit in enemy_units:
 		if enemy_unit not in combat.enemy_units:
 			combat.enemy_units.append(enemy_unit)
-
-	print("[Unit] %s joined existing combat at %s (combat player=%d, enemy=%d)" % [unit_name, node.location_name, combat.player_units.size(), combat.enemy_units.size()])
 
 func _capture_node_if_possible(node: VillageNode) -> void:
 	"""Capture node for player if at least one player unit survives there, then station units."""
@@ -430,8 +456,6 @@ func _capture_node_if_possible(node: VillageNode) -> void:
 	else:
 		node.set_control(true)
 
-	print("[Unit] Node captured: %s (alive player units=%d)" % [node.location_name, _get_alive_player_count(node)])
-	
 	for player_unit in node.stationed_units:
 		if player_unit and player_unit.is_alive and player_unit.unit_state != UnitState.MOVING:
 			player_unit.set_unit_state(UnitState.STATIONED)

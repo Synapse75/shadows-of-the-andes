@@ -24,30 +24,25 @@ signal combat_resolved_turn(combat: Combat, turn: int)
 
 func _ready() -> void:
 	add_to_group("combat_system")
-	print("[CombatSystem] Ready")
 
 func start_combat(node: VillageNode, player_units: Array, enemy_units: Array) -> Combat:
 	"""Start a new combat on a node"""
 	if player_units.is_empty() or enemy_units.is_empty():
-		print("[CombatSystem] start_combat skipped at %s (player=%d, enemy=%d)" % [node.location_name if node else "Unknown", player_units.size(), enemy_units.size()])
 		return null
 
 	var existing = get_combat_at_node(node)
 	if existing:
-		print("[CombatSystem] Existing combat reused at %s" % node.location_name)
 		return existing
 	
 	var combat = Combat.new(node, player_units, enemy_units)
 	active_combats.append(combat)
 	combat_started.emit(combat)
-	print("[CombatSystem] Combat started at %s (player=%d, enemy=%d)" % [node.location_name, player_units.size(), enemy_units.size()])
 	
 	return combat
 
 func resolve_combat_turn(combat: Combat) -> void:
 	"""Resolve one turn of combat (called at end of game turn)"""
 	if combat.player_units.is_empty() or combat.enemy_units.is_empty():
-		print("[CombatSystem] resolve skipped at %s, one side empty" % combat.combat_node.location_name)
 		end_combat(combat)
 		return
 	
@@ -74,15 +69,6 @@ func resolve_combat_turn(combat: Combat) -> void:
 	if combat.player_units.size() > 0:
 		damage_per_player = int(total_enemy_attack / float(combat.player_units.size()))
 
-	print("[CombatSystem] Turn %d at %s: p_total=%d, e_total=%d, dmg_to_enemy=%d, dmg_to_player=%d" % [
-		combat.turn,
-		combat.combat_node.location_name,
-		total_player_attack,
-		total_enemy_attack,
-		damage_per_enemy,
-		damage_per_player
-	])
-	
 	# Apply damage to all units
 	var enemies_died_this_turn = 0
 	for enemy in combat.enemy_units:
@@ -101,14 +87,6 @@ func resolve_combat_turn(combat: Combat) -> void:
 	# Remove dead units from combat
 	combat.player_units = combat.player_units.filter(func(u): return u.is_alive)
 	combat.enemy_units = combat.enemy_units.filter(func(u): return u.is_alive)
-	print("[CombatSystem] After turn %d at %s: player_alive=%d, enemy_alive=%d, player_died=%d, enemy_died=%d" % [
-		combat.turn,
-		combat.combat_node.location_name,
-		combat.player_units.size(),
-		combat.enemy_units.size(),
-		players_died_this_turn,
-		enemies_died_this_turn
-	])
 	
 	combat_resolved_turn.emit(combat, combat.turn)
 	
@@ -134,7 +112,6 @@ func end_combat(combat: Combat) -> void:
 		result_text = "Unknown Outcome"
 	
 	active_combats.erase(combat)
-	print("[CombatSystem] Combat ended at %s: %s" % [combat.combat_node.location_name, result_text])
 	combat_ended.emit(combat)
 
 func _capture_node_for_player(combat: Combat) -> void:
@@ -148,7 +125,6 @@ func _capture_node_for_player(combat: Combat) -> void:
 		game_map.occupy_node(node, true)
 	else:
 		node.set_control(true)
-	print("[CombatSystem] Node captured by player: %s" % node.location_name)
 
 	for unit in combat.player_units:
 		if unit and unit.is_alive and unit.unit_state != Unit.UnitState.MOVING:
@@ -167,7 +143,6 @@ func is_node_in_combat(node: VillageNode) -> bool:
 
 func resolve_all_combats() -> void:
 	"""Resolve one turn for all active combats (called at end of game turn)"""
-	print("[CombatSystem] resolve_all_combats called, active=%d" % active_combats.size())
 	var combats_copy = active_combats.duplicate()
 	for combat in combats_copy:
 		if combat in active_combats:  # Check in case it was removed

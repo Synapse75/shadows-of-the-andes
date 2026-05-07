@@ -4,10 +4,11 @@ class_name TooltipPanel
 var label: Label
 var root_hbox: Control
 var inventory_vbox: VBoxContainer
+var mount_slot: TextureRect
 var tween: Tween
 var is_visible_tooltip: bool = false
 
-const FADE_DURATION = 0.15
+const FADE_DURATION = 0.1
 const PANEL_MARGIN = 10
 const SLOT_SIZE = Vector2(32, 32)
 
@@ -23,16 +24,22 @@ func _ready() -> void:
 	root_hbox = get_node_or_null("RootHBox") as Control
 	label = get_node_or_null("RootHBox/Label") as Label
 	if label == null:
-		label = get_node_or_null("Label")
+		label = get_node_or_null("Label") as Label
 	inventory_vbox = get_node_or_null("RootHBox/InventoryVBox") as VBoxContainer
 	if inventory_vbox == null:
 		inventory_vbox = get_node_or_null("InventoryVBox") as VBoxContainer
+	mount_slot = get_node_or_null("RootHBox/MountSlot") as TextureRect
+	if mount_slot == null:
+		mount_slot = get_node_or_null("MountSlot") as TextureRect
 	_configure_label()
 	if inventory_vbox:
 		inventory_vbox.visible = false
 
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if root_hbox:
+		root_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	hide()
-	modulate.a = 0.0
 
 func _configure_label() -> void:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -56,14 +63,14 @@ func show_tooltip(text: String, position_override: Vector2 = Vector2.ZERO) -> vo
 
 	await _show_with_layout(position_override)
 
-func show_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int = 5, position_override: Vector2 = Vector2.ZERO) -> void:
+func show_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int = 5, has_mount: bool = false, position_override: Vector2 = Vector2.ZERO) -> void:
 	if tween:
 		tween.kill()
 
 	label.text = text
 	if inventory_vbox:
 		inventory_vbox.visible = true
-	_rebuild_inventory_slots(inventory, capacity)
+	_rebuild_inventory_slots(inventory, capacity, has_mount)
 
 	await _show_with_layout(position_override)
 
@@ -76,16 +83,30 @@ func _show_with_layout(position_override: Vector2) -> void:
 	else:
 		global_position = position_override
 
+	modulate.a = 0.0
 	show()
 	tween = create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION)
 
-func _rebuild_inventory_slots(inventory: Dictionary, capacity: int) -> void:
+func _rebuild_inventory_slots(inventory: Dictionary, capacity: int, has_mount: bool = false) -> void:
 	_clear_inventory_slots()
-
+	_clear_mount_slot()
+	
+	# Handle mount (llama) separately
+	if has_mount:
+		if mount_slot:
+			mount_slot.visible = true
+			var icon_path = RESOURCE_ICONS.get("llama", "")
+			if ResourceLoader.exists(icon_path):
+				mount_slot.texture = ResourceLoader.load(icon_path)
+	else:
+		if mount_slot:
+			mount_slot.visible = false
+	
+	# Build normal inventory slots (excluding llama)
 	var filled_types: Array[String] = []
 	for key in inventory.keys():
-		if str(key) in RESOURCE_ICONS:
+		if str(key) in RESOURCE_ICONS and str(key) != "llama":
 			filled_types.append(str(key))
 
 	filled_types.sort()
@@ -100,21 +121,17 @@ func _rebuild_inventory_slots(inventory: Dictionary, capacity: int) -> void:
 	for i in range(empty_count):
 		inventory_vbox.add_child(_create_empty_slot())
 
+func _clear_mount_slot() -> void:
+	if mount_slot:
+		mount_slot.texture = null
+		mount_slot.visible = false
+
 func _create_resource_slot(resource_type: String, amount: int) -> Control:
-	var slot := Panel.new()
+	var slot := Control.new()
 	slot.custom_minimum_size = SLOT_SIZE
 	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.11, 0.11, 0.11, 0.92)
-	style.border_color = Color(0.75, 0.75, 0.75, 0.9)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	slot.add_theme_stylebox_override("panel", style)
 
 	var icon := TextureRect.new()
 	icon.anchor_left = 0.0
@@ -148,27 +165,23 @@ func _create_resource_slot(resource_type: String, amount: int) -> Control:
 	count_label.offset_bottom = -1
 	count_label.text = str(amount)
 	count_label.add_theme_color_override("font_color", Color.WHITE)
-	count_label.add_theme_font_size_override("font_size", 10)
+	count_label.add_theme_font_size_override("font_size", 16)
 	count_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	count_label.add_theme_constant_override("shadow_outline_size", 1)
 	count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var clear_font = ResourceLoader.load("res://Fonts/ClearFont.ttf")
+	if clear_font:
+		count_label.add_theme_font_override("font", clear_font)
+	
 	slot.add_child(count_label)
 
 	return slot
 
 func _create_empty_slot() -> Control:
-	var slot := Panel.new()
+	var slot := Control.new()
 	slot.custom_minimum_size = SLOT_SIZE
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.08, 0.08, 0.45)
-	style.border_color = Color(0.55, 0.55, 0.55, 0.35)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	slot.add_theme_stylebox_override("panel", style)
 
 	return slot
 

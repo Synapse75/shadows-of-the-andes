@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://spotlightmaskoverlay_scene"]
+
+[ext_resource type="Script" path="res://Scripts/UI/SpotlightMaskOverlay.gd" id="1_spotlight_mask_overlay"]
+[ext_resource type="Shader" path="res://Shaders/spotlight_mask.gdshader" id="2_spotlight_mask_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spotlight"]
+shader = ExtResource("2_spotlight_mask_shader")
+
+[node name="SpotlightMaskOverlay" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_spotlight_mask_overlay")
+
+[node name="Mask" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+material = SubResource("ShaderMaterial_spotlight")

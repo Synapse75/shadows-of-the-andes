@@ -181,26 +181,26 @@ text = "Quit Game"
 [node name="TurnInfo" type="Panel" parent="UILayer" unique_id=1959215300]
 custom_minimum_size = Vector2(65, 18)
 offset_left = 34.0
-offset_top = 13.0
-offset_right = 99.0
-offset_bottom = 34.0
+offset_top = 15.0
+offset_right = 177.0
+offset_bottom = 33.0
 
 [node name="TurnLabel" type="Label" parent="UILayer/TurnInfo" unique_id=817640371]
 layout_mode = 0
-offset_left = 12.0
-offset_top = 4.0
-offset_right = 53.0
-offset_bottom = 17.0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 43.0
+offset_bottom = 11.0
 theme = SubResource("Theme_ui_font")
 text = "Turn: 0"
 horizontal_alignment = 1
 
 [node name="NextTurnButton" type="Button" parent="UILayer" unique_id=1370219917]
 custom_minimum_size = Vector2(65, 16)
-offset_left = 106.0
-offset_top = 13.0
-offset_right = 171.0
-offset_bottom = 34.0
+offset_left = 400.0
+offset_top = 15.0
+offset_right = 465.0
+offset_bottom = 36.0
 theme = SubResource("Theme_ui_font")
 text = "Next Turn"
 
@@ -252,6 +252,12 @@ grow_horizontal = 0
 [node name="SpotlightMaskOverlay" parent="." unique_id=2000000102 instance=ExtResource("23_spotlight_mask_overlay_scene")]
 
 [node name="MessageLogUI" parent="." unique_id=2000000103 instance=ExtResource("24_message_log_ui_scene")]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 480.0
+offset_top = 60.0
+offset_right = 630.0
+offset_bottom = 170.0
 
 [node name="Systems" type="Node" parent="." unique_id=1968131527]
 

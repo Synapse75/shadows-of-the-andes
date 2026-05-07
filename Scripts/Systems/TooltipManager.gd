@@ -58,7 +58,6 @@ func _start_current_timer():
 	if current_timer and not current_timer.is_stopped():
 		return
 	if current_timer:
-		print("[_start_current_timer] is_inside_tree=%s" % current_timer.is_inside_tree())
 		current_timer.start()
 
 
@@ -83,7 +82,7 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 		add_child(current_timer)
 	current_timer.start()
 
-func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int, delay: float = 0.3) -> void:
+func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int, has_mount: bool = false, delay: float = 0.3) -> void:
 	last_element_id = ""
 
 	if current_timer:
@@ -94,7 +93,7 @@ func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, ca
 	current_timer.one_shot = true
 	current_timer.timeout.connect(func():
 		if tooltip_panel:
-			tooltip_panel.show_unit_tooltip_with_inventory(text, inventory, capacity)
+			tooltip_panel.show_unit_tooltip_with_inventory(text, inventory, capacity, has_mount)
 	)
 
 	if cached_tree and cached_tree.root:
@@ -105,8 +104,6 @@ func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, ca
 
 func hide_tooltip() -> void:
 	"""Hide tooltip"""
-	last_element_id = ""
-	
 	if current_timer:
 		current_timer.queue_free()
 		current_timer = null
@@ -114,8 +111,6 @@ func hide_tooltip() -> void:
 
 func hide_tooltip_immediately() -> void:
 	"""Hide tooltip immediately (no animation)"""
-	last_element_id = ""
-	
 	if current_timer:
 		current_timer.queue_free()
 		current_timer = null
@@ -151,10 +146,10 @@ static func show_text(text: String, delay: float = 0.3) -> void:
 	else:
 		push_error("TooltipManager not initialized!")
 
-static func show_unit_inventory(text: String, inventory: Dictionary, capacity: int = 5, delay: float = 0.3) -> void:
+static func show_unit_inventory(text: String, inventory: Dictionary, capacity: int = 5, has_mount: bool = false, delay: float = 0.3) -> void:
 	"""Display unit tooltip with inventory icon slots on the right."""
 	if _instance:
-		_instance.request_unit_tooltip_with_inventory(text, inventory, capacity, delay)
+		_instance.request_unit_tooltip_with_inventory(text, inventory, capacity, has_mount, delay)
 	else:
 		push_error("TooltipManager not initialized!")
 

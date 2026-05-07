@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://mrgdbnw5gs6t"]
+
+[ext_resource type="Script" uid="uid://i2bsu7o1onrj" path="res://Scripts/UI/IconTooltipPanel.gd" id="1_icon"]
+
+[node name="IconTooltipPanel" type="Panel" unique_id=251542820]
+z_index = 999
+custom_minimum_size = Vector2(120, 24)
+offset_right = 120.0
+offset_bottom = 24.0
+script = ExtResource("1_icon")
+
+[node name="Label" type="Label" parent="." unique_id=1856149030]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 112.0
+offset_bottom = 20.0
+vertical_alignment = 1

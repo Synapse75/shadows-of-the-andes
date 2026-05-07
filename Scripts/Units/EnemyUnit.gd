@@ -26,6 +26,8 @@ func _init() -> void:
 
 func _ready() -> void:
 	add_to_group("enemy_units")
+	if unit_name.strip_edges().is_empty():
+		unit_name = UnitNamePool.draw_name()
 	current_health = max_health
 	# Auto-assign to parent VillageNode
 	var parent = get_parent()
@@ -91,4 +93,5 @@ func die() -> void:
 	is_alive = false
 	if current_node:
 		current_node.remove_enemy_unit(self)
+	MessageLog.add_message("Enemy unit died: %s" % unit_name, "error")
 	unit_died.emit()

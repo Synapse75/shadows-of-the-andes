@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://b28e702r1hfeq"]
+
+[ext_resource type="Script" uid="uid://dw0eacdyyhhbt" path="res://Scripts/UI/MessageItem.gd" id="1_3xhwb"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="2_font"]
+
+[node name="MessageItem" type="PanelContainer" unique_id=1935672521]
+custom_minimum_size = Vector2(150, 20)
+script = ExtResource("1_3xhwb")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1228003322]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="Label" type="Label" parent="MarginContainer" unique_id=366161245]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Message"
+autowrap_mode = 3

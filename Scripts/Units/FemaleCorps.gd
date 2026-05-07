@@ -4,7 +4,6 @@ class_name FemaleCorps
 # Female Corps specific properties - initialized at class level
 func _init() -> void:
 	unit_id = "female_corps_" + str(randi())
-	unit_name = "Female Corps"
 	unit_type = "female_corps"
 	max_satiety = 100
 	current_satiety = 100

@@ -17,8 +17,8 @@ offset_bottom = 150.0
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 133.0
-offset_bottom = 140.0
+offset_right = 158.0
+offset_bottom = 106.0
 theme_override_fonts/font = ExtResource("2_clear_font")
 theme_override_font_sizes/font_size = 16
 text = "Tooltip"
@@ -31,3 +31,10 @@ offset_top = 7.0
 offset_right = 193.0
 offset_bottom = 141.0
 theme_override_constants/separation = 4
+
+[node name="MountSlot" type="TextureRect" parent="RootHBox" unique_id=100222926]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 109.0
+offset_right = 42.0
+offset_bottom = 141.0

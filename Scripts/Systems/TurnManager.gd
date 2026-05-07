@@ -19,7 +19,6 @@ func _ready() -> void:
 	# 获取GameMap引用
 	game_map = get_tree().root.get_node("Main/SubViewportContainer/SubViewport/Map")
 	combat_system = get_tree().root.get_node_or_null("Main/Systems/CombatSystem") as CombatSystem
-	print("[TurnManager] _ready: combat_system found = %s" % str(combat_system != null))
 	
 	# 获取UI元素
 	var main_node = get_tree().root.get_node("Main")
@@ -72,7 +71,6 @@ func end_player_phase() -> void:
 func execute_auto_phase() -> void:
 	"""执行自动流程（资源生产等）"""
 	auto_phase_started.emit()
-	print("[TurnManager] Auto phase start - Turn %d" % current_turn)
 	
 	# Progress all moving units (GDD 5.2.1)
 	# Use node stationed_units as source of truth so units spawned outside scene tree
@@ -91,15 +89,12 @@ func execute_auto_phase() -> void:
 			if unit.unit_state == Unit.UnitState.MOVING:
 				moving_units_progressed += 1
 				unit.progress_movement()
-	print("[TurnManager] Moving units progressed this turn: %d" % moving_units_progressed)
-
+	
 	# Resolve one combat round for all active combats in this turn.
 	if combat_system:
-		print("[TurnManager] Active combats before resolve: %d" % combat_system.active_combats.size())
 		combat_system.resolve_all_combats()
-		print("[TurnManager] Active combats after resolve: %d" % combat_system.active_combats.size())
 	else:
-		print("[TurnManager] WARNING: CombatSystem not found, combat resolution skipped")
+		pass
 	
 	# GDD 4.5 - Player unit satiety drain each turn
 	var satiety_drained_units := 0
@@ -109,7 +104,7 @@ func execute_auto_phase() -> void:
 			if unit.is_alive and unit.current_node and unit.current_node.control_by_player:
 				unit.consume_satiety()
 				satiety_drained_units += 1
-	print("[TurnManager] Player units satiety drained this turn: %d" % satiety_drained_units)
+
 	
 	# 所有村庄消耗资源，然后生产资源
 	for node in game_map.all_nodes:
@@ -120,10 +115,8 @@ func execute_auto_phase() -> void:
 			node.produce_resources()
 	
 	auto_phase_ended.emit()
-	print("[TurnManager] Auto phase end - Turn %d" % current_turn)
 
 func update_ui() -> void:
 	"""更新UI显示"""
 	if is_node_ready():
-		var phase_text = "Player Turn" if is_player_turn else "Auto Phase"
-		turn_label.text = "Turn %d - %s" % [current_turn, phase_text]
+		turn_label.text = "Turn: %d" % current_turn

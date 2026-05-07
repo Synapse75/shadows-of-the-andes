@@ -4,7 +4,6 @@ class_name RebelArmy
 # Rebel Army specific properties
 func _init() -> void:
 	unit_id = "rebel_army_" + str(randi())
-	unit_name = "Rebel Army"
 	unit_type = "rebel_army"
 	max_satiety = 100
 	current_satiety = 100

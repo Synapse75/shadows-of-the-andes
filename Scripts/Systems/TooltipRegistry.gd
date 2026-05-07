@@ -120,10 +120,4 @@ func get_category_items(category: String) -> Dictionary:
 
 func print_all_tooltips() -> void:
 	"""Print all tooltips (for debugging)"""
-	print("\n=== All Tooltips ===")
-	for category in get_all_categories():
-		var items = get_category_items(category)
-		print("\n[%s]" % category)
-		for element_name in items:
-			var text = items[element_name].replace("\n", " | ")
-			print("  - %s: %s" % [element_name, text])
+	pass

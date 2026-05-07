@@ -78,16 +78,16 @@ func _ready() -> void:
 	unit_manager = get_tree().root.get_node("Main/Systems/UnitManager")
 	camera_manager = get_node("../Camera2D") as CameraManager
 	
-	print("DEBUG: GameMap._ready() - collected %d nodes" % all_nodes.size())
-	print("DEBUG: Camera manager: %s" % ("found" if camera_manager else "NOT FOUND"))
+	# print("DEBUG: GameMap._ready() - collected %d nodes" % all_nodes.size())
+	# print("DEBUG: Camera manager: %s" % ("found" if camera_manager else "NOT FOUND"))
 	
 	# 等待 UnitManager 收集单位后，将单位分配到节点
 	await unit_manager.tree_entered
 	_assign_units_to_nodes()
 	
 	# Initialize coordinate mapping
-	print("DEBUG: Initializing camera positions for 'tinta'...")
-	print("DEBUG: node_screen_positions_by_camera keys: %s" % node_screen_positions_by_camera.keys())
+	# print("DEBUG: Initializing camera positions for 'tinta'...")
+	# print("DEBUG: node_screen_positions_by_camera keys: %s" % node_screen_positions_by_camera.keys())
 	_update_camera_positions("tinta")
 	
 	# Subscribe to camera changes
@@ -95,10 +95,10 @@ func _ready() -> void:
 		camera_manager.camera_view_changed.connect(_on_camera_view_changed)
 	
 	# Debug: print all camera views and their nodes
-	_debug_print_all_cameras()
-	
-	print("\nDEBUG: _ready() complete. current_camera_positions size: %d" % current_camera_positions.size())
-	print("DEBUG: node_screen_positions_by_camera['tinta'] size: %d" % node_screen_positions_by_camera.get("tinta", {}).size())
+	# _debug_print_all_cameras()
+
+	# print("\nDEBUG: _ready() complete. current_camera_positions size: %d" % current_camera_positions.size())
+	# print("DEBUG: node_screen_positions_by_camera['tinta'] size: %d" % node_screen_positions_by_camera.get("tinta", {}).size())
 
 func _collect_all_nodes() -> void:
 	"""Recursively find all VillageNodes in the scene"""
@@ -129,11 +129,17 @@ func _process(_delta: float) -> void:
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
+			# Hide tooltip when leaving node
+			if ui_manager and ui_manager.icon_tooltip_panel:
+				ui_manager.icon_tooltip_panel.hide_text()
 			
 		if node_at_pos != null:
 			hovered_node = node_at_pos
 			if hovered_node.has_method("set_hover_state"):
 				hovered_node.set_hover_state(true)
+			# Show tooltip with location description
+			if ui_manager and ui_manager.icon_tooltip_panel and hovered_node.location_description != "":
+				ui_manager.icon_tooltip_panel.show_text(hovered_node.location_description)
 		else:
 			hovered_node = null
 	
@@ -250,19 +256,6 @@ func _get_node_by_id(node_id: String) -> VillageNode:
 func _update_camera_positions(camera_name: String) -> void:
 	"""Update current camera view positions from precomputed table (no calculation)"""
 	current_camera_positions = node_screen_positions_by_camera.get(camera_name, {})
-	print("Updated camera positions for view '%s': %d visible nodes" % [camera_name, current_camera_positions.size()])
-	
-	# Debug: print all visible nodes with their screen positions
-	print("\n=== DEBUG: Visible nodes in %s camera ===" % camera_name)
-	for node_id in current_camera_positions:
-		var node = _get_node_by_id(node_id)
-		var screen_pos = current_camera_positions[node_id]
-		if node:
-			print("  %s: screen(%.0f, %.0f), world(%.0f, %.0f)" % [
-				node_id, screen_pos.x, screen_pos.y, 
-				node.global_position.x, node.global_position.y
-			])
-	print("===\n")
 
 func _on_camera_view_changed(camera_name: String) -> void:
 	"""Called when camera transitions to a new view - update coordinate table"""
@@ -273,54 +266,31 @@ func get_node_at_screen_position(screen_pos: Vector2, detection_radius: float = 
 	var closest_node: VillageNode = null
 	var closest_distance = detection_radius
 	
-	print("\n=== DEBUG: get_node_at_screen_position ===")
-	print("Looking for node at screen position (%.1f, %.1f) with radius %.0f" % [screen_pos.x, screen_pos.y, detection_radius])
-	print("Current camera positions available: %d nodes" % current_camera_positions.size())
-	
 	# Search only visible nodes for current camera view
 	for node_id in current_camera_positions:
 		var node = _get_node_by_id(node_id)
 		if node:
 			var node_screen_pos = current_camera_positions[node_id]
 			var distance = node_screen_pos.distance_to(screen_pos)
-			print("  %s: screen(%.0f, %.0f), distance: %.1f %s" % [
-				node_id, node_screen_pos.x, node_screen_pos.y, distance,
-				" ✓ WITHIN RANGE" if distance < closest_distance else ""
-			])
 			if distance < closest_distance:
 				closest_node = node
 				closest_distance = distance
 	
-	if closest_node:
-		print("RESULT: Found %s at distance %.1f" % [closest_node.location_name, closest_distance])
-	else:
-		print("RESULT: No node found within radius")
-	print("===\n")
-	
 	return closest_node
+
+func get_node_screen_position(node: VillageNode) -> Vector2:
+	"""Return the current screen position for a node in the active camera view."""
+	if not node:
+		return Vector2.ZERO
+
+	var position = current_camera_positions.get(node.node_id, null)
+	if position is Vector2:
+		return position
+	return Vector2.ZERO
 
 func _debug_print_all_cameras() -> void:
 	"""Debug: Print all cameras and their nodes with screen positions"""
-	var separator = "=================================================================================="
-	print("\n" + separator)
-	print("DEBUG: Complete Coordinate Mapping for All Cameras")
-	print(separator)
-	
-	for camera_name in node_screen_positions_by_camera:
-		var positions = node_screen_positions_by_camera[camera_name]
-		print("\n[%s Camera] (%d nodes)" % [camera_name.to_upper(), positions.size()])
-		
-		for node_id in positions:
-			var node = _get_node_by_id(node_id)
-			var screen_pos = positions[node_id]
-			if node:
-				print("  • %s: screen(%.0f, %.0f) | world(%.0f, %.0f)" % [
-					node_id,
-					screen_pos.x, screen_pos.y,
-					node.global_position.x, node.global_position.y
-				])
-	
-	print("\n" + separator + "\n")
+	pass
 
 func get_all_draggable_nodes() -> Array[VillageNode]:
 	"""Get all nodes that a unit can be dragged to (same camera + adjacent cameras)"""

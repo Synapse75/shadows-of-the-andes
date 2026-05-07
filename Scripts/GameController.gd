@@ -8,6 +8,7 @@ var pause_menu: PauseMenuController
 var camera_manager: CameraManager
 var settings: SettingsAndData
 var ui_manager: UIManager
+var spotlight_mask_overlay: SpotlightMaskOverlay
 
 signal game_started
 signal game_over(winner: String)
@@ -19,7 +20,9 @@ func _ready() -> void:
 	pause_menu = get_node("UILayer/PauseMenu")
 	camera_manager = get_node("SubViewportContainer/SubViewport/Camera2D")
 	ui_manager = get_node("Systems/UIManager")
+	spotlight_mask_overlay = get_node_or_null("SpotlightMaskOverlay") as SpotlightMaskOverlay
 	settings = SettingsAndData.new()
+	UnitNamePool.reset_pool()
 	
 	# 连接暂停按钮
 	var pause_button = get_node("UILayer/PauseButton")
@@ -38,11 +41,32 @@ func _ready() -> void:
 	var tinta = game_map._get_node_by_id("tinta")
 	if tinta:
 		ui_manager.show_node_info(tinta)
+		call_deferred("_show_startup_spotlight", tinta)
+
+	# Allow capture messages only after initialization has finished
+	_enable_control_notifications()
 	
 	# 启动回合系统
 	turn_manager.start_turn()
 	
 	emit_signal("game_started")
+
+func _show_startup_spotlight(node: VillageNode) -> void:
+	"""Show the startup spotlight on Tinta using screen-space coordinates."""
+	if not spotlight_mask_overlay or not node:
+		return
+
+	var spotlight_position := Vector2(390, 225)
+	if game_map:
+		var tinta_positions: Dictionary = game_map.node_screen_positions_by_camera.get("tinta", {})
+		var mapped_position = tinta_positions.get(node.node_id, null)
+		if mapped_position is Vector2:
+			spotlight_position = mapped_position
+		elif game_map.current_camera_positions.has(node.node_id):
+			spotlight_position = game_map.get_node_screen_position(node)
+
+	spotlight_mask_overlay.show_mask()
+	spotlight_mask_overlay.set_highlight_position(spotlight_position, false)
 
 func initialize_villages() -> void:
 	"""Initialize all villages with resources and enemy garrisons"""
@@ -78,6 +102,12 @@ func initialize_villages() -> void:
 		if village_id == "tinta":
 			spawn_initial_garrison(village)
 
+func _enable_control_notifications() -> void:
+	"""Enable control-change messages after startup initialization is complete."""
+	for node in game_map.all_nodes:
+		if node is VillageNode:
+			(node as VillageNode).enable_control_notifications()
+
 func spawn_initial_garrison(village: VillageNode) -> void:
 	"""Spawn initial player units at Tinta"""
 	# Create 2 initial units: 1 Rebel Army, 1 Female Corps
@@ -100,7 +130,6 @@ func spawn_enemy_garrison(village: VillageNode, village_id: String) -> void:
 	for i in range(enemy_count):
 		var enemy = EnemyUnit.new()
 		enemy.unit_id = "enemy_%s_%d" % [village_id, i]
-		enemy.unit_name = "Spanish Guard %d" % (i + 1)
 		village.add_child(enemy)
 		enemy.assign_to_node(village)
 func _on_auto_phase_ended() -> void:

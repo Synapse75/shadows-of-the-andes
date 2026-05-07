@@ -32,6 +32,15 @@ var altitude_texture_rect: TextureRect
 var resource1_texture_rect: TextureRect
 var resource2_texture_rect: TextureRect
 
+# InfoPanel 海拔文本显示
+var altitude_text_label: Label
+
+# 当前选中节点的海拔
+var current_altitude: String = ""
+
+# Icon tooltip 面板
+var icon_tooltip_panel: Control
+
 # 资源容器
 var resources_scroll_container: ScrollContainer
 var resources_vbox: VBoxContainer
@@ -109,8 +118,13 @@ func _ready() -> void:
 	
 	# 获取 InfoPanel 下的资源图标 TextureRect
 	altitude_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Altitude")
+	altitude_text_label = get_node_or_null("../../UILayer/InfoPanel/AltitudeText")
 	resource1_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Resource1")
 	resource2_texture_rect = get_node_or_null("../../UILayer/InfoPanel/Resource2")
+	
+	# 初始化 icon tooltip panel
+	icon_tooltip_panel = preload("res://Scenes/UI/IconTooltipPanel.tscn").instantiate()
+	get_node("../../UILayer").add_child(icon_tooltip_panel)
 	
 	# 获取 RecruitButton
 	recruit_button = get_node_or_null("../../UILayer/RecruitButton")
@@ -198,20 +212,49 @@ func show_node_info(node: VillageNode) -> void:
 	
 	# Set altitude icon in TextureRect
 	var altitude = info["altitude"]
+	current_altitude = altitude
 	var altitude_icon_path = altitude_icons.get(altitude, "")
 	if altitude_texture_rect:
 		if altitude_icon_path and ResourceLoader.exists(altitude_icon_path):
 			altitude_texture_rect.texture = load(altitude_icon_path)
 		else:
 			altitude_texture_rect.texture = null
+		altitude_texture_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+		altitude_texture_rect.mouse_entered.connect(func():
+			_show_altitude_tooltip(altitude)
+		)
+		altitude_texture_rect.mouse_exited.connect(func():
+			if icon_tooltip_panel:
+				icon_tooltip_panel.hide_text()
+		)
 	
 	# Set produced resource icons
+	var produced_resources = node.produced_resource_types
+	
 	if resource1_texture_rect:
 		resource1_texture_rect.texture = null
+		resource1_texture_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+		resource1_texture_rect.mouse_entered.connect(func():
+			if produced_resources.size() > 0:
+				_show_resource_name_tooltip(produced_resources[0])
+		)
+		resource1_texture_rect.mouse_exited.connect(func():
+			if icon_tooltip_panel:
+				icon_tooltip_panel.hide_text()
+		)
 	if resource2_texture_rect:
 		resource2_texture_rect.texture = null
+		resource2_texture_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+		resource2_texture_rect.mouse_entered.connect(func():
+			if produced_resources.size() > 1:
+				_show_resource_name_tooltip(produced_resources[1])
+		)
+		resource2_texture_rect.mouse_exited.connect(func():
+			if icon_tooltip_panel:
+				icon_tooltip_panel.hide_text()
+		)
 	
-	var produced_resources = node.produced_resource_types
+	# Set resource textures
 	if produced_resources.size() > 0 and resource1_texture_rect:
 		var resource1_path = resource_icons.get(produced_resources[0], "")
 		if resource1_path and ResourceLoader.exists(resource1_path):
@@ -549,28 +592,14 @@ func _on_recruit_button_pressed() -> void:
 	unit.assign_to_node(locked_node)
 	locked_node.population -= 25
 	locked_node.resources["population"] -= 25  # Also update resources dict
+	MessageLog.add_message("Recruited %s at %s" % [unit.unit_name, locked_node.location_name], "success")
 	
 	# Refresh display
 	show_node_info(locked_node)
 
 func show_recruitment_failed_tooltip(message: String) -> void:
-	"""Show a temporary tooltip at the top-left when recruitment fails"""
-	var ui_layer = get_node("../../UILayer")
-	
-	# Create a temporary label at top-left
-	var tooltip = Label.new()
-	tooltip.text = message
-	tooltip.add_theme_font_override("font", ResourceLoader.load("res://Fonts/ClearFont.ttf"))
-	tooltip.add_theme_font_size_override("font_size", 12)
-	tooltip.add_theme_color_override("font_color", Color.RED)
-	tooltip.position = Vector2(5, 5)
-	
-	# Add to UILayer
-	ui_layer.add_child(tooltip)
-	
-	# Auto-remove after 2 seconds
-	await get_tree().create_timer(2.0).timeout
-	tooltip.queue_free()
+	"""Show recruitment failure in the message log."""
+	MessageLog.add_message(message, "error")
 
 func refresh_displayed_node_info() -> void:
 	"""Refresh the currently displayed node info (called after auto phase ends)
@@ -587,7 +616,6 @@ func _on_unit_panel_pressed(unit: Unit, panel: Panel) -> void:
 	
 	# Use cached GameMap reference
 	if not game_map:
-		print("ERROR: Cannot find GameMap!")
 		return
 	
 	dragging_unit = unit
@@ -622,28 +650,28 @@ func _on_unit_panel_pressed(unit: Unit, panel: Panel) -> void:
 	# Calculate valid drop targets (all nodes except current node)
 	valid_drop_targets.clear()
 	if unit.current_node:
-		print("\n=== DEBUG: Calculating drop targets ===")
-		print("Unit %s at node: %s (camera: %s)" % [
-			unit.unit_name, unit.current_node.location_name,
-			game_map.node_camera_map.get(unit.current_node.node_id, "unknown")
-		])
-		print("DEBUG: map.all_nodes size: %d" % game_map.all_nodes.size())
+		# print("\n=== DEBUG: Calculating drop targets ===")
+		# print("Unit %s at node: %s (camera: %s)" % [
+		# 	unit.unit_name, unit.current_node.location_name,
+		# 	game_map.node_camera_map.get(unit.current_node.node_id, "unknown")
+		# ])
+		# print("DEBUG: map.all_nodes size: %d" % game_map.all_nodes.size())
 		
 		# All nodes are draggable targets except the current node
 		for node in game_map.all_nodes:
 			if node != unit.current_node:
 				valid_drop_targets.append(node)
 				var movement_time = game_map.get_movement_time_to_node(unit.current_node, node)
-				print("  ✓ Added %s: %d turns (camera: %s)" % [
-					node.location_name, movement_time,
-					game_map.node_camera_map.get(node.node_id, "unknown")
-				])
+				# print("  ✓ Added %s: %d turns (camera: %s)" % [
+				# 	node.location_name, movement_time,
+				# 	game_map.node_camera_map.get(node.node_id, "unknown")
+				# ])
 		
-		print("DEBUG: Final valid_drop_targets count: %d" % valid_drop_targets.size())
-		print("===\n")
+		# print("DEBUG: Final valid_drop_targets count: %d" % valid_drop_targets.size())
+		# print("===\n")
 	
 	# Debug output
-	print("Started dragging unit %s from %s. Valid targets: %d" % [unit.unit_name, unit.current_node.location_name, valid_drop_targets.size()])
+	# print("Started dragging unit %s from %s. Valid targets: %d" % [unit.unit_name, unit.current_node.location_name, valid_drop_targets.size()])
 
 func _process(_delta: float) -> void:
 	"""Process drag operations (unit or resource)"""
@@ -694,36 +722,27 @@ func _complete_drag() -> void:
 	# Drop targeting uses the same hovered node source that drives shader highlight.
 	var target_node = _get_drop_target_from_hover()
 	
-	print("\n=== DEBUG: Drag completion ===")
-	print("Unit: %s, Valid targets: %d" % [dragging_unit.unit_name, valid_drop_targets.size()])
-	print("Drop target source: hovered_node(shader)")
-	print("Hovered target: %s" % (target_node.location_name if target_node else "None"))
-	if target_node:
-		print("Target node found: %s (in valid targets: %s)" % [
-			target_node.location_name, 
-			target_node in valid_drop_targets
-		])
-	else:
-		print("No target node found")
-	print("===\n")
+	# print("\n=== DEBUG: Drag completion ===")
+	# print("Unit: %s, Valid targets: %d" % [dragging_unit.unit_name, valid_drop_targets.size()])
+	# print("Drop target source: hovered_node(shader)")
+	# print("Hovered target: %s" % (target_node.location_name if target_node else "None"))
+	# if target_node:
+	# 	print("Target node found: %s (in valid targets: %s)" % [
+	# 		target_node.location_name, 
+	# 		target_node in valid_drop_targets
+	# 	])
+	# else:
+	# 	print("No target node found")
+	# print("===\n")
 	
 	var movement_successful = false
 	
 	if target_node and target_node in valid_drop_targets:
 		# Valid drop target - start movement
-		print("Valid drop target! Starting movement to %s" % target_node.location_name)
 		if dragging_unit.start_movement(target_node):
-			# Movement started successfully
-			print("Movement started successfully. Duration: %d turns" % dragging_unit.movement_time_remaining)
 			movement_successful = true
 			# Refresh UI to show "Moving" label
 			refresh_displayed_node_info()
-		else:
-			# Movement failed (shouldn't happen if validation is correct)
-			print("Movement start failed!")
-	else:
-		if target_node:
-			print("Target %s is not in valid drop targets" % target_node.location_name)
 	
 	# Remove dragging icon
 	if dragging_icon:
@@ -812,6 +831,16 @@ func _complete_resource_drag() -> void:
 			# Try to transfer resource to unit
 			var unit = unit_panel.get_meta("unit_ref") as Unit
 			if unit and unit.current_node == locked_node:
+				# Special handling for llama (mount) - only 1 per unit
+				if dragging_resource == "llama":
+					if unit.inventory.has("llama") and unit.inventory["llama"] > 0:
+						MessageLog.add_message("Unit already has a mount!", "error")
+						transfer_success = false
+					elif unit.add_to_inventory(dragging_resource, 1) > 0:
+						locked_node.resources[dragging_resource] -= 1
+						transfer_success = true
+					break
+				
 				if unit.add_to_inventory(dragging_resource, 1) > 0:
 					# Transfer successful
 					locked_node.resources[dragging_resource] -= 1
@@ -846,13 +875,13 @@ func _complete_resource_drag() -> void:
 
 func _show_unit_tooltip(unit: Unit) -> void:
 	"""Display tooltip with unit stats"""
-	var tooltip_text = "%s\n" % unit.unit_name
+	var tooltip_text = "%s - %s\n" % [unit.unit_name, unit.unit_type]
 	tooltip_text += "\n"
 	tooltip_text += "Health: %d/%d\n" % [unit.current_health, unit.max_health]
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
 	tooltip_text += "Attack: %d\n" % unit.attack_power
 	tooltip_text += "Speed: %.1fx" % unit.movement_speed_multiplier
-	TooltipManager.show_unit_inventory(tooltip_text, unit.inventory, unit.INVENTORY_CAPACITY, 0.1)
+	TooltipManager.show_unit_inventory(tooltip_text, unit.inventory, unit.INVENTORY_CAPACITY, unit.has_mount, 0.1)
 
 func _show_resource_tooltip(resource_type: String) -> void:
 	"""Display tooltip with resource description"""
@@ -866,6 +895,34 @@ func _show_resource_tooltip(resource_type: String) -> void:
 	}
 	var description = resource_descriptions.get(resource_type, resource_type)
 	TooltipManager.show_text(description, 0.1)
+
+func _show_altitude_tooltip(altitude: String) -> void:
+	"""Display tooltip for altitude icon"""
+	var altitude_text = ""
+	match altitude:
+		"high":
+			altitude_text = "High"
+		"middle", "medium":
+			altitude_text = "Middle"
+		"low":
+			altitude_text = "Low"
+		_:
+			altitude_text = altitude
+	
+	if icon_tooltip_panel:
+		icon_tooltip_panel.show_text(altitude_text)
+
+func _show_resource_name_tooltip(resource_type: String) -> void:
+	var resource_names = {
+		"potato": "Potato",
+		"llama": "Llama",
+		"corn": "Corn",
+		"quinoa": "Quinoa",
+		"coca": "Coca"
+	}
+	var name = resource_names.get(resource_type, resource_type)
+	if icon_tooltip_panel:
+		icon_tooltip_panel.show_text(name)
 
 func _show_enemy_tooltip(enemy_unit: EnemyUnit) -> void:
 	"""Display tooltip with enemy unit stats"""
@@ -899,7 +956,6 @@ func _initialize_tooltip_system() -> void:
 func _get_drop_target_from_hover() -> VillageNode:
 	"""Return current drag target using GameMap hover state (same source as shader highlight)."""
 	if not game_map or not game_map is GameMap:
-		print("Cannot find GameMap for hovered drop target!")
 		return null
 
 	return game_map.hovered_node

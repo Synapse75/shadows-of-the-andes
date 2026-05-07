@@ -47,6 +47,7 @@ signal enemy_units_changed(new_units: Array)
 # UI 引用
 var village_sprite: AnimatedSprite2D
 var village_label: Label
+var control_notifications_enabled: bool = false
 
 func _ready() -> void:
 	add_to_group("nodes")
@@ -64,6 +65,10 @@ func _ready() -> void:
 		village_label.text = location_name
 
 	update_visual()
+
+func enable_control_notifications() -> void:
+	"""Allow control-change messages after the world has finished initializing."""
+	control_notifications_enabled = true
 
 func add_unit(unit: Unit) -> void:
 	"""Add unit to this node"""
@@ -98,9 +103,12 @@ func remove_enemy_unit(unit: EnemyUnit) -> void:
 func set_control(is_player: bool) -> void:
 	"""Change node control"""
 	if control_by_player != is_player:
+		var was_player_controlled = control_by_player
 		control_by_player = is_player
 		control_changed.emit(is_player)
 		update_visual()
+		if control_notifications_enabled and is_player and not was_player_controlled:
+			MessageLog.add_message("Village captured: %s" % location_name, "success")
 
 func add_resource(resource_type: String, amount: int) -> bool:
 	"""Add resource with storage limit (10 per resource type)
@@ -170,8 +178,8 @@ func consume_resources() -> void:
 	if not control_by_player:
 		return
 	
-	print("\n[DEBUG] === %s 资源消耗开始 ===" % location_name)
-	print("[%s] 人口：%d, 当前饱腹状态：%s, 累积消耗值：%.2f" % [location_name, population, "HUNGRY" if hunger_status else "NORMAL", consumption_accumulator])
+	# print("\n[DEBUG] === %s 资源消耗开始 ===" % location_name)
+	# print("[%s] 人口：%d, 当前饱腹状态：%s, 累积消耗值：%.2f" % [location_name, population, "HUNGRY" if hunger_status else "NORMAL", consumption_accumulator])
 	
 	# GDD 4.4.5 - Step 1: Calculate consumption value
 	# consumption_accumulator += population × 0.01
@@ -188,11 +196,11 @@ func consume_resources() -> void:
 	# GDD 4.4.5 - Step 3: Consume food loop (only when hunger_status = true)
 	# Consume in priority order: Potato → Corn → Quinoa
 	if hunger_status:
-		print("[%s] 开始消耗食物循环，累积消耗值：%.2f" % [location_name, consumption_accumulator])
+		# print("[%s] 开始消耗食物循环，累积消耗值：%.2f" % [location_name, consumption_accumulator])
 		while consumption_accumulator >= 1.0 and _has_consumable_resources():
 			_consume_one_food()
 			consumption_accumulator -= 1.0
-		print("[%s] 消耗食物循环结束，剩余累积消耗值：%.2f" % [location_name, consumption_accumulator])
+		# print("[%s] 消耗食物循环结束，剩余累积消耗值：%.2f" % [location_name, consumption_accumulator])
 	
 	# GDD 4.4.5 - Step 4: Update hunger status based on remaining food
 	if not _has_consumable_resources():
@@ -201,15 +209,15 @@ func consume_resources() -> void:
 		hunger_status = false
 	
 	# 最终状态输出
-	print("[%s] 消耗完成：Potato=%d, Corn=%d, Quinoa=%d | 饥饿=%s, 累积消耗=%.2f" % [
-		location_name, 
-		resources.get("potato", 0),
-		resources.get("corn", 0),
-		resources.get("quinoa", 0),
-		"YES" if hunger_status else "NO",
-		consumption_accumulator
-	])
-	print("[DEBUG] === %s 资源消耗结束 ===\n" % location_name)
+	# print("[%s] 消耗完成：Potato=%d, Corn=%d, Quinoa=%d | 饥饿=%s, 累积消耗=%.2f" % [
+	# 	location_name, 
+	# 	resources.get("potato", 0),
+	# 	resources.get("corn", 0),
+	# 	resources.get("quinoa", 0),
+	# 	"YES" if hunger_status else "NO",
+	# 	consumption_accumulator
+	# ])
+	# print("[DEBUG] === %s 资源消耗结束 ===\n" % location_name)
 
 func _has_consumable_resources() -> bool:
 	"""Check if village has any consumable resources (Potato, Corn, or Quinoa)"""
@@ -222,19 +230,19 @@ func _consume_one_food() -> void:
 	# GDD 4.4.4 priority order
 	if resources.get("potato", 0) > 0:
 		resources["potato"] -= 1
-		print("  [%s] 消耗 1 个土豆（Potato），剩余：%d" % [location_name, resources["potato"]])
+		# print("  [%s] 消耗 1 个土豆（Potato），剩余：%d" % [location_name, resources["potato"]])
 		resources_changed.emit(resources)
 		return
 	
 	if resources.get("corn", 0) > 0:
 		resources["corn"] -= 1
-		print("  [%s] 消耗 1 个玉米（Corn），剩余：%d" % [location_name, resources["corn"]])
+		# print("  [%s] 消耗 1 个玉米（Corn），剩余：%d" % [location_name, resources["corn"]])
 		resources_changed.emit(resources)
 		return
 	
 	if resources.get("quinoa", 0) > 0:
 		resources["quinoa"] -= 1
-		print("  [%s] 消耗 1 个藜麦（Quinoa），剩余：%d" % [location_name, resources["quinoa"]])
+		# print("  [%s] 消耗 1 个藜麦（Quinoa），剩余：%d" % [location_name, resources["quinoa"]])
 		resources_changed.emit(resources)
 		return
 
