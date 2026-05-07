@@ -226,7 +226,7 @@ func can_add_to_inventory(amount: int) -> bool:
 func add_to_inventory(resource_type: String, amount: int) -> int:
 	"""Add resource to inventory. Returns amount actually added (capped at capacity).
 	Example: if capacity allows 2 more items, returns 2 even if requested 5."""
-	# Special handling for llama (mount) - only 1 allowed
+	# Special handling for llama (mount) - stored in has_mount, not in inventory dict
 	if resource_type == "llama":
 		if has_mount:
 			return 0  # Already has mount

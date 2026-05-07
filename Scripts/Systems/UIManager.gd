@@ -833,7 +833,7 @@ func _complete_resource_drag() -> void:
 			if unit and unit.current_node == locked_node:
 				# Special handling for llama (mount) - only 1 per unit
 				if dragging_resource == "llama":
-					if unit.inventory.has("llama") and unit.inventory["llama"] > 0:
+					if unit.has_mount:
 						MessageLog.add_message("Unit already has a mount!", "error")
 						transfer_success = false
 					elif unit.add_to_inventory(dragging_resource, 1) > 0:
@@ -881,6 +881,7 @@ func _show_unit_tooltip(unit: Unit) -> void:
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
 	tooltip_text += "Attack: %d\n" % unit.attack_power
 	tooltip_text += "Speed: %.1fx" % unit.movement_speed_multiplier
+	print("[UIManager] show_unit_inventory: unit_name=%s has_mount=%s" % [unit.unit_name, unit.has_mount])
 	TooltipManager.show_unit_inventory(tooltip_text, unit.inventory, unit.INVENTORY_CAPACITY, unit.has_mount, 0.1)
 
 func _show_resource_tooltip(resource_type: String) -> void:

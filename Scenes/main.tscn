@@ -252,6 +252,10 @@ grow_horizontal = 0
 [node name="SpotlightMaskOverlay" parent="." unique_id=2000000102 instance=ExtResource("23_spotlight_mask_overlay_scene")]
 
 [node name="MessageLogUI" parent="." unique_id=2000000103 instance=ExtResource("24_message_log_ui_scene")]
+offset_left = 490.0
+offset_top = 50.0
+offset_right = 640.0
+offset_bottom = 160.0
 
 [node name="Systems" type="Node" parent="." unique_id=1968131527]
 
