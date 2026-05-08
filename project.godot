@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 TransitionManager="*res://Scripts/Systems/TransitionManager.gd"
 MessageLog="*res://Scripts/Systems/MessageLog.gd"
+AudioManager="*res://Scripts/Systems/AudioManager.gd"
 
 [display]
 

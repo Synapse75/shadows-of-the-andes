@@ -18,7 +18,7 @@
 [ext_resource type="Script" uid="uid://b2ag6ny37pq8" path="res://Scripts/Systems/CombatSystem.gd" id="19_combat_system"]
 [ext_resource type="Script" uid="uid://dfxgaggx8u4ej" path="res://Scripts/Systems/TooltipManager.gd" id="20_tooltip_manager"]
 [ext_resource type="PackedScene" uid="uid://b8aq8hf7tan7f" path="res://Scenes/UI/TooltipPanel.tscn" id="22_tooltip_panel_scene"]
-[ext_resource type="PackedScene" path="res://Scenes/UI/SpotlightMaskOverlay.tscn" id="23_spotlight_mask_overlay_scene"]
+[ext_resource type="PackedScene" uid="uid://b5h65nnwbfjmh" path="res://Scenes/UI/SpotlightMaskOverlay.tscn" id="23_spotlight_mask_overlay_scene"]
 [ext_resource type="PackedScene" uid="uid://w34q0wqwrh7b" path="res://Scenes/UI/MessageLogUI.tscn" id="24_message_log_ui_scene"]
 [ext_resource type="Script" uid="uid://cn6dabahdctcf" path="res://Scripts/Systems/AudioManager.gd" id="audio_manager"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]

@@ -1,6 +1,8 @@
 extends Node
 
 var audio_player: AudioStreamPlayer
+var music_player: AudioStreamPlayer
+var current_music: String = ""
 
 var sounds: Dictionary = {
 	"start": "res://SoundEffects/Start.wav",
@@ -15,9 +17,21 @@ var sounds: Dictionary = {
 	"enemy_appear": "res://SoundEffects/EnemyAppear.wav"
 }
 
+var music_tracks: Dictionary = {
+	"knees_beats": "res://Musics/382584__nttb__nttb-knees-beats.wav",
+	"hidden": "res://Musics/556524__casonika__hidden.wav"
+}
+
 func _ready() -> void:
 	audio_player = AudioStreamPlayer.new()
+	audio_player.volume_db = -10.5  # 降低到30%音量
 	add_child(audio_player)
+	
+	music_player = AudioStreamPlayer.new()
+	music_player.bus = "Master"
+	add_child(music_player)
+	# 连接音乐播放完毕信号以实现循环
+	music_player.finished.connect(_on_music_finished)
 
 func play_sound(sound_name: String) -> void:
 	if sound_name in sounds:
@@ -55,3 +69,33 @@ func play_choose() -> void:
 
 func play_enemy_appear() -> void:
 	play_sound("enemy_appear")
+
+func play_music(music_name: String) -> void:
+	"""播放背景音乐（循环）"""
+	if music_name in music_tracks:
+		# 如果已经在播放同一首音乐，则不重新播放
+		if current_music == music_name and music_player.playing:
+			return
+		
+		var path = music_tracks[music_name]
+		if ResourceLoader.exists(path):
+			var stream = load(path)
+			music_player.stream = stream
+			music_player.bus = "Master"
+			music_player.play()
+			current_music = music_name
+
+func stop_music() -> void:
+	"""停止背景音乐"""
+	if music_player.playing:
+		music_player.stop()
+	current_music = ""
+
+func _on_music_finished() -> void:
+	"""音乐播放完毕后自动重新播放（循环）"""
+	if current_music != "":
+		if current_music in music_tracks:
+			var path = music_tracks[current_music]
+			if ResourceLoader.exists(path):
+				music_player.stream = load(path)
+				music_player.play()

@@ -306,6 +306,8 @@ func die() -> void:
 	if current_node:
 		current_node.remove_unit(self)
 	MessageLog.add_message("Your unit died: %s" % unit_name, "error")
+	# 播放单位死亡音效
+	get_tree().root.get_node("AudioManager").play_sound("be_killed")
 	unit_died.emit()
 
 # Inventory Management

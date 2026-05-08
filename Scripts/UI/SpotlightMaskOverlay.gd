@@ -14,6 +14,7 @@ var fade_tween: Tween
 var on_hide_callback: Callable = Callable()
 var on_click_callback: Callable = Callable()
 var has_clicked_once: bool = false
+var label_below_highlight: bool = false
 
 func _ready() -> void:
 	mask_rect = get_node_or_null("Mask") as ColorRect
@@ -53,8 +54,9 @@ func _apply_shader_parameters() -> void:
 	var default_center = viewport_size * 0.5
 	mask_material.set_shader_parameter("highlight_center_px", default_center)
 
-func set_label_text(text: String) -> void:
+func set_label_text(text: String, below_highlight: bool = false) -> void:
 	"""设置spotlight标签的文本内容"""
+	label_below_highlight = below_highlight
 	if label:
 		label.text = text
 
@@ -81,8 +83,11 @@ func _update_label_position() -> void:
 	var center = _get_current_center_px()
 	var viewport_size = get_viewport().get_visible_rect().size
 	var label_size = label.size
+	var vertical_offset = highlight_radius_px + 20
+	if label_below_highlight:
+		vertical_offset = highlight_radius_px + 28
 	
-	var label_pos = center + Vector2(0, -highlight_radius_px - 20)
+	var label_pos = center + Vector2(0, vertical_offset if label_below_highlight else -vertical_offset)
 	label_pos.x = clamp(label_pos.x - label_size.x / 2, 10, viewport_size.x - label_size.x - 10)
 	label_pos.y = clamp(label_pos.y - label_size.y / 2, 10, viewport_size.y - label_size.y - 10)
 	

@@ -94,4 +94,6 @@ func die() -> void:
 	if current_node:
 		current_node.remove_enemy_unit(self)
 	MessageLog.add_message("Enemy unit died: %s" % unit_name, "error")
+	# 播放敌人被杀音效
+	get_tree().root.get_node("AudioManager").play_sound("be_killed")
 	unit_died.emit()

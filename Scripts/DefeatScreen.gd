@@ -18,6 +18,9 @@ func _ready() -> void:
 	# 显示第一行文字并淡入
 	_show_current_text()
 	_fade_in_current_text()
+	
+	# 播放背景音乐
+	get_tree().root.get_node("AudioManager").play_music("hidden")
 
 func _load_defeat_from_file() -> void:
 	"""从defeat.txt文件读取失败内容"""

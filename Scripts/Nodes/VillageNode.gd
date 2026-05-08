@@ -117,6 +117,12 @@ func set_control(is_player: bool) -> void:
 		update_visual()
 		if control_notifications_enabled and is_player and not was_player_controlled:
 			MessageLog.add_message("Village captured: %s" % location_name, "success")
+			# 播放控制音效
+			get_tree().root.get_node("AudioManager").play_sound("control")
+		elif control_notifications_enabled and not is_player and was_player_controlled:
+			MessageLog.add_message("Village lost: %s" % location_name, "danger")
+			# 播放失去控制音效
+			get_tree().root.get_node("AudioManager").play_sound("uncontrol")
 
 func add_resource(resource_type: String, amount: int) -> bool:
 	"""Add resource with storage limit (10 per resource type)

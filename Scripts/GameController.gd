@@ -13,8 +13,6 @@ var spotlight_mask_overlay: SpotlightMaskOverlay
 signal game_started
 signal game_over(winner: String)
 
-var audio_manager: Node
-
 func _ready() -> void:
 	# 获取各个系统的引用
 	game_map = get_node("SubViewportContainer/SubViewport/Map")
@@ -23,7 +21,6 @@ func _ready() -> void:
 	camera_manager = get_node("SubViewportContainer/SubViewport/Camera2D")
 	ui_manager = get_node("Systems/UIManager")
 	spotlight_mask_overlay = get_node_or_null("SpotlightMaskOverlay") as SpotlightMaskOverlay
-	audio_manager = get_node("Systems/AudioManager")
 	settings = SettingsAndData.new()
 	UnitNamePool.reset_pool()
 	
@@ -57,6 +54,9 @@ func _ready() -> void:
 	
 	# 启动回合系统
 	turn_manager.start_turn()
+	
+	# 播放背景音乐
+	get_tree().root.get_node("AudioManager").play_music("knees_beats")
 	
 	emit_signal("game_started")
 
@@ -94,7 +94,7 @@ func _on_first_spotlight_clicked() -> void:
 	
 	print("DEBUG: Moving to step 1: info_panel")
 	spotlight_mask_overlay.move_to(Vector2(70, 100), 0.5)
-	spotlight_mask_overlay.set_label_text("Tupac Amaru II led his rebellion from the village of Tinta.")
+	spotlight_mask_overlay.set_label_text("He hoped to work together with the people to rebuild the vertical archipelago.")
 
 func _on_tutorial_click() -> void:
 	print("DEBUG: _on_tutorial_click called, step=", _tutorial_step)
@@ -103,32 +103,41 @@ func _on_tutorial_click() -> void:
 	
 	match _tutorial_step:
 		1:
-			print("DEBUG: Step 1 -> 2: recruitbutton")
 			spotlight_mask_overlay.move_to(Vector2(70, 165), 0.5)
-			spotlight_mask_overlay.set_label_text("Recruit soldiers to strengthen your rebellion.")
+			spotlight_mask_overlay.set_label_text("He called on villagers.")
 			_tutorial_step = 2
 		2:
-			print("DEBUG: Step 2 -> 3: +46px")
 			spotlight_mask_overlay.move_to(Vector2(70, 211), 0.5)
-			spotlight_mask_overlay.set_label_text("Gather resources to sustain your army and people.")
+			spotlight_mask_overlay.set_label_text("Formed the rebel army.")
 			_tutorial_step = 3
 		3:
-			print("DEBUG: Step 3 -> 4: +90px")
-			spotlight_mask_overlay.move_to(Vector2(70, 301), 0.5)
-			spotlight_mask_overlay.set_label_text("Manage your territories and expand your control.")
+			spotlight_mask_overlay.move_to(Vector2(70, 251), 0.5)
+			spotlight_mask_overlay.set_label_text("Among them were defensive specialists known as the female corps.")
 			_tutorial_step = 4
 		4:
-			print("DEBUG: Step 4 -> 5: arrowup")
-			spotlight_mask_overlay.move_to(Vector2(400, 55), 0.5)
-			spotlight_mask_overlay.set_label_text("Switch camera views to survey different regions.")
+			spotlight_mask_overlay.set_label_text("(Drag the units to move them around)")
 			_tutorial_step = 5
 		5:
-			print("DEBUG: Step 5 -> 6: nextturnbutton")
-			spotlight_mask_overlay.move_to(Vector2(216, 25), 0.5)
-			spotlight_mask_overlay.set_label_text("End your turn and let your enemies make their moves.")
+			spotlight_mask_overlay.move_to(Vector2(70, 301), 0.5)
+			spotlight_mask_overlay.set_label_text("The villages produced resources.")
 			_tutorial_step = 6
 		6:
-			print("DEBUG: Step 6 -> hide")
+			spotlight_mask_overlay.set_label_text("Tupac Amaru II's forces transported resources between settlements.")
+			_tutorial_step = 7
+		7:
+			spotlight_mask_overlay.set_label_text("(Drag the resources to load them onto units)")
+			_tutorial_step = 8
+		8:
+			spotlight_mask_overlay.move_to(Vector2(400, 55), 0.5)
+			spotlight_mask_overlay.set_label_text("(Click on the arrow to switch camera views)", true)
+			_tutorial_step = 9
+		
+		9:
+			spotlight_mask_overlay.move_to(Vector2(216, 25), 0.5)
+			spotlight_mask_overlay.set_label_text("(Click on the Next Turn button to end your turn)", true)
+			_tutorial_step = 10
+
+		10:
 			spotlight_mask_overlay.hide_mask(true, 0.5)
 			spotlight_mask_overlay.on_click_callback = Callable()
 			_tutorial_step = 0

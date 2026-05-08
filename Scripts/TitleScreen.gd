@@ -9,8 +9,13 @@ func _ready() -> void:
 	start_button.pressed.connect(_on_start_pressed)
 	credit_button.pressed.connect(_on_credit_pressed)
 	exit_button.pressed.connect(_on_exit_pressed)
+	
+	# 播放背景音乐
+	get_tree().root.get_node("AudioManager").play_music("hidden")
 
 func _on_start_pressed() -> void:
+	# 播放开始音效
+	get_tree().root.get_node("AudioManager").play_sound("start")
 	await TransitionManager.transition_to_story()
 
 func _on_credit_pressed() -> void:

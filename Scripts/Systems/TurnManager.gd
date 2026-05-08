@@ -250,6 +250,9 @@ func _trigger_enemy_invasion() -> Array[VillageNode]:
 				village.add_enemy_unit(enemy)
 				newly_invaded.append(village)
 				
+				# 播放敌人出现音效
+				get_tree().root.get_node("AudioManager").play_sound("enemy_appear")
+				
 				if not has_defenders:
 					village.set_control(false)
 					MessageLog.add_message("Enemy forces invaded %s!" % village.location_name, "error")
