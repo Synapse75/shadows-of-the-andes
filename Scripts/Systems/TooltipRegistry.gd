@@ -34,7 +34,7 @@ var ui_tooltips: Dictionary = {
 		"population_normal": "Population Stable\nPopulation is at normal levels"
 	},
 	"Buttons": {
-		"recruit_button": "Recruit Soldiers\nClick to recruit new rebel soldiers\nCost: 3 Potatoes",
+		"recruit_button": "Recruit Soldiers\nClick to recruit new rebel soldiers\nNeed population: 25",
 		"end_turn_button": "End Turn\nEnd your action phase\nEnters auto phase (production, consumption, movement)",
 		"pause_menu_button": "Menu\nOpen game menu\nView settings and save/load progress"
 	}

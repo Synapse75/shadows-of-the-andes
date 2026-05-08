@@ -19,14 +19,14 @@ func _ready() -> void:
 func transition_to_story() -> void:
 	"""从TitleScreen过渡到StoryTransition"""
 	# 淡入黑幕
-	await _fade_to_black(1.0)
+	await _fade_to_black(0.5)
 	# 切换场景到StoryTransition
 	get_tree().change_scene_to_file("res://Scenes/StoryTransition.tscn")
 
 func transition_to_main() -> void:
 	"""从StoryTransition过渡到Main"""
 	# 先开始淡出，再立刻切换场景，让main在变亮的同时出现
-	_fade_from_black(1.0)
+	_fade_from_black(0.5)
 	get_tree().change_scene_to_file("res://Scenes/main.tscn")
 
 func _fade_to_black(duration: float) -> void:
@@ -46,3 +46,58 @@ func _fade_from_black(duration: float) -> void:
 	tween.tween_property(overlay, "color", Color(0, 0, 0, 0), duration)
 	await tween.finished
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 禁用点击吸收
+func transition_to_credit() -> void:
+	"""从TitleScreen过渡到Credit"""
+	# 淡入黑幕
+	await _fade_to_black(0.5)
+	# 切换场景到Credit
+	var err = get_tree().change_scene_to_file("res://Scenes/Credit.tscn")
+	if err != OK:
+		push_error("无法切换到Credit场景")
+		await _fade_from_black(0.1)
+		return
+	# 等待一帧确保新场景加载完成后再淡出黑幕
+	await get_tree().process_frame
+	await _fade_from_black(0.5)
+
+func transition_to_title() -> void:
+	"""从Credit过渡回TitleScreen"""
+	# 淡入黑幕
+	await _fade_to_black(0.5)
+	# 切换场景到TitleScreen
+	var err = get_tree().change_scene_to_file("res://Scenes/TitleScreen.tscn")
+	if err != OK:
+		push_error("无法切换到TitleScreen场景")
+		await _fade_from_black(0.1)
+		return
+	# 等待一帧确保新场景加载完成后再淡出黑幕
+	await get_tree().process_frame
+	await _fade_from_black(0.5)
+
+func transition_to_victory() -> void:
+	"""从Main过渡到VictoryScreen"""
+	# 淡入黑幕
+	await _fade_to_black(0.5)
+	# 切换场景到VictoryScreen
+	var err = get_tree().change_scene_to_file("res://Scenes/VictoryScreen.tscn")
+	if err != OK:
+		push_error("无法切换到VictoryScreen场景")
+		await _fade_from_black(0.1)
+		return
+	# 等待一帧确保新场景加载完成后再淡出黑幕
+	await get_tree().process_frame
+	await _fade_from_black(0.5)
+
+func transition_to_defeat() -> void:
+	"""从Main过渡到DefeatScreen"""
+	# 淡入黑幕
+	await _fade_to_black(0.5)
+	# 切换场景到DefeatScreen
+	var err = get_tree().change_scene_to_file("res://Scenes/DefeatScreen.tscn")
+	if err != OK:
+		push_error("无法切换到DefeatScreen场景")
+		await _fade_from_black(0.1)
+		return
+	# 等待一帧确保新场景加载完成后再淡出黑幕
+	await get_tree().process_frame
+	await _fade_from_black(0.5)

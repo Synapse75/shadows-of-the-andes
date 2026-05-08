@@ -10,6 +10,7 @@ var is_panel_locked: bool = false
 
 # Cached references
 var game_map: GameMap = null
+var audio_manager: Node = null
 
 # Drag-and-drop system
 var dragging_unit: Unit = null
@@ -76,6 +77,7 @@ var _node_signal_connect_retries: int = 0
 
 func _ready() -> void:
 	await _initialize_tooltip_system()
+	audio_manager = get_node_or_null("../../Systems/AudioManager")
 	
 	info_panel = get_node("../../UILayer/InfoPanel")
 	var old_label = get_node("../../UILayer/InfoPanel/Label")
@@ -130,6 +132,16 @@ func _ready() -> void:
 	recruit_button = get_node_or_null("../../UILayer/RecruitButton")
 	if recruit_button:
 		recruit_button.pressed.connect(_on_recruit_button_pressed)
+		recruit_button.mouse_entered.connect(func():
+			# if audio_manager:
+			# 	audio_manager.play_choose()
+			if icon_tooltip_panel:
+				icon_tooltip_panel.show_text("Need population: 25")
+		)
+		recruit_button.mouse_exited.connect(func():
+			if icon_tooltip_panel:
+				icon_tooltip_panel.hide_text()
+		)
 	
 	# 获取手动添加的 ScrollContainer
 	var ui_layer = get_node("../../UILayer")
@@ -201,11 +213,10 @@ func show_node_info(node: VillageNode) -> void:
 	text += info["location_name"] + "\n"
 	
 	# Population
-	text += "Pop: %d" % info["resources"].get("population", 0)
+	text += "Population: %d\n" % info["resources"].get("population", 0)
 	
-	# Show hunger status (GDD 4.4)
-	if node.hunger_status:
-		text += " [HUNGRY]"
+	# Hunger status (GDD 4.4)
+	text += "Hunger: %s" % ("Hungry" if node.hunger_status else "Normal")
 	
 	info_label.text = text
 	info_panel.visible = true
@@ -495,7 +506,7 @@ func _create_unit_panel_row(unit: Unit) -> void:
 	if unit.is_locked and unit.unit_state == Unit.UnitState.MOVING:
 		# Hide icon, show "Moving" overlay
 		icon_texture.visible = false
-		name_label.text = "Moving"
+		name_label.text = "Moving (%d)" % unit.movement_time_remaining
 		name_label.add_theme_color_override("font_color", Color.WHITE)
 		
 		# Add semi-transparent background
@@ -875,13 +886,18 @@ func _complete_resource_drag() -> void:
 
 func _show_unit_tooltip(unit: Unit) -> void:
 	"""Display tooltip with unit stats"""
-	var tooltip_text = "%s - %s\n" % [unit.unit_name, unit.unit_type]
+	var unit_type_names = {
+		"rebel_army": "Rebel Army",
+		"female_corps": "Female Corps",
+		"enemy": "Enemy"
+	}
+	var display_type = unit_type_names.get(unit.unit_type, unit.unit_type)
+	var tooltip_text = "%s - %s\n" % [unit.unit_name, display_type]
 	tooltip_text += "\n"
 	tooltip_text += "Health: %d/%d\n" % [unit.current_health, unit.max_health]
 	tooltip_text += "Satiety: %d/%d\n" % [unit.current_satiety, unit.max_satiety]
-	tooltip_text += "Attack: %d\n" % unit.attack_power
+	tooltip_text += "Attack: %d\n" % unit.get_current_attack_power()
 	tooltip_text += "Speed: %.1fx" % unit.movement_speed_multiplier
-	print("[UIManager] show_unit_inventory: unit_name=%s has_mount=%s" % [unit.unit_name, unit.has_mount])
 	TooltipManager.show_unit_inventory(tooltip_text, unit.inventory, unit.INVENTORY_CAPACITY, unit.has_mount, 0.1)
 
 func _show_resource_tooltip(resource_type: String) -> void:
@@ -930,7 +946,7 @@ func _show_enemy_tooltip(enemy_unit: EnemyUnit) -> void:
 	var tooltip_text = "%s\n" % enemy_unit.unit_name
 	tooltip_text += "\n"
 	tooltip_text += "Health: %d/%d\n" % [enemy_unit.current_health, enemy_unit.max_health]
-	tooltip_text += "Attack: %d" % enemy_unit.attack_power
+	tooltip_text += "Attack: %d" % enemy_unit.get_current_attack_power()
 	TooltipManager.show_text(tooltip_text, 0.1)
 
 # ============ Tooltip System Initialization ============

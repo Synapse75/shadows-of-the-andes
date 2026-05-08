@@ -1,0 +1,145 @@
+[gd_scene format=3 uid="uid://e8wbbfmuibhi"]
+
+[ext_resource type="Script" uid="uid://b066df2s07rjh" path="res://Scripts/Credit.gd" id="1_credit_script"]
+[ext_resource type="Texture2D" uid="uid://dl3n00nigaqgv" path="res://Sprites/title_2.png" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
+
+[sub_resource type="Theme" id="Theme_button"]
+default_font = ExtResource("font_clear")
+default_font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0.8156863, 0.827451, 0.8627451, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
+bg_color = Color(0.475, 0.48125, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.7125, 0.72187495, 0.75, 1)
+
+[node name="Credit" type="Control" unique_id=1387626356]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_credit_script")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=2140340053]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 800.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_bg")
+
+[node name="ColorRect" type="ColorRect" parent="TextureRect" unique_id=1932034768]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7058824)
+
+[node name="Title" type="Label" parent="." unique_id=634195459]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 0.5
+anchor_bottom = 0.1
+offset_left = -100.0
+offset_top = -30.0
+offset_right = 100.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("font_clear")
+theme_override_font_sizes/font_size = 32
+text = "Credits"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreditLabel1" type="Label" parent="." unique_id=523035404]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.25
+anchor_right = 0.5
+anchor_bottom = 0.75
+offset_left = -238.0
+offset_top = -99.0
+offset_right = -36.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("font_clear")
+theme_override_font_sizes/font_size = 16
+text = "Developed by Gong Zizhou
+
+Engine: Godot Engine 4.6
+Tools: Aseprite, Audacity, Bfxr, 
+VS Code, GitHub Copilot, Opencode
+
+Special Thanks:
+- Professor Hanna
+- Friends
+
+Thanks for playing."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreditLabel2" type="Label" parent="." unique_id=634195460]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.25
+anchor_right = 0.5
+anchor_bottom = 0.75
+offset_left = 30.0
+offset_top = -100.0
+offset_right = 274.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("font_clear")
+theme_override_font_sizes/font_size = 16
+text = "Map data and imagery 
+from Google Maps / Google Earth
+
+Hidden.wav by Casonika 
+-- https://freesound.org/s/556524/ 
+-- License: Attribution NonCommercial 4.0
+
+NTTB - Knees Beats.flac by NTTB 
+-- https://freesound.org/s/382584/ 
+-- License: Attribution NonCommercial 3.0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="Button" parent="." unique_id=1234567893]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -40.0
+offset_top = -18.0
+offset_right = 40.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_button")
+theme_override_colors/font_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_fonts/font = ExtResource("font_clear")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+text = "Back"

@@ -19,13 +19,12 @@ func get_display_name() -> String:
 	return "Quinoa (+20 Satiety, +20 Healing, ×1.2 Speed, 3 turns)"
 
 func apply_effect_to_unit(unit: Unit) -> void:
-	"""Quinoa restores 20 satiety, 20 healing, and provides 1.2x speed for 3 turns"""
+	"""Quinoa restores 20 satiety, 20 healing, and provides 1.2x speed for 1 turn"""
 	if unit and unit.is_alive:
 		unit.restore_satiety(20)
 		unit.heal(20)
 		unit.movement_speed_multiplier = 1.2
-		# Note: Duration tracking would need to be implemented in Unit class
-		remaining_turns = effect_duration
+		unit.movement_speed_turns = 1
 
 func apply_effect_to_village(village: VillageNode) -> void:
 	"""Quinoa increases village production speed by 1.2x for 3 turns"""

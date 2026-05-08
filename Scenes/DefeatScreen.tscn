@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://bvi6nx2v86pt5"]
+
+[ext_resource type="Script" uid="uid://bvqrmlgg2esdg" path="res://Scripts/DefeatScreen.gd" id="1_defeat_script"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
+
+[node name="DefeatScreen" type="Control" unique_id=952552119]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_defeat_script")
+
+[node name="Background" type="ColorRect" parent="." unique_id=952552122]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 400.0
+color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+
+[node name="DefeatLayer" type="CanvasLayer" parent="." unique_id=935502649]
+layer = 2001
+
+[node name="Label" type="Label" parent="DefeatLayer" unique_id=1912228244]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.8156863, 0.827451, 0.8627451, 1)
+theme_override_fonts/font = ExtResource("font_clear")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2

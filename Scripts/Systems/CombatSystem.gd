@@ -68,6 +68,8 @@ func resolve_combat_turn(combat: Combat) -> void:
 	
 	if combat.player_units.size() > 0:
 		damage_per_player = int(total_enemy_attack / float(combat.player_units.size()))
+	
+	
 
 	# Apply damage to all units
 	var enemies_died_this_turn = 0
@@ -103,11 +105,13 @@ func end_combat(combat: Combat) -> void:
 	var result_text = ""
 	if mutual_destruction:
 		result_text = "Mutual Destruction"
+		combat.combat_node.set_control(false)
 	elif player_won:
 		result_text = "Enemy Units Eliminated"
 		_capture_node_for_player(combat)
 	elif enemy_won:
 		result_text = "Player Units Eliminated"
+		combat.combat_node.set_control(false)
 	else:
 		result_text = "Unknown Outcome"
 	
@@ -129,6 +133,7 @@ func _capture_node_for_player(combat: Combat) -> void:
 	for unit in combat.player_units:
 		if unit and unit.is_alive and unit.unit_state != Unit.UnitState.MOVING:
 			unit.set_unit_state(Unit.UnitState.STATIONED)
+			unit.unload_inventory_to_node(node)
 
 func get_combat_at_node(node: VillageNode) -> Combat:
 	"""Get active combat at a specific node"""

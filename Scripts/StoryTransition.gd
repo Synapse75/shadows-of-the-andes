@@ -4,11 +4,15 @@ var story_texts: Array[String] = []
 var current_text_index: int = 0
 var label: Label
 var is_transitioning: bool = false  # 防止过渡中继续点击
+const TEXT_FADE_OUT_DURATION: float = 0.2
+const TEXT_FADE_IN_DURATION: float = 0.2
+const TEXT_SWITCH_PAUSE_DURATION: float = 0.1
 
 func _ready() -> void:
 	# print("DEBUG: StoryTransition._ready() 开始")
 	# 获取Label节点
 	label = $StoryLayer/Label
+	label.modulate.a = 0.0
 	# print("DEBUG: Label节点: ", label)
 	
 	# 从文件读取故事
@@ -16,8 +20,9 @@ func _ready() -> void:
 	
 	# print("DEBUG: 准备处理输入事件")
 	
-	# 显示第一行文字
+	# 显示第一行文字并淡入
 	_show_current_text()
+	_fade_in_current_text()
 	# print("DEBUG: StoryTransition._ready() 完成")
 
 func _load_story_from_file() -> void:
@@ -60,8 +65,35 @@ func _show_current_text() -> void:
 		_finish_story()
 
 func _next_text() -> void:
+	is_transitioning = true
+	
+	# 先把当前文本淡出，再切换文字并淡入。
+	var fade_out_tween = create_tween()
+	fade_out_tween.tween_property(label, "modulate:a", 0.0, TEXT_FADE_OUT_DURATION)
+	await fade_out_tween.finished
+	await get_tree().create_timer(TEXT_SWITCH_PAUSE_DURATION).timeout
+
 	current_text_index += 1
-	_show_current_text()
+	if current_text_index >= story_texts.size():
+		_finish_story()
+		return
+
+	label.text = story_texts[current_text_index]
+	label.modulate.a = 0.0
+
+	var fade_in_tween = create_tween()
+	fade_in_tween.tween_property(label, "modulate:a", 1.0, TEXT_FADE_IN_DURATION)
+	await fade_in_tween.finished
+
+	is_transitioning = false
+
+func _fade_in_current_text() -> void:
+	is_transitioning = true
+	label.modulate.a = 0.0
+	var fade_in_tween = create_tween()
+	fade_in_tween.tween_property(label, "modulate:a", 1.0, TEXT_FADE_IN_DURATION)
+	await fade_in_tween.finished
+	is_transitioning = false
 
 func _finish_story() -> void:
 	"""故事讲完，触发过渡到Main"""

@@ -8,11 +8,16 @@ class_name SpotlightMaskOverlay
 
 var mask_rect: ColorRect
 var mask_material: ShaderMaterial
+var label: Label
 var center_tween: Tween
 var fade_tween: Tween
+var on_hide_callback: Callable = Callable()
+var on_click_callback: Callable = Callable()
+var has_clicked_once: bool = false
 
 func _ready() -> void:
 	mask_rect = get_node_or_null("Mask") as ColorRect
+	label = get_node_or_null("Label") as Label
 	if not mask_rect:
 		push_error("SpotlightMaskOverlay: Missing Mask ColorRect")
 		return
@@ -48,17 +53,40 @@ func _apply_shader_parameters() -> void:
 	var default_center = viewport_size * 0.5
 	mask_material.set_shader_parameter("highlight_center_px", default_center)
 
+func set_label_text(text: String) -> void:
+	"""设置spotlight标签的文本内容"""
+	if label:
+		label.text = text
+
 func show_mask() -> void:
 	if mask_rect:
 		if fade_tween:
 			fade_tween.kill()
 			fade_tween = null
 		mask_rect.visible = true
+		mask_rect.modulate.a = 1.0
 		# When showing, restore mouse_filter according to block_input so mask can block input if intended
 		mask_rect.mouse_filter = Control.MOUSE_FILTER_STOP if block_input else Control.MOUSE_FILTER_IGNORE
 		if mask_material:
 			mask_material.set_shader_parameter("mask_alpha", 1.0)
+		if label:
+			label.visible = true
+			label.modulate.a = 1.0
+			_update_label_position()
 		_apply_shader_parameters()
+
+func _update_label_position() -> void:
+	if not label:
+		return
+	var center = _get_current_center_px()
+	var viewport_size = get_viewport().get_visible_rect().size
+	var label_size = label.size
+	
+	var label_pos = center + Vector2(0, -highlight_radius_px - 20)
+	label_pos.x = clamp(label_pos.x - label_size.x / 2, 10, viewport_size.x - label_size.x - 10)
+	label_pos.y = clamp(label_pos.y - label_size.y / 2, 10, viewport_size.y - label_size.y - 10)
+	
+	label.position = label_pos
 
 func hide_mask(animate: bool = false, duration: float = 0.5) -> void:
 	if center_tween:
@@ -69,21 +97,30 @@ func hide_mask(animate: bool = false, duration: float = 0.5) -> void:
 		fade_tween = null
 	if not mask_rect:
 		return
-
+	
 	if animate:
-		# Allow underlying UI to receive input during the fade-out by making mask ignore pointer events
 		mask_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		fade_tween = create_tween()
 		fade_tween.tween_property(mask_material, "shader_parameter/mask_alpha", 0.0, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 		fade_tween.tween_callback(func():
 			mask_rect.visible = false
 			mask_material.set_shader_parameter("mask_alpha", 1.0)
+			if label:
+				label.visible = false
+				label.modulate.a = 1.0
+			if on_hide_callback and on_hide_callback.is_valid():
+				on_hide_callback.call()
 		)
+		if label:
+			var label_tween = create_tween()
+			label_tween.tween_property(label, "modulate:a", 0.0, duration).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 	else:
 		mask_rect.visible = false
-		# Ensure mask no longer intercepts input
 		mask_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		mask_material.set_shader_parameter("mask_alpha", 1.0)
+		if label:
+			label.visible = false
+			label.modulate.a = 1.0
 func set_highlight_position(screen_position: Vector2, animate: bool = false, duration: float = 0.25) -> void:
 	show_mask()
 
@@ -96,6 +133,23 @@ func set_highlight_position(screen_position: Vector2, animate: bool = false, dur
 		center_tween.tween_method(_set_highlight_center_px, _get_current_center_px(), screen_position, duration)
 	else:
 		_set_highlight_center_px(screen_position)
+
+func move_to(screen_position: Vector2, duration: float = 0.5) -> void:
+	print("DEBUG move_to: mask_rect=", mask_rect, " visible=", mask_rect.visible if mask_rect else "N/A")
+	if not mask_rect or not mask_rect.visible:
+		show_mask()
+		_set_highlight_center_px(screen_position)
+		return
+
+	if center_tween:
+		center_tween.kill()
+		center_tween = null
+
+	center_tween = create_tween()
+	center_tween.set_trans(Tween.TRANS_QUART)
+	center_tween.set_ease(Tween.EASE_OUT)
+	center_tween.tween_method(_set_highlight_center_px, _get_current_center_px(), screen_position, duration)
+	print("DEBUG move_to: started tween to ", screen_position)
 
 func focus_node(node: VillageNode, animate: bool = false, duration: float = 0.25) -> bool:
 	if not node:
@@ -111,8 +165,16 @@ func focus_node(node: VillageNode, animate: bool = false, duration: float = 0.25
 	return false
 
 func _on_mask_rect_gui_input(event: InputEvent) -> void:
+	print("DEBUG gui_input: has_clicked_once=", has_clicked_once, " callback_valid=", on_click_callback.is_valid())
 	if event is InputEventMouseButton and event.pressed:
-		hide_mask(true, 0.5)
+		if not has_clicked_once and on_click_callback.is_valid():
+			has_clicked_once = true
+			on_click_callback.call()
+			has_clicked_once = false
+		else:
+			print("DEBUG gui_input: going to hide_mask")
+			has_clicked_once = false
+			hide_mask(true, 0.5)
 		get_tree().root.set_input_as_handled()
 
 func _set_highlight_center_px(screen_position: Vector2) -> void:
@@ -120,6 +182,7 @@ func _set_highlight_center_px(screen_position: Vector2) -> void:
 		return
 
 	mask_material.set_shader_parameter("highlight_center_px", screen_position)
+	_update_label_position()
 
 func _get_current_center_px() -> Vector2:
 	if mask_material:

@@ -68,7 +68,6 @@ func show_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capac
 	if tween:
 		tween.kill()
 
-	print("[TooltipPanel] show_unit_tooltip_with_inventory: has_mount=%s text=%s" % [has_mount, text.left(20)])
 	label.text = text
 	if inventory_vbox:
 		inventory_vbox.visible = true
@@ -91,7 +90,6 @@ func _show_with_layout(position_override: Vector2) -> void:
 	tween.tween_property(self, "modulate:a", 1.0, FADE_DURATION)
 
 func _rebuild_inventory_slots(inventory: Dictionary, capacity: int, has_mount: bool = false) -> void:
-	print("[TooltipPanel] _rebuild_inventory_slots: has_mount=%s" % has_mount)
 	_clear_inventory_slots()
 	_clear_mount_slot()
 	

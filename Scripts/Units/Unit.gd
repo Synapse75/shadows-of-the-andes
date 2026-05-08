@@ -34,10 +34,12 @@ var has_mount: bool = false  # Whether unit has a llama mount equipped
 var combat_multiplier: float = 1.0  # Combat power multiplier (e.g., from Corn)
 var movement_speed_multiplier: float = 1.0  # Movement speed multiplier (e.g., from Quinoa)
 var transport_speed_multiplier: float = 1.0  # Transport speed multiplier (e.g., from Llama)
+var combat_multiplier_turns: int = 0  # Turns remaining for combat bonus
+var movement_speed_turns: int = 0  # Turns remaining for speed bonus
 
 # Unit inventory/backpack system
 var inventory: Dictionary = {}  # {"resource_type": amount}
-const INVENTORY_CAPACITY = 5  # Max total resources in backpack
+const INVENTORY_CAPACITY = 9999  # No limit
 
 # Movement system (GDD 5.2.1 & 4.3)
 var target_node: VillageNode = null  # Target node for movement
@@ -163,6 +165,97 @@ func consume_satiety() -> void:
 		die()
 	else:
 		unit_hungry.emit(current_satiety)
+		if current_satiety < 50:
+			_auto_consume_food()
+		if current_health < 50:
+			_auto_consume_healing()
+
+func update_bonus_turns() -> void:
+	"""Update bonus effect duration each turn"""
+	if combat_multiplier_turns > 0:
+		combat_multiplier_turns -= 1
+		if combat_multiplier_turns == 0:
+			combat_multiplier = 1.0
+	
+	if movement_speed_turns > 0:
+		movement_speed_turns -= 1
+		if movement_speed_turns == 0:
+			if has_mount:
+				movement_speed_multiplier = 2.0
+			else:
+				movement_speed_multiplier = 1.0
+
+func _auto_consume_food() -> void:
+	"""Auto consume food when satiety < 50. Priority: controlled village -> inventory"""
+	if current_satiety >= 50:
+		return
+	
+	var food_types = ["potato", "corn", "quinoa"]
+	var restored = 0
+	
+	for food in food_types:
+		if current_satiety >= 50:
+			break
+		restored = _try_consume_food(food)
+		current_satiety += restored
+		current_satiety = min(current_satiety, max_satiety)
+
+func _auto_consume_healing() -> void:
+	"""Auto consume resources when health < 50. Priority: coca -> quinoa"""
+	if current_health >= 50:
+		return
+	
+	var heal_types = ["coca", "quinoa"]
+	var restored = 0
+	
+	for heal_type in heal_types:
+		if current_health >= 50:
+			break
+		restored = _try_consume_healing(heal_type)
+		current_health += restored
+		current_health = min(current_health, max_health)
+
+func _try_consume_food(food_type: String) -> int:
+	"""Try to consume food from village or inventory. Returns amount restored."""
+	var restore_amount = 0
+	match food_type:
+		"potato":
+			restore_amount = 50
+		"corn":
+			restore_amount = 30
+		"quinoa":
+			restore_amount = 20
+	
+	if current_node and current_node.control_by_player:
+		if current_node.resources.get(food_type, 0) > 0:
+			current_node.remove_resource(food_type, 1)
+			return restore_amount
+	
+	if inventory.get(food_type, 0) > 0:
+		remove_from_inventory(food_type, 1)
+		return restore_amount
+	
+	return 0
+
+func _try_consume_healing(heal_type: String) -> int:
+	"""Try to consume healing resource from village or inventory. Returns amount healed."""
+	var heal_amount = 0
+	match heal_type:
+		"coca":
+			heal_amount = 50
+		"quinoa":
+			heal_amount = 20
+	
+	if current_node and current_node.control_by_player:
+		if current_node.resources.get(heal_type, 0) > 0:
+			current_node.remove_resource(heal_type, 1)
+			return heal_amount
+	
+	if inventory.get(heal_type, 0) > 0:
+		remove_from_inventory(heal_type, 1)
+		return heal_amount
+	
+	return 0
 
 func take_damage(damage: int) -> void:
 	"""Take damage (only during combat)"""
@@ -206,6 +299,10 @@ func die() -> void:
 		return
 	
 	is_alive = false
+	inventory.clear()
+	has_mount = false
+	inventory_changed.emit(inventory)
+	
 	if current_node:
 		current_node.remove_unit(self)
 	MessageLog.add_message("Your unit died: %s" % unit_name, "error")
@@ -231,6 +328,7 @@ func add_to_inventory(resource_type: String, amount: int) -> int:
 		if has_mount:
 			return 0  # Already has mount
 		has_mount = true
+		movement_speed_multiplier = 2.0  # Llama doubles base speed
 		inventory_changed.emit(inventory)
 		return 1
 	
@@ -274,13 +372,14 @@ func calculate_movement_time(from_node: VillageNode, to_node: VillageNode) -> in
 	"""Calculate movement time between two nodes in turns (GDD 4.3 revised)
 	- Same camera: 2 turns
 	- Each camera crossing: +4 turns
-	Delegates to GameMap for consistent calculation.
+	Applies movement speed multiplier (llama mount x2, quinoa x1.2).
 	"""
 	if from_node == to_node:
 		return 0
 	
 	if game_map:
-		return game_map.get_movement_time_to_node(from_node, to_node)
+		var base_time = game_map.get_movement_time_to_node(from_node, to_node)
+		return max(1, int(base_time / movement_speed_multiplier))
 	else:
 		# Fallback if GameMap not found
 		return 2
@@ -314,18 +413,20 @@ func start_movement(target: VillageNode) -> bool:
 	
 	return true
 
-func progress_movement() -> void:
-	"""Progress movement by one turn. Called by TurnManager during auto_phase."""
+func progress_movement() -> bool:
+	"""Progress movement by one turn. Returns true if movement completed."""
 	if unit_state != UnitState.MOVING or movement_time_remaining <= 0:
-		return
+		return false
 
-	var before = movement_time_remaining
-	
 	movement_time_remaining -= 1
 	
-	# Movement completed
 	if movement_time_remaining <= 0:
-		complete_movement()
+		return true
+	return false
+
+func handle_arrival_completion() -> void:
+	"""Handle movement completion - called after all units progress in a turn."""
+	complete_movement()
 
 func complete_movement() -> void:
 	"""Complete movement and unlock unit."""
@@ -335,9 +436,6 @@ func complete_movement() -> void:
 	if target_node:
 		# Update current node
 		assign_to_node(target_node)
-		
-		# Unload resources to destination (except llama/mount)
-		_unload_inventory_to_node(target_node)
 		
 		# Emit signal
 		unit_moved.emit(from_node, arrived_node)
@@ -356,23 +454,20 @@ func complete_movement() -> void:
 	# On arrival, immediately resolve state/combat/capture logic.
 	_handle_arrival_state_and_combat()
 
-func _unload_inventory_to_node(node: VillageNode) -> void:
+func unload_inventory_to_node(node: VillageNode) -> void:
 	"""Unload all resources except llama to destination node."""
 	if not node:
 		return
 	
 	for resource_type in inventory.keys():
 		if resource_type == "llama":
-			continue  # Keep mount equipped, but not in inventory dict
+			continue
 		
 		var amount = inventory.get(resource_type, 0)
 		if amount > 0:
-			node.resources[resource_type] += amount
+			node.add_resource(resource_type, amount)
 	
-	# Clear inventory but keep mount state
 	inventory.clear()
-	# has_mount stays true (llama stays equipped)
-	
 	inventory_changed.emit(inventory)
 
 func _handle_arrival_state_and_combat() -> void:
@@ -387,6 +482,7 @@ func _handle_arrival_state_and_combat() -> void:
 	
 	# Controlled node: arrive as stationed, no combat.
 	if unit_state != UnitState.ATTACKING:
+		unload_inventory_to_node(current_node)
 		return
 	
 	_resolve_node_combat_or_capture(current_node)
@@ -459,6 +555,7 @@ func _capture_node_if_possible(node: VillageNode) -> void:
 	for player_unit in node.stationed_units:
 		if player_unit and player_unit.is_alive and player_unit.unit_state != UnitState.MOVING:
 			player_unit.set_unit_state(UnitState.STATIONED)
+			player_unit.unload_inventory_to_node(node)
 
 func _get_alive_player_count(node: VillageNode) -> int:
 	var alive := 0

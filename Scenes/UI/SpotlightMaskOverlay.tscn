@@ -1,22 +1,48 @@
-[gd_scene format=3 uid="uid://spotlightmaskoverlay_scene"]
+[gd_scene format=3 uid="uid://b5h65nnwbfjmh"]
 
-[ext_resource type="Script" path="res://Scripts/UI/SpotlightMaskOverlay.gd" id="1_spotlight_mask_overlay"]
-[ext_resource type="Shader" path="res://Shaders/spotlight_mask.gdshader" id="2_spotlight_mask_shader"]
+[ext_resource type="Script" uid="uid://d1f6dikdopyvx" path="res://Scripts/UI/SpotlightMaskOverlay.gd" id="1_spotlight_mask_overlay"]
+[ext_resource type="Shader" uid="uid://knj4pimkmg5d" path="res://Shaders/spotlight_mask.gdshader" id="2_spotlight_mask_shader"]
+[ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_spotlight"]
 shader = ExtResource("2_spotlight_mask_shader")
+shader_parameter/dim_color = Color(0, 0, 0, 0.72)
+shader_parameter/viewport_size = Vector2(640, 400)
+shader_parameter/highlight_center_px = Vector2(320, 200)
+shader_parameter/highlight_radius_px = 96.0
+shader_parameter/highlight_softness_px = 48.0
+shader_parameter/mask_alpha = 1.0
 
-[node name="SpotlightMaskOverlay" type="CanvasLayer"]
-layer = 100
+[sub_resource type="Theme" id="Theme_spotlight_label"]
+default_font = ExtResource("font_clear")
+
+[node name="SpotlightMaskOverlay" type="CanvasLayer" unique_id=805357376]
+layer = 200
 script = ExtResource("1_spotlight_mask_overlay")
 
-[node name="Mask" type="ColorRect" parent="."]
+[node name="Mask" type="ColorRect" parent="." unique_id=1747143488]
+material = SubResource("ShaderMaterial_spotlight")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 mouse_filter = 2
-material = SubResource("ShaderMaterial_spotlight")
+
+[node name="Label" type="Label" parent="." unique_id=149641101]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -10.0
+offset_right = 80.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_spotlight_label")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Tupac Amaru II led his rebellion from the village of Tinta."
+horizontal_alignment = 1
+vertical_alignment = 1

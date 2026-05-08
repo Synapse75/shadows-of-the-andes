@@ -1,23 +1,23 @@
-[gd_scene format=3 uid="uid://ppyualbf74qc"]
+[gd_scene format=3 uid="uid://b05kit2bad0nm"]
 
-[ext_resource type="Script" uid="uid://dcg4r2a51d7ko" path="res://Scripts/StoryTransition.gd" id="1_k6jm0"]
+[ext_resource type="Script" uid="uid://sqk7n7drhtuc" path="res://Scripts/VictoryScreen.gd" id="1_victory_script"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 
-[node name="StoryTransition" type="Control" unique_id=952552117]
+[node name="VictoryScreen" type="Control" unique_id=952552118]
 layout_mode = 3
 anchors_preset = 0
-script = ExtResource("1_k6jm0")
+script = ExtResource("1_victory_script")
 
-[node name="Background" type="ColorRect" parent="." unique_id=952552120]
+[node name="Background" type="ColorRect" parent="." unique_id=952552121]
 layout_mode = 0
 offset_right = 640.0
 offset_bottom = 400.0
 color = Color(0.32156864, 0.27450982, 0.33333334, 1)
 
-[node name="StoryLayer" type="CanvasLayer" parent="." unique_id=935502647]
+[node name="VictoryLayer" type="CanvasLayer" parent="." unique_id=935502648]
 layer = 2001
 
-[node name="Label" type="Label" parent="StoryLayer" unique_id=1912228242]
+[node name="Label" type="Label" parent="VictoryLayer" unique_id=1912228243]
 layout_mode = 1
 anchors_preset = 15
 anchor_left = 0.0
@@ -26,10 +26,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.8156863, 0.827451, 0.8627451, 1)
 theme_override_fonts/font = ExtResource("font_clear")
 theme_override_font_sizes/font_size = 16
-text = "text"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2

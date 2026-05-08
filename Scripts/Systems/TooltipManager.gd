@@ -84,7 +84,6 @@ func request_tooltip_with_text(text: String, delay: float = 0.3) -> void:
 
 func request_unit_tooltip_with_inventory(text: String, inventory: Dictionary, capacity: int, has_mount: bool = false, delay: float = 0.3) -> void:
 	last_element_id = ""
-	print("[TooltipManager] request_unit_tooltip_with_inventory: has_mount=", has_mount)
 
 	if current_timer:
 		current_timer.queue_free()
@@ -149,7 +148,6 @@ static func show_text(text: String, delay: float = 0.3) -> void:
 
 static func show_unit_inventory(text: String, inventory: Dictionary, capacity: int = 5, has_mount: bool = false, delay: float = 0.3) -> void:
 	"""Display unit tooltip with inventory icon slots on the right."""
-	print("[TooltipManager] show_unit_inventory: has_mount=", has_mount, " text=", text.left(30))
 	if _instance:
 		_instance.request_unit_tooltip_with_inventory(text, inventory, capacity, has_mount, delay)
 	else:

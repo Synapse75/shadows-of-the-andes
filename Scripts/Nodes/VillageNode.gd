@@ -19,6 +19,7 @@ var resources: Dictionary = {
 # Village attributes from GDD section 3.2
 var hunger_status: bool = false  # Whether village is experiencing hunger
 var consumption_accumulator: float = 0.0  # Accumulator for resource consumption
+var turn_count: int = 0  # Track turns for levy system
 var produced_resource_types: Array = []  # Types of resources produced here
 var population: int = 0  # Current village population
 
@@ -85,10 +86,17 @@ func remove_unit(unit: Unit) -> void:
 func add_enemy_unit(unit: EnemyUnit) -> void:
 	"""Add enemy unit to this node"""
 	if unit not in enemy_units:
+		unit.current_node = self
 		enemy_units.append(unit)
 		enemy_units_changed.emit(enemy_units)
-		# Any enemy presence means this node is not controlled by player.
 		if control_by_player:
+			var has_defenders = false
+			for u in stationed_units:
+				if u is Unit and u.is_alive and u.unit_state != Unit.UnitState.MOVING:
+					has_defenders = true
+					break
+			if has_defenders:
+				return
 			set_control(false)
 
 func remove_enemy_unit(unit: EnemyUnit) -> void:
@@ -154,14 +162,22 @@ func initialize_resource_production(resource_types: Array, production_rate: floa
 func produce_resources() -> void:
 	"""Produce resources based on production rates (called each turn)
 	GDD 4.4.5: When hunger_status=true, production rate is multiplied by 0.2
-	Each resource type has its own multiplier (e.g., potato ×2, llama ×0.5)"""
+	Each resource type has its own multiplier (e.g., potato ×2, llama ×0.5)
+	Bonus: resource variety multiplier (1 type ×1.1, 2 types ×1.2, etc.)"""
 	var production_multiplier = 0.2 if hunger_status else 1.0
+	
+	var resource_type_count = 0
+	for r in resources.keys():
+		if r != "units" and resources.get(r, 0) > 0:
+			resource_type_count += 1
+	var variety_multiplier = 1.0 + (resource_type_count * 0.1)
+	
 	var settings = SettingsAndData.new()
 	
 	for resource_type in resource_production_rates:
 		var base_rate = resource_production_rates[resource_type]
 		var resource_multiplier = settings.get_resource_type_multiplier(resource_type)
-		var rate = base_rate * resource_multiplier * production_multiplier
+		var rate = base_rate * resource_multiplier * production_multiplier * variety_multiplier
 		resource_accumulated[resource_type] += rate
 		
 		# Convert accumulated to integer production
@@ -169,17 +185,23 @@ func produce_resources() -> void:
 		if produced > 0:
 			add_resource(resource_type, produced)
 			resource_accumulated[resource_type] -= produced
+	
+	turn_count += 1
+	if not control_by_player and turn_count % 3 == 0:
+		_apply_levy()
+
+func _apply_levy() -> void:
+	"""Levy system: halve all resources every 3 turns for non-player villages"""
+	for resource_type in resources.keys():
+		if resource_type == "population":
+			continue
+		resources[resource_type] = ceili(resources.get(resource_type, 0) / 2.0)
+	resources_changed.emit(resources)
 
 func consume_resources() -> void:
-	"""
-	Execute GDD 4.4.5 resource consumption logic for this village.
-	Only player-controlled villages consume resources.
-	"""
-	if not control_by_player:
-		return
+	"""Execute GDD 4.4.5 resource consumption logic for this village.
+	Only player-controlled villages consume resources."""
 	
-	# print("\n[DEBUG] === %s 资源消耗开始 ===" % location_name)
-	# print("[%s] 人口：%d, 当前饱腹状态：%s, 累积消耗值：%.2f" % [location_name, population, "HUNGRY" if hunger_status else "NORMAL", consumption_accumulator])
 	
 	# GDD 4.4.5 - Step 1: Calculate consumption value
 	# consumption_accumulator += population × 0.01
@@ -205,19 +227,10 @@ func consume_resources() -> void:
 	# GDD 4.4.5 - Step 4: Update hunger status based on remaining food
 	if not _has_consumable_resources():
 		hunger_status = true
+	elif consumption_accumulator >= 1.0:
+		hunger_status = true
 	else:
 		hunger_status = false
-	
-	# 最终状态输出
-	# print("[%s] 消耗完成：Potato=%d, Corn=%d, Quinoa=%d | 饥饿=%s, 累积消耗=%.2f" % [
-	# 	location_name, 
-	# 	resources.get("potato", 0),
-	# 	resources.get("corn", 0),
-	# 	resources.get("quinoa", 0),
-	# 	"YES" if hunger_status else "NO",
-	# 	consumption_accumulator
-	# ])
-	# print("[DEBUG] === %s 资源消耗结束 ===\n" % location_name)
 
 func _has_consumable_resources() -> bool:
 	"""Check if village has any consumable resources (Potato, Corn, or Quinoa)"""

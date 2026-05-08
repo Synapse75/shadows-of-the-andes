@@ -85,9 +85,9 @@ func _on_resume_pressed() -> void:
 func _on_menu_pressed() -> void:
 	"""返回菜单按钮"""
 	if menu_button:
-		get_tree().paused = false  # 恢复游戏时间流，才能切换场景
-		if ResourceLoader.exists("res://Scenes/MainMenu.tscn"):
-			get_tree().change_scene_to_file("res://Scenes/MainMenu.tscn")
+		get_tree().paused = false
+		if ResourceLoader.exists("res://Scenes/TitleScreen.tscn"):
+			get_tree().change_scene_to_file("res://Scenes/TitleScreen.tscn")
 
 func _on_quit_pressed() -> void:
 	"""退出游戏"""

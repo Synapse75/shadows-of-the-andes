@@ -13,6 +13,8 @@ var spotlight_mask_overlay: SpotlightMaskOverlay
 signal game_started
 signal game_over(winner: String)
 
+var audio_manager: Node
+
 func _ready() -> void:
 	# 获取各个系统的引用
 	game_map = get_node("SubViewportContainer/SubViewport/Map")
@@ -21,6 +23,7 @@ func _ready() -> void:
 	camera_manager = get_node("SubViewportContainer/SubViewport/Camera2D")
 	ui_manager = get_node("Systems/UIManager")
 	spotlight_mask_overlay = get_node_or_null("SpotlightMaskOverlay") as SpotlightMaskOverlay
+	audio_manager = get_node("Systems/AudioManager")
 	settings = SettingsAndData.new()
 	UnitNamePool.reset_pool()
 	
@@ -30,6 +33,9 @@ func _ready() -> void:
 	
 	# 连接回合管理器信号
 	turn_manager.auto_phase_ended.connect(_on_auto_phase_ended)
+	
+	# 连接游戏结束信号
+	game_over.connect(_on_game_over)
 	
 	# Wait one frame for GameMap to complete its initialization
 	await get_tree().process_frame
@@ -41,6 +47,9 @@ func _ready() -> void:
 	var tinta = game_map._get_node_by_id("tinta")
 	if tinta:
 		ui_manager.show_node_info(tinta)
+		print("[DEBUG] Tinta units at start: ", tinta.stationed_units.size())
+		for u in tinta.stationed_units:
+			print("[DEBUG]   - ", u.unit_name)
 		call_deferred("_show_startup_spotlight", tinta)
 
 	# Allow capture messages only after initialization has finished
@@ -65,8 +74,65 @@ func _show_startup_spotlight(node: VillageNode) -> void:
 		elif game_map.current_camera_positions.has(node.node_id):
 			spotlight_position = game_map.get_node_screen_position(node)
 
+	spotlight_mask_overlay.has_clicked_once = false
 	spotlight_mask_overlay.show_mask()
 	spotlight_mask_overlay.set_highlight_position(spotlight_position, false)
+	spotlight_mask_overlay.on_click_callback = _on_first_spotlight_clicked
+
+var _tutorial_step: int = 0
+
+func _on_first_spotlight_clicked() -> void:
+	print("DEBUG: _on_first_spotlight_clicked called, step=", _tutorial_step)
+	if not spotlight_mask_overlay:
+		return
+	
+	spotlight_mask_overlay.on_click_callback = _on_tutorial_click
+	spotlight_mask_overlay.has_clicked_once = false
+	
+	_tutorial_step = 1
+	await get_tree().create_timer(0.2).timeout
+	
+	print("DEBUG: Moving to step 1: info_panel")
+	spotlight_mask_overlay.move_to(Vector2(70, 100), 0.5)
+	spotlight_mask_overlay.set_label_text("Tupac Amaru II led his rebellion from the village of Tinta.")
+
+func _on_tutorial_click() -> void:
+	print("DEBUG: _on_tutorial_click called, step=", _tutorial_step)
+	if not spotlight_mask_overlay:
+		return
+	
+	match _tutorial_step:
+		1:
+			print("DEBUG: Step 1 -> 2: recruitbutton")
+			spotlight_mask_overlay.move_to(Vector2(70, 165), 0.5)
+			spotlight_mask_overlay.set_label_text("Recruit soldiers to strengthen your rebellion.")
+			_tutorial_step = 2
+		2:
+			print("DEBUG: Step 2 -> 3: +46px")
+			spotlight_mask_overlay.move_to(Vector2(70, 211), 0.5)
+			spotlight_mask_overlay.set_label_text("Gather resources to sustain your army and people.")
+			_tutorial_step = 3
+		3:
+			print("DEBUG: Step 3 -> 4: +90px")
+			spotlight_mask_overlay.move_to(Vector2(70, 301), 0.5)
+			spotlight_mask_overlay.set_label_text("Manage your territories and expand your control.")
+			_tutorial_step = 4
+		4:
+			print("DEBUG: Step 4 -> 5: arrowup")
+			spotlight_mask_overlay.move_to(Vector2(400, 55), 0.5)
+			spotlight_mask_overlay.set_label_text("Switch camera views to survey different regions.")
+			_tutorial_step = 5
+		5:
+			print("DEBUG: Step 5 -> 6: nextturnbutton")
+			spotlight_mask_overlay.move_to(Vector2(216, 25), 0.5)
+			spotlight_mask_overlay.set_label_text("End your turn and let your enemies make their moves.")
+			_tutorial_step = 6
+		6:
+			print("DEBUG: Step 6 -> hide")
+			spotlight_mask_overlay.hide_mask(true, 0.5)
+			spotlight_mask_overlay.on_click_callback = Callable()
+			_tutorial_step = 0
+			
 
 func initialize_villages() -> void:
 	"""Initialize all villages with resources and enemy garrisons"""
@@ -138,7 +204,11 @@ func _on_auto_phase_ended() -> void:
 	if ui_manager:
 		ui_manager.refresh_displayed_node_info()
 	
-	# 检查胜利条件
+	# 检查失败条件（玩家单位全灭）
+	if check_defeat_condition():
+		return
+	
+	# 检查胜利条件（占领所有村庄）
 	check_victory_condition()
 
 func check_victory_condition() -> bool:
@@ -151,6 +221,31 @@ func check_victory_condition() -> bool:
 	# 所有村庄都被占领 - 玩家胜利
 	emit_signal("game_over", "player")
 	return true
+
+func check_defeat_condition() -> bool:
+	"""检查失败条件 - 所有玩家单位都死亡"""
+	# 遍历所有村庄，统计玩家单位数量
+	var player_unit_count = 0
+	for node in game_map.all_nodes:
+		if node is VillageNode:
+			for unit in (node as VillageNode).stationed_units:
+				# 统计不在 "enemy_units" 组中的单位（玩家单位）
+				if not unit.is_in_group("enemy_units"):
+					player_unit_count += 1
+	
+	# 如果没有玩家单位了 - 玩家失败
+	if player_unit_count == 0:
+		emit_signal("game_over", "enemy")
+		return true
+	
+	return false
+
+func _on_game_over(winner: String) -> void:
+	"""处理游戏结束事件"""
+	if winner == "player":
+		await TransitionManager.transition_to_victory()
+	else:
+		await TransitionManager.transition_to_defeat()
 
 # 镜头切换方法 - 供UI按钮调用
 func camera_next() -> void:

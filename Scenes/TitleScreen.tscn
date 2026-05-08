@@ -1,11 +1,39 @@
 [gd_scene format=3 uid="uid://bxatxghskchqf"]
 
 [ext_resource type="Script" uid="uid://bba6otk3pqvxg" path="res://Scripts/TitleScreen.gd" id="1_title_screen_script"]
+[ext_resource type="Texture2D" uid="uid://dl3n00nigaqgv" path="res://Sprites/title_2.png" id="2_8l4an"]
 [ext_resource type="FontFile" uid="uid://d4nr8sgmooboe" path="res://Fonts/ClearFont.ttf" id="font_clear"]
 
 [sub_resource type="Theme" id="Theme_button"]
 default_font = ExtResource("font_clear")
 default_font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8l4an"]
+bg_color = Color(0.8156863, 0.827451, 0.8627451, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_emot1"]
+bg_color = Color(0.475, 0.48125, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i5sur"]
+bg_color = Color(0.7125, 0.72187495, 0.75, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n15yj"]
+bg_color = Color(0.8156863, 0.827451, 0.8627451, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7whhf"]
+bg_color = Color(0.475, 0.48125, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5c2t2"]
+bg_color = Color(0.7125, 0.72187495, 0.75, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bawyk"]
+bg_color = Color(0.8156863, 0.827451, 0.8627451, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qfyqv"]
+bg_color = Color(0.475, 0.48125, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pie25"]
+bg_color = Color(0.7125, 0.72187495, 0.75, 1)
 
 [node name="TitleScreen" type="Control" unique_id=1387626355]
 layout_mode = 3
@@ -16,64 +44,67 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title_screen_script")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1092084867]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.1, 0.1, 0.1, 1)
-
-[node name="Title" type="Label" parent="." unique_id=634195458]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.2
-anchor_right = 0.5
-anchor_bottom = 0.2
-offset_left = -100.0
-offset_top = -30.0
-offset_right = 100.0
-offset_bottom = 30.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("font_clear")
-theme_override_font_sizes/font_size = 32
-text = "Shadows of the Andes"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="TextureRect" type="TextureRect" parent="." unique_id=2140340052]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 800.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_8l4an")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=737264275]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 0.7
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -70.0
-offset_top = -70.0
-offset_right = 70.0
-offset_bottom = 70.0
+anchor_bottom = 0.7
+offset_left = -50.0
+offset_top = -63.0
+offset_right = 50.0
+offset_bottom = 61.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_button")
+theme_override_constants/separation = 8
 
 [node name="StartButton" type="Button" parent="VBoxContainer" unique_id=1234567890]
+custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
 theme_override_fonts/font = ExtResource("font_clear")
 theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_8l4an")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_emot1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_i5sur")
 text = "Start"
 
 [node name="CreditButton" type="Button" parent="VBoxContainer" unique_id=1234567891]
+custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
 theme_override_fonts/font = ExtResource("font_clear")
 theme_override_font_sizes/font_size = 32
-disabled = true
+theme_override_styles/normal = SubResource("StyleBoxFlat_n15yj")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7whhf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5c2t2")
 text = "Credit"
 
 [node name="ExitButton" type="Button" parent="VBoxContainer" unique_id=1234567892]
+custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.32156864, 0.27450982, 0.33333334, 1)
 theme_override_fonts/font = ExtResource("font_clear")
 theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_bawyk")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qfyqv")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pie25")
 text = "Exit"

@@ -24,17 +24,13 @@ func _process(_delta: float) -> void:
 	var global_rect = get_global_rect()
 	if global_rect.has_point(global_mouse):
 		if not is_hovered:
-			print("[MessageLogUI] Mouse in - entered")
 			_on_mouse_entered()
 	else:
 		if is_hovered:
-			print("[MessageLogUI] Mouse out - exited")
 			_on_mouse_exited()
 
 func _ready() -> void:
-	# Create and configure fade timer first
 	fade_timer = Timer.new()
-	# Create and configure fade timer first
 	fade_timer = Timer.new()
 	fade_timer.one_shot = true
 	fade_timer.wait_time = FADE_DELAY_SECONDS
@@ -48,10 +44,8 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
-	print("[MessageLogUI] Setting mouse_filter to STOP on main control")
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	
-	# Connect to global message log
 	if MessageLog.message_added.is_connected(_on_message_added):
 		MessageLog.message_added.disconnect(_on_message_added)
 	MessageLog.message_added.connect(_on_message_added)
@@ -138,13 +132,11 @@ func scroll_to_bottom() -> void:
 		v_scroll.value = v_scroll.max_value
 
 func _on_mouse_entered() -> void:
-	print("[MessageLogUI] Mouse entered - resetting to full opacity")
 	is_hovered = true
 	fade_timer.stop()
 	_fade_to(1.0, FADE_IN_TRANSITION_SECONDS)
 
 func _on_mouse_exited() -> void:
-	print("[MessageLogUI] Mouse exited - starting fade timer")
 	is_hovered = false
 	fade_timer.start()
 

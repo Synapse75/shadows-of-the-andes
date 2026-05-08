@@ -13,6 +13,7 @@ var current_turn: int = 0
 var ui_manager: UIManager
 var unit_manager: UnitManager
 var hovered_node: VillageNode = null
+var input_disabled: bool = false
 
 # Camera view adjacency - which cameras connect to which
 var camera_adjacency: Dictionary = {
@@ -126,6 +127,12 @@ func _process(_delta: float) -> void:
 	var node_at_pos = _get_node_at_position(global_mouse_pos)
 	
 	# Hover effect - always update shader, even during dragging
+	if input_disabled:
+		if hovered_node != null and hovered_node.has_method("set_hover_state"):
+			hovered_node.set_hover_state(false)
+			hovered_node = null
+		return
+	
 	if node_at_pos != hovered_node:
 		if hovered_node != null and hovered_node.has_method("set_hover_state"):
 			hovered_node.set_hover_state(false)
@@ -144,7 +151,7 @@ func _process(_delta: float) -> void:
 			hovered_node = null
 	
 	# Click detection - only when not dragging and not locked
-	if ui_manager.is_dragging or ui_manager.is_panel_locked:
+	if input_disabled or ui_manager.is_dragging or ui_manager.is_panel_locked:
 		return
 	
 	# Click detection in _process (since _input might be consumed by UI)
@@ -181,6 +188,9 @@ func _process(_delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	"""Handle mouse click - only consume if clicking on game nodes"""
+	if input_disabled:
+		return
+	
 	# Don't process clicks while dragging units
 	if ui_manager and ui_manager.is_dragging:
 		return
