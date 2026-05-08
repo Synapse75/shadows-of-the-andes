@@ -32,9 +32,13 @@ func _load_story_from_file() -> void:
 	"""从story.txt文件读取故事内容"""
 	var file = FileAccess.open("res://Scenes/story.txt", FileAccess.READ)
 	if file == null:
-		push_error("无法打开story.txt文件")
-		story_texts = ["错误：无法加载故事文件"]
-		# print("DEBUG: 文件打开失败")
+		story_texts = [
+			"In the eighteenth century, the Spanish colonizers ruled over the Andes.",
+			"The indigenous people suffered under heavy taxes and forced labor.",
+			"Their lands were seized, their culture suppressed, and their suffering deep.",
+			"A leader named Jose Gabriel Condorcanqui, who called himself Tupac Amaru II, rose to fight.",
+			"In the Shadows of the Andes, a rebellion was about to begin..."
+		]
 		return
 	
 	var content = file.get_as_text()

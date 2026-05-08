@@ -26,8 +26,11 @@ func _load_defeat_from_file() -> void:
 	"""从defeat.txt文件读取失败内容"""
 	var file = FileAccess.open("res://Scenes/defeat.txt", FileAccess.READ)
 	if file == null:
-		push_error("无法打开defeat.txt文件")
-		defeat_texts = ["Defeat! All your units have been defeated."]
+		defeat_texts = [
+			"Defeat! All your units have been destroyed.",
+			"The rebellion has been crushed.",
+			"The struggle for freedom continues..."
+		]
 		return
 	
 	var content = file.get_as_text()

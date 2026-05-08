@@ -1,8 +1,8 @@
-# PROJECT RATIONALE: Tupac Amaru: Rise of the Andes
+# PROJECT RATIONALE: Shadows of the Andes
 
 ## Project Overview
 
-"Tupac Amaru: Rise of the Andes" is an interactive turn-based strategy game developed in Godot 4.6 that dramatizes the historical Túpac Amaru II rebellion (1780-1781) against Spanish colonial rule in the Peruvian highlands. Rather than presenting history as passive narrative, the game invites players to inhabit decision-making roles as the rebel leader, managing resources, recruiting forces, controlling territory, and navigating the logistical constraints of mounting a resistance movement across geographically fragmented Andean terrain. The game begins in Tinta—the actual historical birthplace of the rebellion—and tasks players with progressively bringing 12 additional Andean settlements under their control while managing food production, unit movements across altitude zones, and tactical combat against Spanish forces. Victory is achieved when all 13 villages are controlled by the player; defeat occurs when all rebel units are eliminated.
+"Shadows of the Andes" is an interactive turn-based strategy game developed in Godot 4.6 that dramatizes the historical Túpac Amaru II rebellion (1780-1781) against Spanish colonial rule in the Peruvian highlands. Rather than presenting history as passive narrative, the game invites players to inhabit decision-making roles as the rebel leader, managing resources, recruiting forces, controlling territory, and navigating the logistical constraints of mounting a resistance movement across geographically fragmented Andean terrain. The game begins in Tinta—the actual historical birthplace of the rebellion—and tasks players with progressively bringing 12 additional Andean settlements under their control while managing food production, unit movements across altitude zones, and tactical combat against Spanish forces. Victory is achieved when all 13 villages are controlled by the player; defeat occurs when all rebel units are eliminated.
 
 ## Educational Purpose & Course Connection
 
@@ -70,7 +70,7 @@ The implementation represents approximately 4,000+ lines of GDScript across 20+ 
 
 ## Conclusion
 
-"Tupac Amaru: Rise of the Andes" demonstrates that interactive games can be rigorous vehicles for engaging with Latin American history, geography, and indigenous resistance movements. By making players grapple with Andean constraints, resource scarcity, and territorial strategy, the game invites non-specialists to understand the rebellion not as a historical curiosity but as a complex adaptive challenge. The project combines technical depth (game systems architecture), historical specificity (real villages and geographic constraints), and pedagogical innovation (mechanics-as-argument) to create an artifact that is both playable and intellectually substantive—a resource suitable for classroom use, historical education, or general audiences interested in interactive approaches to Latin American studies.
+"Shadows of the Andes" demonstrates that interactive games can be rigorous vehicles for engaging with Latin American history, geography, and indigenous resistance movements. By making players grapple with Andean constraints, resource scarcity, and territorial strategy, the game invites non-specialists to understand the rebellion not as a historical curiosity but as a complex adaptive challenge. The project combines technical depth (game systems architecture), historical specificity (real villages and geographic constraints), and pedagogical innovation (mechanics-as-argument) to create an artifact that is both playable and intellectually substantive—a resource suitable for classroom use, historical education, or general audiences interested in interactive approaches to Latin American studies.
 
 ---
 

@@ -26,8 +26,11 @@ func _load_victory_from_file() -> void:
 	"""从victory.txt文件读取胜利内容"""
 	var file = FileAccess.open("res://Scenes/victory.txt", FileAccess.READ)
 	if file == null:
-		push_error("无法打开victory.txt文件")
-		victory_texts = ["Victory! You have liberated all villages."]
+		victory_texts = [
+			"Victory! You have liberated all of the Andes.",
+			"The Spanish colonial grip on the region has been broken.",
+			"The people are free."
+		]
 		return
 	
 	var content = file.get_as_text()
